@@ -1,0 +1,74 @@
+[
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/app",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "app",
+        "id": "i73N2U4DLZIgF8qB"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/config",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "config",
+        "id": "N4txsgAJEKQzWjfq"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/database",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "database",
+        "id": "73dJtUr9SACjRHEY"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/bootstrap",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "bootstrap",
+        "id": "jtBKCyGeRAunzpc7"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/lang",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "lang",
+        "id": "XvQV8SW7mraxjqlY"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/public",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "public",
+        "id": "UO5wVBnlXQ4PN8be"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/resources",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "resources",
+        "id": "0EJsZtyPBl879AUQ"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/routes",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "routes",
+        "id": "H4I81SAbuya57NvT"
+    },
+    {
+        "type": "Directory",
+        "name": "/home/zeze/Documents/projects/mikrogig/storage",
+        "parent_id": null,
+        "workspaceRoot": "/home/zeze/Documents/projects/mikrogig",
+        "workspacePath": "storage",
+        "id": "wmikWCx0JEBspASO"
+    }
+]

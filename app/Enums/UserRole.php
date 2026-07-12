@@ -4,12 +4,13 @@ namespace App\Enums;
 
 enum UserRole: string
 {
-  case User = 'user';
+  case Freelancer = 'freelancer';
+  case Client = 'client';
   case Admin = 'admin';
 
   public static function defaultValue(): string
   {
-    return self::User->value;
+    return self::Freelancer->value;
   }
 
   public static function values(): array

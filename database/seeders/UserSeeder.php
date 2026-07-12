@@ -27,14 +27,14 @@ class UserSeeder extends Seeder
     }
 
     if (!User::query()->where('email', 'user@example.com')->exists()) {
-      $this->command->info('Creating default user');
+      $this->command->info('Creating freelancer user');
       User::factory()->unverified()->create([
         'name' => 'Regular User',
         'email' => 'zidanfath72@gmail.com',
-        'role' => UserRole::User->value,
+        'role' => UserRole::Freelancer->value,
       ]);
     } else {
-      $this->command->info('Default user already exists. Skipping..');
+      $this->command->info('Freelancer user already exists. Skipping..');
     }
 
     $newUser = 20;
