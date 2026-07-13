@@ -1,11 +1,39 @@
-import { Head, usePage } from '@inertiajs/react';
-import type { PropsWithChildren, ReactElement, ReactNode } from 'react';
+import { Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import Layout from './Layout';
+import { Logo } from '@/components/brand/logo';
 
-export default function AuthLayout({ children }: PropsWithChildren) {
+type AuthLayoutProps = {
+  title?: string;
+  heading?: string;
+  description?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+};
+
+export default function AuthLayout({
+  title,
+  heading,
+  description,
+  children,
+  footer,
+}: AuthLayoutProps) {
   return (
     <Layout>
-      <main>{children}</main>
+      {title && <Head title={title} />}
+      <main className="flex min-h-screen flex-col items-center justify-center py-10">
+        {heading && description && (
+          <header className="gap-6 px-6 flex flex-col items-center">
+            <Logo size="large" />
+            <div className="text-center">
+              <h1 className="text-2xl font-bold">{heading}</h1>
+              <p className="max-w-md text-muted-foreground">{description}</p>
+            </div>
+          </header>
+        )}
+        {children}
+        {footer}
+      </main>
     </Layout>
   );
 }

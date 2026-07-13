@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\MustOnboard;
 use App\Http\Middleware\NoBannedUser;
 use App\Http\Middleware\NoVerified;
 use App\Http\Middleware\RoleCheck;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'unverified' => NoVerified::class,
             'signed' => ValidateSignature::class,
             'verified' => Verified::class,
+            'must_onboard' => MustOnboard::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

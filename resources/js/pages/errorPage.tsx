@@ -1,7 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import ErrorImage from '@/assets/ErrorPage/UmaruError.webp';
 import { Button } from '@/components/ui/button';
-import { home } from '@/routes';
+import { home, logout } from '@/routes';
 
 type ErrorStatus = 403 | 404 | 500 | 503;
 
@@ -45,10 +45,16 @@ export default function ErrorPage({ status }: ErrorPageProps) {
           Kembali
         </Button>
       ) : (
-        <Button variant={'outline'} size={'lg'} className="mt-4" onClick={() => router.visit(home.url())}>
-          Kembali ke Beranda
-        </Button>
+        <div className="flex gap-2">
+          <Button variant={'outline'} size={'lg'} className="mt-4" onClick={() => router.visit(home.url())}>
+            Kembali ke Homepage
+          </Button>
+          <Button variant={'destructive'} size={'lg'} className="mt-4" onClick={() => router.post(logout.url())}>
+            Logout
+          </Button>
+        </div>
       )}
+
     </div>
   );
 }

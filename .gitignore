@@ -25,3 +25,10 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.agents
+/.vscode
+AGENTS.md
+CLAUDE.md
+/.claude
+/.gemini
+/.github

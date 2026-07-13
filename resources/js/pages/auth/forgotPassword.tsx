@@ -4,14 +4,10 @@ import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
 import { login } from '@/routes';
 import password from '@/routes/password';
-import { Head, useForm } from '@inertiajs/react';
-import { ReactElement, ReactNode, useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { type ReactNode, useState } from 'react';
 
-type InertiaPageWithLayout = (() => ReactElement) & {
-  layout?: (page: ReactNode) => ReactNode;
-};
-
-const ForgotPassword: InertiaPageWithLayout = () => {
+const ForgotPassword = () => {
 
   const { data, setData, post, processing, errors } = useForm({
     email: '',
@@ -33,18 +29,12 @@ const ForgotPassword: InertiaPageWithLayout = () => {
   }
 
   return (
-    <div className="flex items-center justify-center h-screen flex-col ">
-      <Head title="Lupa Password" />
-      <p className="text-2xl font-bold mb-4">Reset Password</p>
-      <p className="text-muted-foreground text-center max-w-md px-6">
-        Masukkan email Anda dan kami akan mengirimkan link untuk mengatur ulang password Anda.
-      </p>
-
+    <>
       {/*
       using useForm just for this one case because it's simpler than doing workarounds
       when using Form component (trying to trigger handlePasswordResetRequest on submit)
       */}
-      <div className="p-6 max-w-xl w-full">
+      <div className="w-full max-w-xl p-6">
         <Field className="mb-4" data-invalid={!!errors.email}>
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
@@ -59,7 +49,7 @@ const ForgotPassword: InertiaPageWithLayout = () => {
           />
           <FieldDescription>
             {errors.email ? (
-              <span className="text-red-500 capitalize">{errors.email}</span>
+              <span className="text-destructive capitalize">{errors.email}</span>
             ) : 'Masukkan email terdaftar Anda.'}
           </FieldDescription>
         </Field>
@@ -69,14 +59,19 @@ const ForgotPassword: InertiaPageWithLayout = () => {
           {processing ? 'Memproses...' : 'Kirim Link Reset'}
         </Button>
       </div>
-
-      <div className='flex flex-col items-center'>
-        <p className="mt-4"><a href={login.url()} className="text-blue-500">Kembali ke Login</a></p>
-      </div>
-    </div>
+    </>
   );
 };
 
-ForgotPassword.layout = (page: ReactNode) => <AuthLayout>{page}</AuthLayout>;
+ForgotPassword.layout = (page: ReactNode) => (
+  <AuthLayout
+    title="Lupa Password"
+    heading="Reset Password"
+    description="Masukkan email Anda dan kami akan mengirimkan link untuk mengatur ulang password Anda."
+    footer={<p className="mt-4"><a href={login.url()} className="font-semibold text-primary hover:underline">Kembali ke Login</a></p>}
+  >
+    {page}
+  </AuthLayout>
+);
 
 export default ForgotPassword;

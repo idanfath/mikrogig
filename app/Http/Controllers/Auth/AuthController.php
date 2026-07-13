@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -118,11 +117,10 @@ class AuthController extends Controller
 
     public function resendVerification(Request $request)
     {
-        $user = User::where('id', $request->id)->first();
+        $user = Auth::user();
 
         if (! $user || ($user->hasVerifiedEmail())) {
-            // Don't reveal that the email doesn't exist / already verified in the system :)
-            return back()->with('success', 'Link verifikasi telah dikirim. ');
+            return back()->with('success', 'Email sudah diverifikasi.');
         }
 
         logger()->info("Resending verification email to user ID {$user->id} ({$user->email})");

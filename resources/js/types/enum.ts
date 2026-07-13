@@ -7,7 +7,8 @@ export const NotificationTargetType = {
 export type NotificationTargetType = typeof NotificationTargetType[keyof typeof NotificationTargetType]
 
 export const UserRole = {
-  User: "user",
+  Freelancer: "freelancer",
+  Client: "client",
   Admin: "admin",
 } as const;
 export type UserRole = typeof UserRole[keyof typeof UserRole]

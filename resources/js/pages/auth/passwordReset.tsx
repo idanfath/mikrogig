@@ -3,28 +3,18 @@ import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
 import password from '@/routes/password';
-import { Form, Head, usePage } from '@inertiajs/react';
-import { ReactElement, ReactNode } from 'react';
+import { Form, usePage } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 
-type InertiaPageWithLayout = (() => ReactElement) & {
-  layout?: (page: ReactNode) => ReactNode;
-};
-
-const PasswordReset: InertiaPageWithLayout = () => {
+const PasswordReset = () => {
 
   const id = usePage().props.id as number;
 
 
   return (
-    <div className="flex items-center justify-center h-screen flex-col ">
-      <Head title="Reset Password" />
-      <p className="text-2xl font-bold mb-2">Reset Password</p>
-      <p className="text-muted-foreground text-center max-w-md px-6">
-        Silakan masukkan password baru Anda di bawah ini.
-      </p>
-
+    <>
       {/* Action placeholder as the route doesn't exist yet */}
-      <Form action={password.reset.submit.url({ id })} method="post" className="p-6 max-w-xl w-full">
+      <Form action={password.reset.submit.url({ id })} method="post" className="w-full max-w-xl p-6">
         {({ errors, processing }) => (
           <>
             {/* Token should be handled here, typically passed via props from the controller */}
@@ -41,7 +31,7 @@ const PasswordReset: InertiaPageWithLayout = () => {
               />
               <FieldDescription>
                 {errors.password ? (
-                  <span className="text-red-500 capitalize">{errors.password}</span>
+                  <span className="text-destructive capitalize">{errors.password}</span>
                 ) : 'Masukkan password baru Anda.'}
               </FieldDescription>
             </Field>
@@ -57,7 +47,7 @@ const PasswordReset: InertiaPageWithLayout = () => {
               />
               <FieldDescription>
                 {errors.password_confirmation ? (
-                  <span className="text-red-500 capitalize">{errors.password_confirmation}</span>
+                  <span className="text-destructive capitalize">{errors.password_confirmation}</span>
                 ) : 'Ulangi password baru Anda.'}
               </FieldDescription>
             </Field>
@@ -68,10 +58,18 @@ const PasswordReset: InertiaPageWithLayout = () => {
           </>
         )}
       </Form>
-    </div>
+    </>
   );
 };
 
-PasswordReset.layout = (page: ReactNode) => <AuthLayout>{page}</AuthLayout>;
+PasswordReset.layout = (page: ReactNode) => (
+  <AuthLayout
+    title="Reset Password"
+    heading="Reset Password"
+    description="Silakan masukkan password baru Anda di bawah ini."
+  >
+    {page}
+  </AuthLayout>
+);
 
 export default PasswordReset;

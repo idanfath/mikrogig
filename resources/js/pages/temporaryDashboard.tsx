@@ -94,6 +94,7 @@ const TemporaryDashboard: InertiaPageWithLayout = () => {
           <div>
             <p className="text-sm font-medium text-muted-foreground">Dashboard</p>
             <h1 className="text-3xl font-semibold tracking-tight">Welcome, {user.name}</h1>
+            <pre>{JSON.stringify(user, null, 2)}</pre>
             <p className="mt-2 text-sm text-muted-foreground">Here is your inbox overview.</p>
           </div>
           <div className="flex items-center gap-3">

@@ -22,7 +22,7 @@ class Verified
         if (! $user) {
             return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu.');
         } elseif (! $user->hasVerifiedEmail()) {
-            Auth::logout();
+            // Auth::logout();
             $url = URL::signedRoute('verification.notice', ['user' => $user->id]);
 
             return redirect()

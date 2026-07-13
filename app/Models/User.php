@@ -46,11 +46,12 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
-    // known issue: this will cause an N+1 query when fetching multiple users, but it's fine since scope is small.
+    protected $withExists = ['activeBan'];
+
     protected function IsBanned(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->activeBan()->exists()
+            get: fn () => (bool) ($this->active_ban_exists ?? $this->activeBan()->exists())
         );
     }
 
@@ -96,15 +97,15 @@ class User extends Authenticatable implements MustVerifyEmail
         );
 
         $emailData = MailService::buildEmailData(
-            subject: 'Verify Your Email Address',
-            body: 'Click the button below to verify your email address.',
+            subject: 'Verifikasi Alamat Email Kamu',
+            body: 'Klik tombol di bawah ini untuk memverifikasi alamat email kamu. Link ini akan kedaluwarsa dalam 60 menit. Jika kamu tidak membuat akun, abaikan email ini.',
             actionUrl: $verificationUrl,
-            actionLabel: 'Verify Email'
+            actionLabel: 'Verifikasi Email'
         );
 
         SendMailJob::dispatch(
             to: $this->email,
-            subject: 'Verify Your Email Address',
+            subject: 'Verifikasi Alamat Email Kamu',
             data: $emailData
         );
     }
