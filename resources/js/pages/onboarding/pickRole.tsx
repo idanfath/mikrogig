@@ -5,9 +5,8 @@ import PickCard from '@/components/onboarding/pickCard';
 import { UserRole } from '@/types/enum';
 import { useForm } from '@inertiajs/react';
 import account from '@/routes/account';
-import freelancer_illustration from '@/assets/common/freelancer_laptop_illust.png';
-import client_illustration from '@/assets/common/client_illust.png';
-import { Badge } from '@/components/ui/badge';
+import freelancer_illustration from '@/assets/illustrations/worker_illustration.png';
+import client_illustration from '@/assets/illustrations/client_informal_illustration.png';
 
 type InertiaPageWithLayout = (() => ReactElement) & {
   layout?: (page: ReactNode) => ReactNode;
@@ -32,12 +31,13 @@ const PickRole: InertiaPageWithLayout = () => {
         <PickCard
           title="Menawarkan Jasa"
           description="Saya ingin menawarkan keahlian saya."
-          badge="Freelancer"
+          badge="Pekerja"
           illustration={{
             src: freelancer_illustration,
             alt: "Ilustrasi freelancer bekerja dengan laptop",
             height: 240,
             translateY: 100,
+            translateX: 30
           }}
           isSelected={data.role === 'freelancer'}
           onSelect={() => setData('role', 'freelancer')}
@@ -45,12 +45,13 @@ const PickRole: InertiaPageWithLayout = () => {
         <PickCard
           title="Mencari Jasa"
           description="Saya ingin mencari penyedia jasa freelance."
-          badge="Client"
+          badge="Pemberi Kerja"
           illustration={{
             src: client_illustration,
             alt: "Ilustrasi klien mencari jasa freelance",
-            height: 400,
-            translateY: 250,
+            height: 250,
+            translateY: 100,
+            translateX: 35
           }}
           isSelected={data.role === 'client'}
           onSelect={() => setData('role', 'client')}
