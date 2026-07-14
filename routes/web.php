@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AccountSetupController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\AccountSetupController;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,16 +26,20 @@ Route::middleware('guest')->group(function () {
 
 // email verification
 Route::get('/email/verify/{user}', [AuthController::class, 'verify'])->middleware(['signed', 'throttle:2,1'])->name('verification.verify');
-Route::get('/email/verify/notice/{user}', [AuthController::class, 'showVerificationNotice'])->name('verification.notice')->middleware('signed');  // permanent link with email as param, but signed to prevent tampering
 
 Route::middleware(['auth'])->group(function () {
-    Route::post('/email/verify/resend', [AuthController::class, 'resendVerification'])->name('verification.send')->middleware('throttle:1,1');  // limit to 1 request per minute
+    Route::get('/email/verify/notice/{user}', [AuthController::class, 'showVerificationNotice'])->name('verification.notice')->middleware(['signed', 'unverified']);  // permanent link with email as param, but signed to prevent tampering
+    Route::post('/email/verify/resend', [AuthController::class, 'resendVerification'])->name('verification.send')->middleware(['throttle:1,1', 'unverified']);  // limit to 1 request per minute
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-Route::middleware(['auth', 'no_banned_user', 'verified'])->prefix('account')->group(function () {
-    Route::get('/role', [AccountSetupController::class, 'showRoleSelection'])->name('account.role');
-    Route::post('/role/{role}', [AccountSetupController::class, 'selectRole'])->name('account.role.select');
+// onboarding process
+Route::middleware(['auth', 'verified', 'no_banned_user'])->prefix('onboarding')->group(function () {
+    Route::get('/', [AccountSetupController::class, 'show'])->name('onboarding');
+    Route::post('/role', [AccountSetupController::class, 'selectRole'])->name('onboarding.role');
+    Route::post('/avatar', [AccountSetupController::class, 'setupAvatar'])->name('onboarding.avatar');
+    Route::post('/profile', [AccountSetupController::class, 'setupProfile'])->name('onboarding.profile');
+    Route::post('/skip', [AccountSetupController::class, 'skip'])->name('onboarding.skip');
 });
 
 Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])->group(function () {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import PickCard from '@/components/onboarding/pickCard';
 import { UserRole } from '@/types/enum';
 import { useForm } from '@inertiajs/react';
-import account from '@/routes/account';
+import onboarding from '@/routes/onboarding';
 import freelancer_illustration from '@/assets/illustrations/worker_illustration.png';
 import client_illustration from '@/assets/illustrations/client_informal_illustration.png';
 
@@ -12,7 +12,7 @@ type InertiaPageWithLayout = (() => ReactElement) & {
   layout?: (page: ReactNode) => ReactNode;
 };
 
-const PickRole: InertiaPageWithLayout = () => {
+const OnboardingRole: InertiaPageWithLayout = () => {
   const { data, setData, post, processing } = useForm({
     role: null as UserRole | null,
   });
@@ -20,7 +20,7 @@ const PickRole: InertiaPageWithLayout = () => {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (data.role) {
-      post(account.role.select.url(data.role));
+      post(onboarding.role.url());
     }
   };
 
@@ -71,7 +71,7 @@ const PickRole: InertiaPageWithLayout = () => {
   );
 }
 
-PickRole.layout = (page: ReactNode) => (
+OnboardingRole.layout = (page: ReactNode) => (
   <OnboardingLayout
     title="Pilih peran Anda untuk melanjutkan"
     description="Pilih peran Anda untuk menyesuaikan pengalaman Anda di platform kami."
@@ -80,4 +80,4 @@ PickRole.layout = (page: ReactNode) => (
   </OnboardingLayout>
 );
 
-export default PickRole;
+export default OnboardingRole;

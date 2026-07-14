@@ -76,13 +76,19 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // TODO: Redirect to a custom goodbye page if needed
         return redirect()->route('home')->with('success', 'Logout berhasil!');
     }
 
     protected function redirectAfterLogin(User $user)
     {
-        // TODO: Implement role-based redirection if needed
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->signedRoute('verification.notice', ['user' => $user->id]);
+        }
+
+        if ($user->onboarding_step) {
+            return redirect()->route('onboarding');
+        }
+
         return redirect()->intended(route('dashboard'));
     }
 
@@ -118,10 +124,6 @@ class AuthController extends Controller
     public function resendVerification(Request $request)
     {
         $user = Auth::user();
-
-        if (! $user || ($user->hasVerifiedEmail())) {
-            return back()->with('success', 'Email sudah diverifikasi.');
-        }
 
         logger()->info("Resending verification email to user ID {$user->id} ({$user->email})");
 
