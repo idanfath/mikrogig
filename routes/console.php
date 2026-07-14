@@ -86,3 +86,16 @@ Artisan::command('role:remove {email}', function ($email) {
     $user->save();
     $this->info("Role removed from user successfully: {$email}");
 })->purpose('Remove role from a user by email');
+
+// set onboarding step
+Artisan::command('onboarding:set {email} {step}', function ($email, $step) {
+    $user = User::query()->where('email', $email)->first();
+    if (! $user) {
+        $this->error("No user found with email: {$email}");
+
+        return;
+    }
+    $user->onboarding_step = $step;
+    $user->save();
+    $this->info("Onboarding step set to '{$step}' for user: {$email}");
+})->purpose('Set onboarding step for a user by email');

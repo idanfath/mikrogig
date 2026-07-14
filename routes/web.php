@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\AccountSetupController;
+use App\Http\Controllers\OnboardingController;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,11 +35,11 @@ Route::middleware(['auth'])->group(function () {
 
 // onboarding process
 Route::middleware(['auth', 'verified', 'no_banned_user'])->prefix('onboarding')->group(function () {
-    Route::get('/', [AccountSetupController::class, 'show'])->name('onboarding');
-    Route::post('/role', [AccountSetupController::class, 'selectRole'])->name('onboarding.role');
-    Route::post('/avatar', [AccountSetupController::class, 'setupAvatar'])->name('onboarding.avatar');
-    Route::post('/profile', [AccountSetupController::class, 'setupProfile'])->name('onboarding.profile');
-    Route::post('/skip', [AccountSetupController::class, 'skip'])->name('onboarding.skip');
+    Route::get('/', [OnboardingController::class, 'show'])->name('onboarding');
+    Route::post('/role', [OnboardingController::class, 'selectRole'])->name('onboarding.role');
+    Route::post('/avatar', [OnboardingController::class, 'setupAvatar'])->name('onboarding.avatar');
+    Route::post('/profile', [OnboardingController::class, 'setupProfile'])->name('onboarding.profile');
+    Route::post('/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
 });
 
 Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])->group(function () {

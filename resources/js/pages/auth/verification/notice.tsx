@@ -1,7 +1,8 @@
-import { Button } from '@/components/ui/button';
-import PleaseVerifyImage from '@/assets/verification/notice/UmaruPlsVerify.webp';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ReactElement, ReactNode, useState } from 'react';
+import type { ReactElement, ReactNode} from 'react';
+import { useState } from 'react';
+import PleaseVerifyImage from '@/assets/verification/notice/UmaruPlsVerify.webp';
+import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layout/AuthLayout';
 import { home, logout } from '@/routes';
 import verification from '@/routes/verification';
@@ -17,7 +18,9 @@ const Notice: InertiaPageWithLayout = () => {
         if (typeof window === 'undefined') {
             return null;
         }
+
         const storedTime = localStorage.getItem('lastVerificationEmailSent');
+
         return storedTime ? parseInt(storedTime) : null;
     });
 

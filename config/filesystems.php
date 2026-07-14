@@ -60,6 +60,19 @@ return [
             'report' => false,
         ],
 
+        'cos' => [
+            'driver' => 's3',
+            'key' => env('COS_SECRET_ID'),
+            'secret' => env('COS_SECRET_KEY'),
+            'region' => env('COS_REGION', 'ap-guangzhou'),
+            'bucket' => env('COS_BUCKET'),
+            'endpoint' => env('COS_ENDPOINT'),
+            'url' => env('COS_URL'),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

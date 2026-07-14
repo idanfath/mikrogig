@@ -1,32 +1,52 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { dashboard, login, logout, register } from '@/routes';
-import { downloadLocallyAvailableImage } from '@/lib/image_utility';
 import toast from 'react-hot-toast';
+import { downloadLocallyAvailableImage } from '@/lib/image_utility';
+import { dashboard, login, logout, register } from '@/routes';
 
 export default function Home() {
-  return (
-    <div className="flex items-center justify-center min-h-screen flex-col gap-8 p-4">
-      <Head title="Home" />
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-2">Selamat Datang di Home Page!</h1>
-        <p className="text-lg text-gray-600">Ini adalah halaman utama aplikasi Anda.</p>
-      </div>
+    return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-4">
+            <Head title="Home" />
+            <div className="text-center">
+                <h1 className="mb-2 text-4xl font-bold">
+                    Selamat Datang di Home Page!
+                </h1>
+                <p className="text-lg text-gray-600">
+                    Ini adalah halaman utama aplikasi Anda.
+                </p>
+            </div>
 
-      <div className="flex flex-col gap-2">
-        <p className="font-semibold text-gray-700">Common Route</p>
-        <a href={login.url()} className="text-blue-500 hover:underline">Login</a>
-        <a href={register.url()} className="text-blue-500 hover:underline">Register</a>
-        <a href={dashboard.url()} className="text-blue-500 hover:underline">Dashboard</a>
-        <a onClick={() => {
-          router.post(logout.url());
-        }} className="text-blue-500 hover:underline cursor-pointer">Logout</a>
-      </div>
+            <div className="flex flex-col gap-2">
+                <p className="font-semibold text-gray-700">Common Route</p>
+                <a href={login.url()} className="text-blue-500 hover:underline">
+                    Login
+                </a>
+                <a
+                    href={register.url()}
+                    className="text-blue-500 hover:underline"
+                >
+                    Register
+                </a>
+                <a
+                    href={dashboard.url()}
+                    className="text-blue-500 hover:underline"
+                >
+                    Dashboard
+                </a>
+                <a
+                    onClick={() => {
+                        router.post(logout.url());
+                    }}
+                    className="cursor-pointer text-blue-500 hover:underline"
+                >
+                    Logout
+                </a>
+            </div>
 
-      <hr className="w-full max-w-md" />
-
-    </div>
-  );
+            <hr className="w-full max-w-md" />
+        </div>
+    );
 }
 
 // function CompressionTest() {
@@ -61,7 +81,6 @@ export default function Home() {
 //       formData.append('quality', quality.toString());
 //       if (maxWidth) formData.append('maxWidth', maxWidth.toString());
 //       if (maxHeight) formData.append('maxHeight', maxHeight.toString());
-
 
 //       const response = await fetch(compress.url(), {
 //         method: 'POST',

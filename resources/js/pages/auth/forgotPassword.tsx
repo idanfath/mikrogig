@@ -1,11 +1,12 @@
+import { useForm } from '@inertiajs/react';
+import {  useState } from 'react';
+import type {ReactNode} from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
 import { login } from '@/routes';
 import password from '@/routes/password';
-import { useForm } from '@inertiajs/react';
-import { type ReactNode, useState } from 'react';
 
 const ForgotPassword = () => {
     const { data, setData, post, processing, errors } = useForm({
@@ -16,7 +17,9 @@ const ForgotPassword = () => {
         if (typeof window === 'undefined') {
             return null;
         }
+
         const storedTime = localStorage.getItem('lastPasswordResetRequest');
+
         return storedTime ? parseInt(storedTime) : null;
     });
 

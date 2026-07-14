@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Jobs\SendMailJob;
+use App\Services\CompressionService;
 use App\Services\MailService;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -39,11 +41,40 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * Get the avatar URL attribute.
+     *
+     * avatar_url is for direct access, avatar is for storage path,
+     * avatar is not hidden since avatar_url might contain default avatar so we always have avatar to show in the app
+     */
     protected function AvatarUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => Storage::url($this->avatar ?? 'default_avatar.png')
+            get: fn () => Storage::url($this->avatar ?? 'avatars/default_avatar.jpg')
         );
+    }
+
+    public function updateAvatar(UploadedFile $file): string
+    {
+        if ($this->avatar && $this->avatar !== 'avatars/default_avatar.jpg') {
+            Storage::disk('cos')->delete($this->avatar);
+        }
+
+        $content = file_get_contents($file->getRealPath());
+
+        if ($file->getSize() > 2.5 * 1024 * 1024) {
+            $content = app(CompressionService::class)->compress(
+                $content, 'jpg', ['quality' => 80, 'maxWidth' => 512]
+            );
+        }
+
+        $path = 'avatars/'.uniqid().'.jpg';
+        Storage::disk('cos')->put($path, $content, 'public');
+
+        $this->avatar = $path;
+        $this->save();
+
+        return $path;
     }
 
     protected $withExists = ['activeBan'];
@@ -75,9 +106,9 @@ class User extends Authenticatable implements MustVerifyEmail
         // Find the most recent active ban for this user
         return $this
             ->hasOne(UserBan::class)
-          // row where not unbanned
+            // row where not unbanned
             ->whereNull('unbanned_at')
-          // and either banned_until is null or in the future
+            // and either banned_until is null or in the future
             ->where(function ($q) {
                 $q
                     ->whereNull('banned_until')
