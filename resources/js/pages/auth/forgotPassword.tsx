@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import {  useState } from 'react';
-import type {ReactNode} from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';

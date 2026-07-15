@@ -1,11 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
-import {
-    useEffect
-    
-    
-    
-} from 'react';
-import type {PropsWithChildren, ReactElement, ReactNode} from 'react';
+import { useEffect } from 'react';
+import type { PropsWithChildren, ReactElement, ReactNode } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function Layout({ children }: PropsWithChildren) {

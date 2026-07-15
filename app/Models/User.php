@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use App\Jobs\SendMailJob;
 use App\Services\CompressionService;
 use App\Services\MailService;
@@ -38,6 +39,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'date_of_birth' => 'date',
+            'role' => UserRole::class,
         ];
     }
 
@@ -101,14 +104,26 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(NotificationRecipient::class);
     }
 
+    public function freelancerProfile()
+    {
+        return $this->hasOne(FreelancerProfile::class);
+    }
+
+    protected function location(): Attribute
+    {
+        return Attribute::get(fn () => $this->regency_name && $this->province_name
+            ? "{$this->regency_name}, {$this->province_name}"
+            : null);
+    }
+
     public function activeBan()
     {
-        // Find the most recent active ban for this user
+        // find the most recent active ban for this user :o
         return $this
             ->hasOne(UserBan::class)
-            // row where not unbanned
+          // row where not unbanned
             ->whereNull('unbanned_at')
-            // and either banned_until is null or in the future
+          // and either banned_until is null or in the future
             ->where(function ($q) {
                 $q
                     ->whereNull('banned_until')

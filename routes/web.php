@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified', 'no_banned_user'])->prefix('onboarding')-
     Route::post('/role', [OnboardingController::class, 'selectRole'])->name('onboarding.role');
     Route::post('/avatar', [OnboardingController::class, 'setupAvatar'])->name('onboarding.avatar');
     Route::post('/profile', [OnboardingController::class, 'setupProfile'])->name('onboarding.profile');
+    Route::post('/enhance', [OnboardingController::class, 'enhanceInputField'])->name('onboarding.enhance');
     Route::post('/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
 });
 

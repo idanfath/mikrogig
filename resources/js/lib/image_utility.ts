@@ -80,7 +80,8 @@ export async function compressImage(
             );
         }
 
-        const skipQualityCompression = minSizeBytes > 0 && file.size < minSizeBytes;
+        const skipQualityCompression =
+            minSizeBytes > 0 && file.size < minSizeBytes;
 
         if (doToast) {
             toast.loading(`Mengompres gambar...`);

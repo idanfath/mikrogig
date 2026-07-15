@@ -53,33 +53,42 @@ const OnboardingAvatar: InertiaPageWithLayout = () => {
     };
 
     return (
-        <form onSubmit={submit} className="flex flex-1 flex-col items-center gap-4">
-            <div className="w-full max-w-xl rounded-2xl border border-neutral-100 bg-white p-8 shadow-xs flex flex-col items-center gap-4 dark:border-neutral-800 dark:bg-neutral-900">
-
-
-                <div className='flex gap-4'>
-                    <div className="relative size-36 rounded-full border-2 border-dashed border-neutral-200 bg-neutral-50/50 flex items-center justify-center dark:border-neutral-700 dark:bg-neutral-800/50">
+        <form
+            onSubmit={submit}
+            className="flex flex-1 flex-col items-center gap-4"
+        >
+            <div className="flex w-full max-w-xl flex-col items-center gap-4 rounded-2xl border border-neutral-100 bg-white p-8 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="flex gap-4">
+                    <div className="relative flex size-36 items-center justify-center rounded-full border-2 border-dashed border-neutral-200 bg-neutral-50/50 dark:border-neutral-700 dark:bg-neutral-800/50">
                         {preview ? (
                             <img
                                 src={preview}
                                 alt="Preview avatar"
-                                className="size-full object-cover rounded-full"
+                                className="size-full rounded-full object-cover"
                             />
                         ) : (
                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
                                 <User className="size-10 text-neutral-400 dark:text-neutral-500" />
-                                <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 select-none">Belum ada foto</span>
+                                <span className="text-xs font-medium text-neutral-500 select-none dark:text-neutral-400">
+                                    Belum ada foto
+                                </span>
                             </div>
                         )}
                     </div>
-                    <div className='h-full flex flex-col gap-1'>
+                    <div className="flex h-full flex-col gap-1">
                         <div className="flex items-center gap-2">
-                            <p className="font-semibold text-neutral-900 dark:text-neutral-100">{auth.user.name}</p>
-                            <Badge variant="secondary" className="text-xs">{UserRoleFrontendLabel[auth.user.role]}</Badge>
+                            <p className="font-semibold text-neutral-900 dark:text-neutral-100">
+                                {auth.user.name}
+                            </p>
+                            <Badge variant="secondary" className="text-xs">
+                                {UserRoleFrontendLabel[auth.user.role]}
+                            </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">{auth.user.email}</p>
-                        <div className="mt-1 h-4 w-32 bg-neutral-100 rounded dark:bg-neutral-700" />
-                        <div className="mt-1 h-4 w-full bg-neutral-100 rounded dark:bg-neutral-700" />
+                        <p className="text-xs text-muted-foreground">
+                            {auth.user.email}
+                        </p>
+                        <div className="mt-1 h-4 w-32 rounded bg-neutral-100 dark:bg-neutral-700" />
+                        <div className="mt-1 h-4 w-full rounded bg-neutral-100 dark:bg-neutral-700" />
                     </div>
                 </div>
 
@@ -91,22 +100,20 @@ const OnboardingAvatar: InertiaPageWithLayout = () => {
                     >
                         <Camera /> {preview ? 'Ganti Foto' : 'Pilih Foto'}
                     </Button>
-                    {
-                        preview && (
-                            <>
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    onClick={() => {
-                                        setPreview(null);
-                                        setData('avatar', null);
-                                    }}
-                                >
-                                    <Trash /> Hapus Foto
-                                </Button>
-                            </>
-                        )
-                    }
+                    {preview && (
+                        <>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                onClick={() => {
+                                    setPreview(null);
+                                    setData('avatar', null);
+                                }}
+                            >
+                                <Trash /> Hapus Foto
+                            </Button>
+                        </>
+                    )}
                 </div>
 
                 <input
@@ -117,8 +124,9 @@ const OnboardingAvatar: InertiaPageWithLayout = () => {
                     className="hidden"
                 />
 
-                <p className="text-xs text-muted-foreground text-center leading-relaxed max-w-sm select-none">
-                    Pastikan wajah terlihat jelas. Ukuran maksimal 2MB. Foto profil kamu bisa diubah kapan saja di pengaturan akun.
+                <p className="max-w-sm text-center text-xs leading-relaxed text-muted-foreground select-none">
+                    Pastikan wajah terlihat jelas. Ukuran maksimal 2MB. Foto
+                    profil kamu bisa diubah kapan saja di pengaturan akun.
                 </p>
             </div>
 

@@ -54,8 +54,8 @@
 
 @theme {
     --font-sans:
-        'Plus Jakarta Sans Variable', -apple-system, ui-sans-serif, system-ui,
-        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        -apple-system, ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 }
 

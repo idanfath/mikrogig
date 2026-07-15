@@ -1,6 +1,5 @@
 import * as React from 'react';
-import logo from '@/assets/logo.svg';
-import logo_small from '@/assets/logo_small.svg';
+import asset from '@/lib/assets';
 import { cn } from '@/lib/utils';
 
 interface LogoProps extends React.ComponentProps<'a'> {
@@ -26,13 +25,13 @@ function Logo({
     <a className={cn('flex select-none', className)} href="/" {...props}>
       {type === 'full' ? (
         <img
-          src={logo}
+          src={asset('assets/logo/logo.svg')}
           alt="Mikrogig Logo"
           className={cn(sizeClass[size], imageClassName)}
         />
       ) : (
         <img
-          src={logo_small}
+          src={asset('assets/logo/logo_small.svg')}
           alt="Mikrogig Logo"
           className={cn(sizeClass[size], imageClassName)}
         />
