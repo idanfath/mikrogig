@@ -49,7 +49,7 @@ DOCUMENTATION
         .header-section {
             margin-bottom: 32px;
             text-align: left;
-            border-bottom: 3px solid #e11d48;
+            border-bottom: 3px solid #e8720c;
             padding-bottom: 24px;
         }
 
@@ -58,7 +58,7 @@ DOCUMENTATION
             font-weight: 700;
             text-transform: none;
             letter-spacing: 0;
-            color: #e11d48;
+            color: #e8720c;
             margin: 8px 0 0 0;
         }
 
@@ -77,7 +77,7 @@ DOCUMENTATION
 
         .heading-1 {
             font-size: 28px;
-            color: #e11d48;
+            color: #e8720c;
         }
 
         .heading-2 {
@@ -122,12 +122,12 @@ DOCUMENTATION
             letter-spacing: 0;
             text-decoration: none;
             color: #ffffff !important;
-            background-color: #e11d48;
+            background-color: #e8720c;
             transition: background-color 0.2s ease;
         }
 
         .btn:hover {
-            background-color: #be123c;
+            background-color: #cf6104;
         }
 
         .divider {

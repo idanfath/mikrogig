@@ -3,6 +3,7 @@ import { format, subYears } from 'date-fns';
 import { CalendarIcon, Loader2, MapPin, Sparkles, X } from 'lucide-react';
 import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -57,7 +58,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
         setLoadingProvinces(false);
       })
       .catch((err) => {
-        console.error('Gagal fetch provinsi:', err);
+        toast.error('Gagal memuat data provinsi.');
         setLoadingProvinces(false);
       });
   }, []);
@@ -68,7 +69,6 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
       .replace(/daerah khusus ibukota|provinsi|propinsi|kabupaten|kota/g, '')
       .trim();
 
-  // ponytail: track latest province to avoid race where old fetch overwrites GPS result -> 2x click bug
   const latestProvinceRef = useState<{ id: string }>({ id: '' })[0];
 
   useEffect(() => {
@@ -96,7 +96,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
         setRegencies(resData);
       })
       .catch((err) => {
-        console.error('Gagal fetch kabupaten/kota:', err);
+        toast.error('Gagal memuat data kabupaten/kota.');
       })
       .finally(() => {
         if (latestProvinceRef.id === pid) {
@@ -139,7 +139,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation tidak didukung oleh browser Anda.');
+      toast.error('Geolocation tidak didukung oleh browser Anda.');
       return;
     }
 
@@ -194,8 +194,6 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
             return name.includes(cityName) || cityName.includes(name);
           });
 
-          // ponytail: use functional updater to avoid stale `data` closure
-          // stale closure = need 2x click bug
           setData((prev) => ({
             ...prev,
             province_id: matchedProv.id,
@@ -203,22 +201,21 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
             regency_id: matchedReg ? matchedReg.id : '',
             regency_name: matchedReg ? matchedReg.name : '',
           }));
+          toast.success('Lokasi berhasil dideteksi.');
         } catch (err: any) {
-          console.error(err);
-          alert(err.message || 'Gagal mendeteksi lokasi.');
+          toast.error(err.message || 'Gagal mendeteksi lokasi.');
         } finally {
           setDetecting(false);
         }
       },
       (err) => {
-        console.error(err);
         let msg = 'Gagal mengakses GPS.';
 
         if (err.code === err.PERMISSION_DENIED) {
           msg = 'Izin lokasi ditolak oleh browser. Silakan aktifkan izin lokasi.';
         }
 
-        alert(msg);
+        toast.error(msg);
         setDetecting(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -280,6 +277,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
 
       if (result.value) {
         setData(field, result.value);
+        toast.success('Profil berhasil ditingkatkan.');
 
         if (field === 'title') {
           setLastEnhancedTitle(result.value);
@@ -287,8 +285,8 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
           setLastEnhancedBio(result.value);
         }
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      toast.error(error.message || 'Gagal meningkatkan dengan AI');
     } finally {
       if (field === 'title') {
         setEnhancingTitle(false);
@@ -339,9 +337,10 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
           }
         });
         setData('skills', newSkills);
+        toast.success('Rekomendasi keahlian berhasil ditambahkan.');
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      toast.error(error.message || 'Gagal merekomendasikan keahlian');
     } finally {
       setEnhancingSkills(false);
     }
@@ -519,6 +518,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   id="date_of_birth"
                   className="w-full justify-start font-normal"

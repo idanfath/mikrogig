@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -29,6 +30,11 @@ class AuthController extends Controller
                 ->with('error', 'Login gagal');
         }
         $v = $validator->validated();
+
+        $user = User::where('email', $v['email'])->first();
+        if ($user && is_null($user->password) && $user->google_id) {
+            return back()->with('error', 'Akun ini didaftarkan via Google. Silakan masuk menggunakan Google.');
+        }
 
         if (Auth::attempt($v)) {
             $request->session()->regenerate();
@@ -187,5 +193,45 @@ class AuthController extends Controller
         Auth::login($user);
 
         return redirect()->route('dashboard')->with('success', 'Password berhasil direset!');
+    }
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            $user = User::where('google_id', $googleUser->getId())
+                ->orWhere('email', $googleUser->getEmail())
+                ->first();
+
+            if ($user) {
+                if (! $user->google_id) {
+                    $user->update([
+                        'google_id' => $googleUser->getId(),
+                        'email_verified_at' => $user->email_verified_at ?? now(),
+                    ]);
+                }
+            } else {
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'email_verified_at' => now(),
+                ]);
+            }
+
+            Auth::login($user);
+
+            $user->refresh();
+
+            return $this->redirectAfterLogin($user)->with('success', 'Login berhasil!');
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Login Google gagal: '.$e->getMessage());
+        }
     }
 }

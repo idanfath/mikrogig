@@ -112,8 +112,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function location(): Attribute
     {
         return Attribute::get(fn () => $this->regency_name && $this->province_name
-            ? "{$this->regency_name}, {$this->province_name}"
-            : null);
+          ? "{$this->regency_name}, {$this->province_name}"
+          : null);
     }
 
     public function activeBan()
@@ -170,15 +170,15 @@ class User extends Authenticatable implements MustVerifyEmail
         );
 
         $emailData = MailService::buildEmailData(
-            subject: 'Reset Your Password',
-            body: 'Click the button below to reset your password. If you did not request a password reset, no further action is required.',
+            subject: 'Atur Ulang Password Kamu',
+            body: 'Klik tombol di bawah ini untuk mengatur ulang password kamu. Link ini akan kedaluwarsa dalam 60 menit. Jika kamu tidak meminta pengaturan ulang password, abaikan email ini.',
             actionUrl: $resetUrl,
-            actionLabel: 'Reset Password'
+            actionLabel: 'Atur Ulang Password'
         );
 
         SendMailJob::dispatch(
             to: $this->email,
-            subject: 'Reset Your Password',
+            subject: 'Atur Ulang Password Kamu',
             data: $emailData
         );
     }

@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        if (!User::query()->where('email', 'admin@example.com')->exists()) {
+        if (! User::query()->where('email', 'admin@example.com')->exists()) {
             $this->command->info('Creating default admin user');
             User::factory()->create([
                 'name' => 'Admin User',
@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
             $this->command->info('Admin user already exists. Skipping..');
         }
 
-        if (!User::query()->where('email', 'freelancer@example.com')->exists()) {
+        if (! User::query()->where('email', 'freelancer@example.com')->exists()) {
             $this->command->info('Creating freelancer user');
             User::factory()->unverified()->create([
                 'name' => 'Regular User',
@@ -35,7 +35,7 @@ class UserSeeder extends Seeder
             $this->command->info('Freelancer user already exists. Skipping..');
         }
 
-        if (!User::query()->where('email', 'client@example.com')->exists()) {
+        if (! User::query()->where('email', 'client@example.com')->exists()) {
             $this->command->info('Creating client user');
             User::factory()->unverified()->create([
                 'name' => 'Regular User',

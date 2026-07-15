@@ -2,6 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Logo } from '@/components/brand/logo';
+import Layout from './Layout';
 
 interface OnboardingLayoutProps extends PropsWithChildren {
     title?: string;
@@ -14,7 +15,7 @@ export default function OnboardingLayout({
     description,
 }: OnboardingLayoutProps) {
     return (
-        <>
+        <Layout>
             <Head title={title ?? 'Onboarding'} />
             <main className="flex min-h-screen justify-center bg-background p-6 sm:items-center">
                 <div className="flex w-full max-w-2xl flex-col gap-4">
@@ -38,6 +39,7 @@ export default function OnboardingLayout({
                     {children}
                 </div>
             </main>
-        </>
+        </Layout>
     );
 }
+
