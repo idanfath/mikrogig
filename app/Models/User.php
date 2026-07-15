@@ -67,7 +67,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
         if ($file->getSize() > 2.5 * 1024 * 1024) {
             $content = app(CompressionService::class)->compress(
-                $content, 'jpg', ['quality' => 80, 'maxWidth' => 512]
+                $content, 'jpg', ['quality' => 80, 'maxWidth' => 512, 'maxHeight' => 512, 'crop' => true]
             );
         }
 

@@ -53,9 +53,11 @@ class CompressionService
 
         $maxW = isset($options['maxWidth']) ? (int) $options['maxWidth'] : null;
         $maxH = isset($options['maxHeight']) ? (int) $options['maxHeight'] : null;
-        if ($maxW || $maxH) {
-            $image->resize($maxW, $maxH);
-            // keep aspect ratio and avoid upscaling
+        $crop = isset($options['crop']) ? (bool) $options['crop'] : false;
+
+        if ($maxW && $maxH && $crop) {
+            $image->coverDown($maxW, $maxH);
+        } elseif ($maxW || $maxH) {
             $image->scaleDown($maxW, $maxH);
         }
 
