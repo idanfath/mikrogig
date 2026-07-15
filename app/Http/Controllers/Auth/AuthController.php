@@ -95,7 +95,7 @@ class AuthController extends Controller
             return redirect()->route('onboarding');
         }
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('app.home'));
     }
 
     public function showVerificationNotice(User $user)
@@ -111,7 +111,7 @@ class AuthController extends Controller
     {
         if ($user->hasVerifiedEmail()) {
             if (Auth::check()) {
-                return redirect()->route('dashboard')->with('success', 'Email kamu sudah diverifikasi.');
+                return redirect()->route('app.home')->with('success', 'Email kamu sudah diverifikasi.');
             } else {
                 return redirect()->route('login')->with('success', 'Email kamu sudah diverifikasi. Silakan login.');
             }
@@ -121,7 +121,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', 'Email terverifikasi!');
+        return redirect()->route('app.home')->with('success', 'Email terverifikasi!');
 
         // or dont log the user and just ask them to relog
         // redirect()->route('login')->with('success', 'Email terverifikasi! Silakan login untuk melanjutkan.');
@@ -192,7 +192,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', 'Password berhasil direset!');
+        return redirect()->route('app.home')->with('success', 'Password berhasil direset!');
     }
 
     public function redirectToGoogle()

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AppController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -47,13 +49,21 @@ Route::middleware(['auth', 'verified', 'no_banned_user'])->prefix('onboarding')-
 });
 
 Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])->group(function () {
-    Route::get('/dashboard', function () {
-        $user = Auth::user();
-        $inbox = app(NotificationService::class)->inbox($user->id)->items();
+    // Route::get('/dashboard', function () {
+    //     $user = Auth::user();
+    //     $inbox = app(NotificationService::class)->inbox($user->id)->items();
 
-        return Inertia::render('temporaryDashboard', [
-            'user' => $user,
-            'inbox' => $inbox,
-        ]);
-    })->name('dashboard');
+    //     return Inertia::render('temporaryDashboard', [
+    //         'user' => $user,
+    //         'inbox' => $inbox,
+    //     ]);
+    // })->name('dashboard');
+
+    Route::group(['prefix' => 'app'], function () {
+        Route::get('/', [AppController::class, 'index'])->name('app.home');
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('app.notifications');
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('app.notifications.read-all');
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('app.notifications.read');
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('app.notifications.destroy');
+    });
 });

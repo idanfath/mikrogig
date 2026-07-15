@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from 'react-hot-toast';
+import './echo';
 import Layout from './layout/Layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';

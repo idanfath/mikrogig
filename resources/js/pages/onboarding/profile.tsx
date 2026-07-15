@@ -1,4 +1,4 @@
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage, useHttp } from '@inertiajs/react';
 import { format, subYears } from 'date-fns';
 import { CalendarIcon, Loader2, MapPin, Sparkles, X } from 'lucide-react';
 import type { ReactElement, ReactNode } from 'react';
@@ -31,7 +31,12 @@ type InertiaPageWithLayout = (() => ReactElement) & {
 };
 
 const OnboardingProfile: InertiaPageWithLayout = () => {
-  const { auth, csrf_token } = usePage<{ auth: Auth; csrf_token: string }>().props;
+  const { auth } = usePage<{ auth: Auth }>().props;
+  const enhanceHttp = useHttp({
+    field: '',
+    value: '',
+    context: {},
+  });
   const isFreelancer = auth.user.role === 'freelancer';
 
   const { data, setData, post, processing } = useForm({
@@ -250,30 +255,20 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
       setEnhancingBio(true);
     }
 
+    enhanceHttp.transform(() => ({
+      field,
+      value,
+      context: {
+        title: data.title,
+        bio: data.bio,
+        skills: data.skills,
+        location: data.regency_name && data.province_name ? `${data.regency_name}, ${data.province_name}` : '',
+      },
+    }));
+
     try {
-      const response = await fetch(onboarding.enhance.url(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrf_token,
-        },
-        body: JSON.stringify({
-          field,
-          value,
-          context: {
-            title: data.title,
-            bio: data.bio,
-            skills: data.skills,
-            location: data.regency_name && data.province_name ? `${data.regency_name}, ${data.province_name}` : '',
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Gagal meningkatkan dengan AI');
-      }
-
-      const result = await response.json();
+      const response = await enhanceHttp.post(onboarding.enhance.url());
+      const result = response as any;
 
       if (result.value) {
         setData(field, result.value);
@@ -303,29 +298,20 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
 
     setEnhancingSkills(true);
 
+    enhanceHttp.transform(() => ({
+      field: 'skills',
+      value: '',
+      context: {
+        title: data.title,
+        bio: data.bio,
+        skills: data.skills,
+        location: data.regency_name && data.province_name ? `${data.regency_name}, ${data.province_name}` : '',
+      },
+    }));
+
     try {
-      const response = await fetch(onboarding.enhance.url(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrf_token,
-        },
-        body: JSON.stringify({
-          field: 'skills',
-          context: {
-            title: data.title,
-            bio: data.bio,
-            skills: data.skills,
-            location: data.regency_name && data.province_name ? `${data.regency_name}, ${data.province_name}` : '',
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Gagal merekomendasikan keahlian');
-      }
-
-      const result = await response.json();
+      const response = await enhanceHttp.post(onboarding.enhance.url());
+      const result = response as any;
 
       if (result.value && Array.isArray(result.value)) {
         const newSkills = [...data.skills];
@@ -548,7 +534,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
             </Popover>
           </Field>
 
-          <Field orientation="horizontal">
+          <Field orientation="vertical">
             <Field>
               <FieldLabel htmlFor="province_id">
                 Provinsi

@@ -1,0 +1,2 @@
+rename home to landing.tsx, since app/home exist
+notif pagination, notif use card isntead of table (or responsive)

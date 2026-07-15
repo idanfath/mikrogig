@@ -18,7 +18,7 @@ class OnboardingController extends Controller
             'pick_role' => inertia('onboarding/role'),
             'setup_avatar' => inertia('onboarding/avatar'),
             'profile' => inertia('onboarding/profile'),
-            default => redirect()->route('dashboard'),
+            default => redirect()->route('app.home'),
         };
     }
 
@@ -66,7 +66,7 @@ class OnboardingController extends Controller
         $user = Auth::user();
 
         $rules = [
-            'date_of_birth' => 'required|date|before_or_equal:-18 years',
+            'date_of_birth' => 'required|date|before_or_equal:'.now('Asia/Jakarta')->subYears(18)->toDateString(),
             'province_id' => 'required|string|size:2',
             'regency_id' => 'required|string|size:4',
             'province_name' => 'required|string|max:255',
@@ -106,7 +106,7 @@ class OnboardingController extends Controller
         $user->onboarding_step = null;
         $user->save();
 
-        return redirect()->route('dashboard')->with('success', 'Profil berhasil dilengkapi!');
+        return redirect()->route('app.home')->with('success', 'Profil berhasil dilengkapi!');
     }
 
     // BEHOLD!!!! SUCH ABOMINATION OF A CODE!!!!!!!!!!!!!!!!!

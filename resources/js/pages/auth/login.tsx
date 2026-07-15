@@ -89,7 +89,7 @@ Login.layout = (page: ReactNode) => (
     description="Silakan masukkan email dan password Anda untuk masuk ke akun Anda."
     footer={
       <div className="flex flex-col items-center">
-        <p className="mt-4">
+        <p >
           Belum punya akun?{' '}
           <a
             href={register.url()}
