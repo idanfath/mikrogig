@@ -64,7 +64,7 @@ const Notifications: InertiaPageWithLayout = () => {
       const message = inbox.find((m) => m.id === id);
       if (message) {
         handleOpen(message);
-        // clean up the URL query param so refreshing doesn't keep opening it
+        // clean up  URL query param so refreshing doesn't keep opening it
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
       }
@@ -75,9 +75,13 @@ const Notifications: InertiaPageWithLayout = () => {
     setSelected(message);
     setOpen(true);
     if (!message.read_at) {
-      router.post(app.notifications.read.url({ id: message.id }), {}, {
-        preserveScroll: true,
-      });
+      router.post(
+        app.notifications.read.url({ id: message.id }),
+        {},
+        {
+          preserveScroll: true,
+        },
+      );
     }
   };
 
@@ -89,9 +93,13 @@ const Notifications: InertiaPageWithLayout = () => {
   };
 
   const handleMarkAllRead = () => {
-    router.post(app.notifications.readAll.url(), {}, {
-      preserveScroll: true,
-    });
+    router.post(
+      app.notifications.readAll.url(),
+      {},
+      {
+        preserveScroll: true,
+      },
+    );
   };
 
   const allRead = inbox.every((msg) => msg.read_at !== null);
@@ -101,10 +109,10 @@ const Notifications: InertiaPageWithLayout = () => {
 
     return (
       <div className="flex flex-col gap-4 text-left">
-        <div className="overflow-y-auto pr-2 max-h-[50vh] text-base text-foreground leading-relaxed">
+        <div className="max-h-[50vh] overflow-y-auto pr-2 text-base leading-relaxed text-foreground">
           {selected.body ?? 'Tidak ada detail pesan.'}
         </div>
-        <div className="flex flex-col gap-2 mt-4 border-t pt-4 sm:flex-row sm:justify-end sm:gap-3">
+        <div className="mt-4 flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-end sm:gap-3">
           <Button
             variant="destructive"
             onClick={() => handleDelete(selected.id)}
@@ -115,7 +123,11 @@ const Notifications: InertiaPageWithLayout = () => {
           </Button>
           {selected.action_url && (
             <Button asChild className="w-full sm:w-auto">
-              <a href={selected.action_url} target="_blank" rel="noopener noreferrer">
+              <a
+                href={selected.action_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <ExternalLink data-icon="inline-end" />
                 {selected.action_label ?? 'Buka Link'}
               </a>
@@ -152,14 +164,21 @@ const Notifications: InertiaPageWithLayout = () => {
               <TableHead className="px-4 py-3">Title</TableHead>
               <TableHead className="px-4 py-3">Body</TableHead>
               <TableHead className="px-4 py-3">Status</TableHead>
-              <TableHead className="px-4 py-3">Received</TableHead>
-              <TableHead className="px-4 py-3 text-right">Action</TableHead>
+              <TableHead className="px-4 py-3">
+                Received
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {inbox.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="py-6 text-center text-muted-foreground"
+                >
                   Tidak ada notifikasi.
                 </TableCell>
               </TableRow>
@@ -173,7 +192,7 @@ const Notifications: InertiaPageWithLayout = () => {
                     className={`cursor-pointer transition-colors hover:bg-muted/50 ${isUnread ? 'bg-primary/5 font-semibold' : ''}`}
                     onClick={() => handleOpen(message)}
                   >
-                    <TableCell className="truncate px-4 py-3 max-w-[200px]">
+                    <TableCell className="max-w-50 truncate px-4 py-3">
                       {message.title}
                     </TableCell>
                     <TableCell className="max-w-xs truncate px-4 py-3 text-muted-foreground">
@@ -181,24 +200,31 @@ const Notifications: InertiaPageWithLayout = () => {
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       {isUnread ? (
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-700/10 ring-inset">
                           Unread
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                        <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-500/10 ring-inset">
                           Read
                         </span>
                       )}
                     </TableCell>
                     <TableCell className="px-4 py-3 whitespace-nowrap text-muted-foreground">
-                      {formatRelativeTime(message.created_at)}
+                      {formatRelativeTime(
+                        message.created_at,
+                      )}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <TableCell
+                      className="px-4 py-3 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => handleOpen(message)}
+                          onClick={() =>
+                            handleOpen(message)
+                          }
                           title="Buka"
                         >
                           <Eye className="size-4" />
@@ -207,7 +233,9 @@ const Notifications: InertiaPageWithLayout = () => {
                           variant="ghost"
                           size="icon-sm"
                           className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDelete(message.id)}
+                          onClick={() =>
+                            handleDelete(message.id)
+                          }
                           title="Hapus"
                         >
                           <Trash2 className="size-4" />
@@ -226,9 +254,13 @@ const Notifications: InertiaPageWithLayout = () => {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="sm:max-w-125">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold">{selected?.title}</DialogTitle>
+              <DialogTitle className="text-xl font-bold">
+                {selected?.title}
+              </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Diterima {selected && formatRelativeTime(selected.created_at)}
+                Diterima{' '}
+                {selected &&
+                  formatRelativeTime(selected.created_at)}
               </DialogDescription>
             </DialogHeader>
             {renderDetails()}
@@ -237,10 +269,14 @@ const Notifications: InertiaPageWithLayout = () => {
       ) : (
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent className="px-4 pb-6">
-            <DrawerHeader className="text-left px-0">
-              <DrawerTitle className="text-xl font-bold">{selected?.title}</DrawerTitle>
+            <DrawerHeader className="px-0 text-left">
+              <DrawerTitle className="text-xl font-bold">
+                {selected?.title}
+              </DrawerTitle>
               <DrawerDescription className="text-xs text-muted-foreground">
-                Diterima {selected && formatRelativeTime(selected.created_at)}
+                Diterima{' '}
+                {selected &&
+                  formatRelativeTime(selected.created_at)}
               </DrawerDescription>
             </DrawerHeader>
             {renderDetails()}
@@ -251,7 +287,8 @@ const Notifications: InertiaPageWithLayout = () => {
   );
 };
 
-Notifications.layout = (page: ReactNode) =>
-  <AppLayout title='Notifikasi'>{page}</AppLayout>;
+Notifications.layout = (page: ReactNode) => (
+  <AppLayout title="Notifikasi">{page}</AppLayout>
+);
 
 export default Notifications;

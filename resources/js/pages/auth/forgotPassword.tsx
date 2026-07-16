@@ -9,96 +9,97 @@ import { login } from '@/routes';
 import password from '@/routes/password';
 
 const ForgotPassword = () => {
-  const { data, setData, post, processing, errors } = useForm({
-    email: '',
-  });
+    const { data, setData, post, processing, errors } = useForm({
+        email: '',
+    });
 
-  const [lastSentTime, setLastSentTime] = useState<number | null>(() => {
-    if (typeof window === 'undefined') {
-      return null;
+    const [lastSentTime, setLastSentTime] = useState<number | null>(() => {
+        if (typeof window === 'undefined') {
+            return null;
+        }
+
+        const storedTime = localStorage.getItem('lastPasswordResetRequest');
+
+        return storedTime ? parseInt(storedTime) : null;
+    });
+
+    function handlePasswordResetRequest() {
+        post(password.forgot.submit.url(), {
+            onSuccess: () => {
+                const currentTime = Date.now();
+                setLastSentTime(currentTime);
+                localStorage.setItem(
+                    'lastPasswordResetRequest',
+                    currentTime.toString(),
+                );
+            },
+        });
     }
 
-    const storedTime = localStorage.getItem('lastPasswordResetRequest');
+    return (
+        <>
+            <div className="w-full max-w-xl p-6">
+                <Field className="mb-4" data-invalid={!!errors.email}>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="example@email.com"
+                        required
+                        value={data.email}
+                        onChange={(e) =>
+                            setData('email', e.currentTarget.value)
+                        }
+                    />
+                    <FieldDescription>
+                        {errors.email ? (
+                            <span className="text-destructive capitalize">
+                                {errors.email}
+                            </span>
+                        ) : (
+                            'Masukkan email terdaftar Anda.'
+                        )}
+                    </FieldDescription>
+                </Field>
 
-    return storedTime ? parseInt(storedTime) : null;
-  });
-
-  function handlePasswordResetRequest() {
-    post(password.forgot.submit.url(), {
-      onSuccess: () => {
-        const currentTime = Date.now();
-        setLastSentTime(currentTime);
-        localStorage.setItem(
-          'lastPasswordResetRequest',
-          currentTime.toString(),
-        );
-      },
-    });
-  }
-
-  return (
-    <>
-      <div className="w-full max-w-xl p-6">
-        <Field className="mb-4" data-invalid={!!errors.email}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            placeholder="example@email.com"
-            required
-            value={data.email}
-            onChange={(e) =>
-              setData('email', e.currentTarget.value)
-            }
-          />
-          <FieldDescription>
-            {errors.email ? (
-              <span className="text-destructive capitalize">
-                {errors.email}
-              </span>
-            ) : (
-              'Masukkan email terdaftar Anda.'
-            )}
-          </FieldDescription>
-        </Field>
-
-        <Button
-          type="button"
-          onClick={handlePasswordResetRequest}
-          className="w-full"
-          disabled={
-            processing ||
-            (lastSentTime !== null &&
-              Date.now() - lastSentTime < 60000)
-          }
-        >
-          {processing ? 'Memproses...' : 'Kirim Link Reset'}
-        </Button>
-      </div>
-    </>
-  );
+                <Button
+                    type="button"
+                    onClick={handlePasswordResetRequest}
+                    className="w-full"
+                    disabled={
+                        processing ||
+                        (lastSentTime !== null &&
+                            Date.now() - lastSentTime < 60000)
+                    }
+                >
+                    {processing ? 'Memproses...' : 'Kirim Link Reset'}
+                </Button>
+            </div>
+        </>
+    );
 };
 
 ForgotPassword.layout = (page: ReactNode) => (
-  <AuthLayout
-    title="Lupa Password"
-    heading="Reset Password"
-    description="Masukkan email Anda dan kami akan mengirimkan link untuk mengatur ulang password Anda."
-    footer={
-      <Button
-        onClick={() => { router.visit(login.url()) }}
-        variant="link"
-
-        className="text-primary hover:underline"
-      >
-        Kembali ke Login
-      </Button>
-    }
-  >
-    {page}
-  </AuthLayout>
+    <AuthLayout
+        title="Lupa Password"
+        heading="Reset Password"
+        description="Masukkan email Anda dan kami akan mengirimkan link untuk mengatur ulang password Anda."
+        footer={
+            <Button
+                onClick={() => {
+                    router.visit(login.url());
+                }}
+                variant="link"
+                className="text-primary hover:underline"
+            >
+                Kembali ke Login
+            </Button>
+        }
+    >
+        {page}
+    </AuthLayout>
 );
 
 export default ForgotPassword;
