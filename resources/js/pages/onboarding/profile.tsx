@@ -716,7 +716,8 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
             <div className="flex w-full flex-col items-center gap-3 sm:items-end">
                 <Button
                     type="submit"
-                    className="w-full max-sm:py-7 sm:w-auto"
+                    mobileLarge
+                    className="w-full sm:w-auto"
                     disabled={processing || !isProfileComplete}
                 >
                     {processing ? 'Menyimpan...' : 'Simpan Profil'}

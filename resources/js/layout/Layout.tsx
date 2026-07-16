@@ -21,7 +21,39 @@ export default function Layout({ children }: PropsWithChildren) {
 
     return (
         <div>
-            <Toaster position="top-center" reverseOrder={false} />
+            <Toaster
+                position="top-center"
+                reverseOrder={false}
+                toastOptions={{
+                    style: {
+                        background: 'var(--card)',
+                        border: '1px solid var(--border)',
+                        color: 'var(--foreground)',
+                    },
+                    success: {
+                        style: {
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
+                            color: 'var(--success)',
+                        },
+                        iconTheme: {
+                            primary: 'var(--success)',
+                            secondary: 'var(--success-soft)',
+                        },
+                    },
+                    error: {
+                        style: {
+                            background: 'var(--destructive-soft)',
+                            border: '1px solid var(--destructive)',
+                            color: 'var(--destructive)',
+                        },
+                        iconTheme: {
+                            primary: 'var(--destructive)',
+                            secondary: 'var(--destructive-soft)',
+                        },
+                    },
+                }}
+            />
             <main>{children}</main>
         </div>
     );

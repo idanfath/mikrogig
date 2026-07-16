@@ -252,7 +252,7 @@ const Notifications: InertiaPageWithLayout = () => {
 
       {isDesktop ? (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-125">
+          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
                 {selected?.title}

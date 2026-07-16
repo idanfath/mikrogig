@@ -1,11 +1,14 @@
 import * as React from 'react';
+import { Link } from '@inertiajs/react';
 import asset from '@/lib/assets';
 import { cn } from '@/lib/utils';
+import { home } from '@/routes';
 
-interface LogoProps extends React.ComponentProps<'a'> {
+interface LogoProps extends Omit<React.ComponentProps<typeof Link>, 'size'> {
     imageClassName?: string;
     type?: 'full' | 'small';
     size?: 'small' | 'medium' | 'large';
+    tone?: 'default' | 'inverse';
 }
 
 function Logo({
@@ -13,6 +16,8 @@ function Logo({
     imageClassName,
     type = 'full',
     size = 'medium',
+    tone = 'default',
+    href = home.url(),
     ...props
 }: LogoProps) {
     const sizeClass = {
@@ -22,21 +27,33 @@ function Logo({
     };
 
     return (
-        <a className={cn('flex select-none', className)} href="/" {...props}>
+        <Link
+            className={cn('flex select-none', className)}
+            href={href}
+            {...props}
+        >
             {type === 'full' ? (
                 <img
                     src={asset('assets/logo/logo.svg')}
                     alt="Mikrogig Logo"
-                    className={cn(sizeClass[size], imageClassName)}
+                    className={cn(
+                        sizeClass[size],
+                        tone === 'inverse' && 'brightness-0 invert',
+                        imageClassName,
+                    )}
                 />
             ) : (
                 <img
                     src={asset('assets/logo/logo_small.svg')}
                     alt="Mikrogig Logo"
-                    className={cn(sizeClass[size], imageClassName)}
+                    className={cn(
+                        sizeClass[size],
+                        tone === 'inverse' && 'brightness-0 invert',
+                        imageClassName,
+                    )}
                 />
             )}
-        </a>
+        </Link>
     );
 }
 

@@ -2,6 +2,8 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/plus-jakarta-sans/wght.css';
+@import './landing.css';
+@import './utils.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -28,6 +30,11 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-destructive-soft: var(--destructive-soft);
+    --color-warning-soft: var(--warning-soft);
+    --color-warning: var(--warning);
+    --color-success-soft: var(--success-soft);
+    --color-success: var(--success);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -54,8 +61,8 @@
 
 @theme {
     --font-sans:
-        -apple-system, ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Plus Jakarta Sans Variable', -apple-system, ui-sans-serif, system-ui,
+        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 }
 
@@ -76,6 +83,11 @@
     --accent: #fef3e8;
     --accent-foreground: #1a1714;
     --destructive: #bd3333;
+    --destructive-soft: #fdf1f1;
+    --success: #128a50;
+    --success-soft: #e8f5ee;
+    --warning: #c28008;
+    --warning-soft: #fcf5e6;
     --border: #e6e1da;
     --input: #e6e1da;
     --ring: #e8720c;
@@ -111,6 +123,11 @@
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
+    --destructive-soft: #451d22;
+    --success: #65d69a;
+    --success-soft: #123725;
+    --warning: #f0c75e;
+    --warning-soft: #3a2b0d;
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
@@ -138,5 +155,6 @@
     }
     html {
         @apply font-sans;
+        scroll-behavior: smooth;
     }
 }

@@ -68,7 +68,8 @@ const OnboardingRole: InertiaPageWithLayout = () => {
             <div className="flex flex-col justify-end gap-3 sm:flex-row">
                 <Button
                     type="submit"
-                    className="w-full max-sm:py-7 sm:w-auto"
+                    mobileLarge
+                    className="w-full sm:w-auto"
                     disabled={!data.role || processing}
                 >
                     {processing ? 'Menyimpan...' : 'Yuk, Lanjut!'}
