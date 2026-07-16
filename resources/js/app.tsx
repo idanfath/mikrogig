@@ -1,7 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { Toaster } from 'react-hot-toast';
 import './echo';
 import Layout from './layout/Layout';
 
@@ -22,20 +20,4 @@ createInertiaApp({
 
         return page;
     },
-    // i commented this and added toaster to main layout instead.
-    // setup({ el, App, props }) {
-    //   if (!el) {
-    //     // TODO: need fixing later, app works with and without this
-    //     // but it throws an error in console, find a better way to handle this
-    //     // i found that not having setup works, but need setup to add toaster.
-    //     throw new Error('Inertia root element not found');
-    //   }
-    //   const root = createRoot(el);
-    //   root.render(
-    //     <>
-    //       <Toaster position="bottom-right" reverseOrder={false} />
-    //       <App {...props} />
-    //     </>
-    //   );
-    // },
 });
