@@ -33,3 +33,4 @@ CLAUDE.md
 /.gemini
 /.github
 GEMINI.md
+*.ignore

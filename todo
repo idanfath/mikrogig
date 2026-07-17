@@ -1,5 +1,0 @@
-rename home to landing.tsx, since app/home exist
-notif pagination, notif use card isntead of table (or responsive)
-app layout sidebar desktop, bottom nav mobile maybe
-
-before prod: landing page revisi/validasi soal teks teksnya dan cross check terhadap real app
