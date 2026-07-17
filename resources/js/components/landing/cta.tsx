@@ -119,9 +119,7 @@ function RoleAction({
       <span
         className={cn(
           'grid size-10 place-items-center rounded-xl',
-          primary
-            ? 'bg-primary text-white'
-            : 'bg-white/10 text-primary',
+          primary ? 'bg-primary text-white' : 'bg-white/10 text-primary',
         )}
         aria-hidden="true"
       >

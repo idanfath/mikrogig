@@ -7,10 +7,6 @@ import asset from '@/lib/assets';
 import { home, logout } from '@/routes';
 import verification from '@/routes/verification';
 
-type InertiaPageWithLayout = (() => ReactElement) & {
-  layout?: (page: ReactNode) => ReactNode;
-};
-
 const Notice: InertiaPageWithLayout = () => {
   const id = usePage().props.id as string;
 
@@ -30,22 +26,17 @@ const Notice: InertiaPageWithLayout = () => {
     });
     const currentTime = Date.now();
     setLastSentTime(currentTime);
-    localStorage.setItem(
-      'lastVerificationEmailSent',
-      currentTime.toString(),
-    );
+    localStorage.setItem('lastVerificationEmailSent', currentTime.toString());
   }
 
   return (
     <>
       <Head title="Notice" />
       <div className="flex flex-1 flex-col gap-4">
-        <div className="flex flex-1 flex-col items-center justify-center text-center  sm:flex-none">
+        <div className="flex flex-1 flex-col items-center justify-center text-center sm:flex-none">
           <div className="flex flex-col items-center gap-4">
             <img
-              src={asset(
-                'assets/illustrations/error_illustration.png',
-              )}
+              src={asset('assets/illustrations/error_illustration.png')}
               alt="Error"
               className="w-full max-w-md rounded-md object-cover"
             />
@@ -53,10 +44,7 @@ const Notice: InertiaPageWithLayout = () => {
               <p className="text-2xl font-semibold">
                 Mohon verifikasi email Anda.
               </p>
-              <p>
-                Klik tombol di bawah untuk mengirim ulang email
-                verifikasi.
-              </p>
+              <p>Klik tombol di bawah untuk mengirim ulang email verifikasi.</p>
             </div>
           </div>
         </div>
@@ -67,8 +55,7 @@ const Notice: InertiaPageWithLayout = () => {
               className="col-span-2 w-full sm:w-auto"
               onClick={handleResendVerification}
               disabled={
-                lastSentTime !== null &&
-                Date.now() - lastSentTime < 60000
+                lastSentTime !== null && Date.now() - lastSentTime < 60000
               }
             >
               Kirim Ulang Email Verifikasi

@@ -2,14 +2,13 @@
 
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
-use App\Services\NotificationService;
+use App\Http\Controllers\RegionController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rules\Password;
-use Inertia\Inertia;
 
 Route::inertia('/', 'home')->name('home');
 
@@ -48,19 +47,16 @@ Route::middleware(['auth', 'verified', 'no_banned_user'])->prefix('onboarding')-
     Route::post('/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
 });
 
+Route::middleware(['auth', 'verified', 'no_banned_user'])->group(function () {
+    Route::get('/regions/provinces', [RegionController::class, 'provinces'])->name('regions.provinces');
+    Route::get('/regions/provinces/{province}/regencies', [RegionController::class, 'regencies'])->name('regions.regencies');
+    Route::post('/locations/resolve', [LocationController::class, 'resolve'])->middleware('throttle:10,1')->name('locations.resolve');
+});
+
 Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])->group(function () {
-    // Route::get('/dashboard', function () {
-    //     $user = Auth::user();
-    //     $inbox = app(NotificationService::class)->inbox($user->id)->items();
-
-    //     return Inertia::render('temporaryDashboard', [
-    //         'user' => $user,
-    //         'inbox' => $inbox,
-    //     ]);
-    // })->name('dashboard');
-
     Route::group(['prefix' => 'app'], function () {
         Route::get('/', [AppController::class, 'index'])->name('app.home');
+        Route::get('/profile', [AppController::class, 'profile'])->name('app.profile');
         Route::get('/notifications', [NotificationController::class, 'index'])->name('app.notifications');
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('app.notifications.read-all');
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('app.notifications.read');

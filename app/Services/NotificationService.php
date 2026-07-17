@@ -77,13 +77,23 @@ class NotificationService
         });
     }
 
-    public function inbox(int $userId, int $perPage = 20)
+    public function inbox(int $userId, int $perPage = 20, ?string $search = null)
     {
-        $notifications = Notification::query()
+        $query = Notification::query()
             ->join('notification_recipients', 'notifications.id', '=', 'notification_recipients.notification_id')
-            ->where('notification_recipients.user_id', $userId)
+            ->where('notification_recipients.user_id', $userId);
+
+        if ($search) {
+            $query->where(fn ($q) => $q
+                ->where('notifications.title', 'like', "%{$search}%")
+                ->orWhere('notifications.body', 'like', "%{$search}%")
+            );
+        }
+
+        $notifications = $query
             ->select([
                 'notifications.*',
+                'notifications.id as id',
                 'notification_recipients.read_at',
             ])
             ->orderBy('notifications.created_at', 'desc')

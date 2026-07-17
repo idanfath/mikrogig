@@ -28,7 +28,7 @@ const Register = () => {
             />
             <FieldDescription>
               {errors.name && (
-                <span className="text-destructive ">
+                <span className="text-destructive">
                   {sentenceCase(errors.name)}
                 </span>
               )}
@@ -47,7 +47,7 @@ const Register = () => {
             />
             <FieldDescription>
               {errors.email && (
-                <span className="text-destructive ">
+                <span className="text-destructive">
                   {sentenceCase(errors.email)}
                 </span>
               )}
@@ -66,17 +66,14 @@ const Register = () => {
             />
             <FieldDescription>
               {errors.password && (
-                <span className="text-destructive ">
+                <span className="text-destructive">
                   {sentenceCase(errors.password)}
                 </span>
               )}
             </FieldDescription>
           </Field>
 
-          <Field
-            className="mb-4"
-            data-invalid={!!errors.password_confirmation}
-          >
+          <Field className="mb-4" data-invalid={!!errors.password_confirmation}>
             <FieldLabel htmlFor="password_confirmation">
               Konfirmasi Password
             </FieldLabel>
@@ -90,7 +87,7 @@ const Register = () => {
             />
             <FieldDescription>
               {errors.password_confirmation && (
-                <span className="text-destructive ">
+                <span className="text-destructive">
                   {sentenceCase(errors.password_confirmation)}
                 </span>
               )}

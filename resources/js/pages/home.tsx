@@ -19,14 +19,14 @@ const description =
 function LandingPage() {
   return (
     <>
-      <Head title="MikroGig - Platform Gig Lokal" >
+      <Head title="MikroGig - Platform Gig Lokal">
         <meta name="description" content={description} />
         <meta name="theme-color" content="#FAF9F6" />
         <meta property="og:title" content="MikroGig - Platform Gig Lokal" />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-      </Head >
+      </Head>
 
       <div className="landing-page min-h-screen bg-background text-foreground">
         <Navbar />

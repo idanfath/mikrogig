@@ -72,11 +72,7 @@ function Categories({
       className={cn(className)}
       {...props}
     >
-      <SectionHeader
-        badge={badge}
-        heading={title}
-        description={description}
-      />
+      <SectionHeader badge={badge} heading={title} description={description} />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {categories.map((category) => (
@@ -92,12 +88,10 @@ function Categories({
       </div>
 
       <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-dashed border-primary/30 bg-accent/35 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm font-bold">
-          Keahlianmu belum ada di daftar?
-        </p>
+        <p className="text-sm font-bold">Keahlianmu belum ada di daftar?</p>
         <p className="text-sm text-muted-foreground">
-          Ceritakan lewat suara—AI membantu menyusun kategori dan
-          profil yang sesuai.
+          Ceritakan lewat suara—AI membantu menyusun kategori dan profil yang
+          sesuai.
         </p>
       </div>
     </Section>

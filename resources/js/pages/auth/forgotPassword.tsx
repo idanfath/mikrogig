@@ -50,14 +50,12 @@ const ForgotPassword = () => {
             placeholder="example@email.com"
             required
             value={data.email}
-            onChange={(e) =>
-              setData('email', e.currentTarget.value)
-            }
+            onChange={(e) => setData('email', e.currentTarget.value)}
             mobileLarge
           />
           <FieldDescription>
             {errors.email ? (
-              <span className="text-destructive ">
+              <span className="text-destructive">
                 {sentenceCase(errors.email)}
               </span>
             ) : (
@@ -72,8 +70,7 @@ const ForgotPassword = () => {
           className="w-full"
           disabled={
             processing ||
-            (lastSentTime !== null &&
-              Date.now() - lastSentTime < 60000)
+            (lastSentTime !== null && Date.now() - lastSentTime < 60000)
           }
           mobileLarge
         >

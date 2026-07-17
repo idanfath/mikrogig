@@ -21,13 +21,8 @@ const PasswordReset = () => {
           <>
             <input type="hidden" name="token" value="" />
 
-            <Field
-              className="mb-4"
-              data-invalid={!!errors.password}
-            >
-              <FieldLabel htmlFor="password">
-                Password Baru
-              </FieldLabel>
+            <Field className="mb-4" data-invalid={!!errors.password}>
+              <FieldLabel htmlFor="password">Password Baru</FieldLabel>
               <Input
                 id="password"
                 name="password"
@@ -38,7 +33,7 @@ const PasswordReset = () => {
               />
               <FieldDescription>
                 {errors.password ? (
-                  <span className="text-destructive ">
+                  <span className="text-destructive">
                     {sentenceCase(errors.password)}
                   </span>
                 ) : (
@@ -64,7 +59,7 @@ const PasswordReset = () => {
               />
               <FieldDescription>
                 {errors.password_confirmation ? (
-                  <span className="text-destructive ">
+                  <span className="text-destructive">
                     {sentenceCase(errors.password_confirmation)}
                   </span>
                 ) : (

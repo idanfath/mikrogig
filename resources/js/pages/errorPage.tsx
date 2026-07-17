@@ -11,10 +11,6 @@ type ErrorPageProps = {
   status: number;
 };
 
-type InertiaPageWithLayout = ((props: ErrorPageProps) => ReactElement) & {
-  layout?: (page: ReactNode) => ReactNode;
-};
-
 const titleByStatus: Record<ErrorStatus, string> = {
   503: 'Service Tidak Tersedia',
   500: 'Kesalahan Server Internal',
@@ -29,7 +25,7 @@ const descriptionByStatus: Record<ErrorStatus, string> = {
   403: 'Maaf, Anda tidak memiliki izin untuk mengakses halaman ini.',
 };
 
-const ErrorPage: InertiaPageWithLayout = ({ status }) => {
+const ErrorPage: InertiaPageWithLayout<ErrorPageProps> = ({ status }) => {
   const safeStatus: ErrorStatus =
     status === 403 || status === 404 || status === 500 || status === 503
       ? status
@@ -45,9 +41,7 @@ const ErrorPage: InertiaPageWithLayout = ({ status }) => {
         <div className="flex flex-1 flex-col items-center justify-center text-center sm:flex-none">
           <div className="flex flex-col items-center gap-4">
             <img
-              src={asset(
-                'assets/illustrations/error_illustration.png',
-              )}
+              src={asset('assets/illustrations/error_illustration.png')}
               alt="Error"
               className="w-full max-w-md rounded-md object-cover px-8"
             />

@@ -84,21 +84,14 @@ function FairWage({
       className={cn(className)}
       {...props}
     >
-      <SectionHeader
-        badge={badge}
-        heading={title}
-        description={description}
-      />
+      <SectionHeader badge={badge} heading={title} description={description} />
 
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
         <Card variant="dark" padding="lg" className="overflow-hidden">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <Badge variant="dark">
-                <Calculator
-                  className="size-3.5"
-                  aria-hidden="true"
-                />
+                <Calculator className="size-3.5" aria-hidden="true" />
                 Simulasi transparan
               </Badge>
               <h3 className="mt-5 text-2xl font-extrabold tracking-[-0.04em] text-white">
@@ -132,16 +125,11 @@ function FairWage({
                   <SelectValue placeholder="Pilih pekerjaan" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(wageOptions).map(
-                    ([key, option]) => (
-                      <SelectItem
-                        key={key}
-                        value={key}
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ),
-                  )}
+                  {Object.entries(wageOptions).map(([key, option]) => (
+                    <SelectItem key={key} value={key}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -178,17 +166,15 @@ function FairWage({
               Rentang rekomendasi
             </p>
             <p className="mt-2 text-3xl font-extrabold tracking-tighter text-white sm:text-4xl">
-              {formatRupiah(minimum)} –
-              {formatRupiah(maximum).replace('Rp', '')}
+              {formatRupiah(minimum)} –{formatRupiah(maximum).replace('Rp', '')}
             </p>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/50">
               <span>
-                {formatRupiah(selectedJob.hourlyRate)} × {hours}{' '}
-                jam
+                {formatRupiah(selectedJob.hourlyRate)} × {hours} jam
               </span>
               <span className="flex items-center gap-1">
-                <MapPin className="size-3" aria-hidden="true" />{' '}
-                Mobilitas {formatRupiah(travelAllowance)}
+                <MapPin className="size-3" aria-hidden="true" /> Mobilitas{' '}
+                {formatRupiah(travelAllowance)}
               </span>
             </div>
           </div>
@@ -198,19 +184,15 @@ function FairWage({
           <Card padding="lg" className="flex-1">
             <div className="flex items-start gap-4">
               <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-success-soft text-success">
-                <ShieldCheck
-                  className="size-5"
-                  aria-hidden="true"
-                />
+                <ShieldCheck className="size-5" aria-hidden="true" />
               </span>
               <div>
                 <h3 className="text-lg font-extrabold tracking-[-0.025em]">
                   Kesepakatan dilindungi
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Rentang upah menjadi bagian kontrak.
-                  Perubahan tugas atau biaya perlu persetujuan
-                  kedua pihak dan tercatat.
+                  Rentang upah menjadi bagian kontrak. Perubahan tugas atau
+                  biaya perlu persetujuan kedua pihak dan tercatat.
                 </p>
               </div>
             </div>
@@ -221,10 +203,7 @@ function FairWage({
                   className="flex items-center gap-3 text-sm font-semibold"
                 >
                   <span className="grid size-5 shrink-0 place-items-center rounded-full bg-success-soft text-success">
-                    <Check
-                      className="size-3"
-                      aria-hidden="true"
-                    />
+                    <Check className="size-3" aria-hidden="true" />
                   </span>
                   {benefit}
                 </li>
@@ -234,22 +213,13 @@ function FairWage({
 
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border border-border bg-card p-4">
             <div className="flex items-center gap-2 text-xs font-extrabold">
-              <FileCheck2
-                className="size-4 text-primary"
-                aria-hidden="true"
-              />{' '}
+              <FileCheck2 className="size-4 text-primary" aria-hidden="true" />{' '}
               Kontrak disetujui
             </div>
-            <span
-              className="h-px w-6 bg-border"
-              aria-hidden="true"
-            />
+            <span className="h-px w-6 bg-border" aria-hidden="true" />
             <div className="flex items-center justify-end gap-2 text-right text-xs font-extrabold text-success">
-              <WalletCards
-                className="size-4"
-                aria-hidden="true"
-              />{' '}
-              Dana di escrow
+              <WalletCards className="size-4" aria-hidden="true" /> Dana di
+              escrow
             </div>
           </div>
         </div>

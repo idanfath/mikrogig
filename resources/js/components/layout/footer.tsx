@@ -1,11 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowUpRight, Mail } from 'lucide-react';
+import { ArrowUpRight, LogOut, Mail } from 'lucide-react';
 import * as React from 'react';
 
 import { Container } from '@/components/layout/container';
 import { Logo } from '@/components/brand/logo';
 import { cn } from '@/lib/utils';
-import { login, register } from '@/routes';
+import { login, logout, register } from '@/routes';
 import app from '@/routes/app';
 
 interface FooterLink {
@@ -109,22 +109,30 @@ function Footer({
               Prototipe kompetisi Veternity Beraksi 2026
             </p>
             <p className="mt-1 text-xs text-white/38">
-              &copy; {new Date().getFullYear()} MikroGig. Dirancang
-              untuk akses ekonomi yang lebih setara.
+              &copy; {new Date().getFullYear()} MikroGig. Dirancang untuk akses
+              ekonomi yang lebih setara.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
             {user ? (
-              <Link
-                href={app.home.url()}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-white"
-              >
-                Buka Aplikasi{' '}
-                <ArrowUpRight
-                  className="size-3.5"
-                  aria-hidden="true"
-                />
-              </Link>
+              <>
+                <Link
+                  href={logout.url()}
+                  method="post"
+                  as="button"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-white"
+                >
+                  Keluar{' '}
+                  <LogOut className="size-3.5" aria-hidden="true" />
+                </Link>
+                <Link
+                  href={app.home.url()}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-white"
+                >
+                  Buka Aplikasi{' '}
+                  <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                </Link>
+              </>
             ) : (
               <>
                 <Link
@@ -138,10 +146,7 @@ function Footer({
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-white"
                 >
                   Buat akun{' '}
-                  <ArrowUpRight
-                    className="size-3.5"
-                    aria-hidden="true"
-                  />
+                  <ArrowUpRight className="size-3.5" aria-hidden="true" />
                 </Link>
               </>
             )}

@@ -11,11 +11,16 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $inbox = app(NotificationService::class)->inbox($user->id)->items();
+        $search = $request->query('search');
 
         return Inertia::render('app/notifications', [
             'user' => $user,
-            'inbox' => $inbox,
+            'inbox' => Inertia::scroll(
+                fn () => app(NotificationService::class)->inbox($user->id, 10, $search)
+            ),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 

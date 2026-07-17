@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,6 +43,9 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'unread_notifications_count' => $request->user()
+                    ? app(NotificationService::class)->unreadCount($request->user()->id)
+                    : 0,
             ],
             'flash' => [
                 'success' => $session?->get('success'),

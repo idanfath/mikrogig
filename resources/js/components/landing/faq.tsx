@@ -19,27 +19,33 @@ interface FAQProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
 const defaultItems: FAQItem[] = [
   {
     question: 'Siapa yang dapat menggunakan MikroGig?',
-    answer: 'MikroGig dirancang untuk pekerja informal dan pemberi kerja lokal: mulai dari jasa kebersihan, teknisi panggilan, tenaga harian, pindahan, hingga kru acara. Prototipe memprioritaskan pekerjaan berbasis lokasi dan durasi singkat.',
+    answer:
+      'MikroGig dirancang untuk pekerja informal dan pemberi kerja lokal: mulai dari jasa kebersihan, teknisi panggilan, tenaga harian, pindahan, hingga kru acara. Prototipe memprioritaskan pekerjaan berbasis lokasi dan durasi singkat.',
   },
   {
     question: 'Bagaimana escrow melindungi pembayaran?',
-    answer: 'Sebelum pekerjaan dimulai, dana dari pemberi kerja diamankan di sistem. Setelah bukti penyelesaian disetujui, dana dilepas kepada pekerja. Bila ada keberatan, dana tetap ditahan sampai proses tinjauan selesai.',
+    answer:
+      'Sebelum pekerjaan dimulai, dana dari pemberi kerja diamankan di sistem. Setelah bukti penyelesaian disetujui, dana dilepas kepada pekerja. Bila ada keberatan, dana tetap ditahan sampai proses tinjauan selesai.',
   },
   {
     question: 'Apakah rekomendasi upah bersifat wajib?',
-    answer: 'Tidak. Kalkulator memberikan rentang transparan berdasarkan jenis pekerjaan, durasi, lokasi, dan faktor risiko. Nilai akhir tetap disepakati oleh pekerja dan pemberi kerja, lalu dicatat dalam kontrak.',
+    answer:
+      'Tidak. Kalkulator memberikan rentang transparan berdasarkan jenis pekerjaan, durasi, lokasi, dan faktor risiko. Nilai akhir tetap disepakati oleh pekerja dan pemberi kerja, lalu dicatat dalam kontrak.',
   },
   {
     question: 'Apa yang terjadi jika muncul sengketa?',
-    answer: 'Kedua pihak dapat mengunggah bukti. Sistem menyusun kontrak, chat, waktu, lokasi, dan foto menjadi kronologi. AI hanya membantu merapikan bukti; keputusan tetap ditinjau manusia.',
+    answer:
+      'Kedua pihak dapat mengunggah bukti. Sistem menyusun kontrak, chat, waktu, lokasi, dan foto menjadi kronologi. AI hanya membantu merapikan bukti; keputusan tetap ditinjau manusia.',
   },
   {
     question: 'Apakah pengguna harus pandai mengetik?',
-    answer: 'Tidak. Voice Onboarding memungkinkan pengguna menjawab pertanyaan dengan suara. Sistem membantu menyusun profil, mencari gig, dan menjelaskan kontrak dalam bahasa yang lebih sederhana.',
+    answer:
+      'Tidak. Voice Onboarding memungkinkan pengguna menjawab pertanyaan dengan suara. Sistem membantu menyusun profil, mencari gig, dan menjelaskan kontrak dalam bahasa yang lebih sederhana.',
   },
   {
     question: 'Bagaimana data identitas dijaga?',
-    answer: 'Konsep produk menerapkan verifikasi seperlunya, pemisahan data sensitif, kontrol akses, dan penyamaran informasi pribadi pada tampilan publik. Detail implementasi produksi akan mengikuti regulasi perlindungan data yang berlaku.',
+    answer:
+      'Konsep produk menerapkan verifikasi seperlunya, pemisahan data sensitif, kontrol akses, dan penyamaran informasi pribadi pada tampilan publik. Detail implementasi produksi akan mengikuti regulasi perlindungan data yang berlaku.',
   },
 ];
 
@@ -83,9 +89,7 @@ function FAQ({
                   <button
                     id={buttonId}
                     type="button"
-                    onClick={() =>
-                      setOpenIndex(isOpen ? null : index)
-                    }
+                    onClick={() => setOpenIndex(isOpen ? null : index)}
                     className="flex w-full items-center justify-between gap-5 py-6 text-left text-base font-extrabold tracking-[-0.015em] outline-none hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/25 focus-visible:ring-inset sm:text-lg"
                     aria-expanded={isOpen}
                     aria-controls={panelId}
@@ -94,14 +98,10 @@ function FAQ({
                     <span
                       className={cn(
                         'grid size-9 shrink-0 place-items-center rounded-full bg-secondary transition-transform',
-                        isOpen &&
-                        'rotate-180 bg-accent text-primary',
+                        isOpen && 'rotate-180 bg-accent text-primary',
                       )}
                     >
-                      <ChevronDown
-                        className="size-4"
-                        aria-hidden="true"
-                      />
+                      <ChevronDown className="size-4" aria-hidden="true" />
                     </span>
                   </button>
                 </h3>

@@ -30,7 +30,10 @@ function Hero({
   badge = 'Akses kerja lokal yang lebih adil',
   title = (
     <>
-      Kerja dekat rumah. <span className="text-primary shimmer shimmer-duration-2000">Upah jelas.</span>{' '}
+      Kerja dekat rumah.{' '}
+      <span className="shimmer text-primary shimmer-duration-2000">
+        Upah jelas.
+      </span>{' '}
       Pembayaran terlindungi.
     </>
   ),
@@ -76,10 +79,7 @@ function Hero({
               >
                 <Link href={register.url()}>
                   Temukan gig di dekatmu
-                  <ArrowRight
-                    className="size-4"
-                    aria-hidden="true"
-                  />
+                  <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               </Button>
               <Button
@@ -106,10 +106,7 @@ function Hero({
                   className="flex items-center gap-2 font-semibold"
                 >
                   <span className="grid size-5 shrink-0 place-items-center rounded-full bg-success-soft text-success">
-                    <Check
-                      className="size-3"
-                      aria-hidden="true"
-                    />
+                    <Check className="size-3" aria-hidden="true" />
                   </span>
                   {item}
                 </li>
@@ -149,10 +146,7 @@ function ProductPreview() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Badge variant="success">
-                  <BadgeCheck
-                    className="size-3.5"
-                    aria-hidden="true"
-                  />
+                  <BadgeCheck className="size-3.5" aria-hidden="true" />
                   Pemberi kerja terverifikasi
                 </Badge>
                 <h2 className="mt-4 text-xl font-extrabold tracking-[-0.035em] sm:text-2xl">
@@ -160,24 +154,13 @@ function ProductPreview() {
                 </h2>
               </div>
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-accent text-primary">
-                <ShieldCheck
-                  className="size-5"
-                  aria-hidden="true"
-                />
+                <ShieldCheck className="size-5" aria-hidden="true" />
               </span>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
-              <PreviewMeta
-                icon={<MapPin />}
-                label="Jarak"
-                value="2,8 km"
-              />
-              <PreviewMeta
-                icon={<Clock3 />}
-                label="Durasi"
-                value="± 3 jam"
-              />
+              <PreviewMeta icon={<MapPin />} label="Jarak" value="2,8 km" />
+              <PreviewMeta icon={<Clock3 />} label="Durasi" value="± 3 jam" />
               <PreviewMeta
                 icon={<WalletCards />}
                 label="Rentang upah"

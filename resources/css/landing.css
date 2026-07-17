@@ -1,43 +1,35 @@
 @layer utilities {
-    .landing-grid {
-        background-image:
-            linear-gradient(
-                to right,
-                rgb(26 23 20 / 0.045) 1px,
-                transparent 1px
-            ),
-            linear-gradient(
-                to bottom,
-                rgb(26 23 20 / 0.045) 1px,
-                transparent 1px
-            );
-        background-size: 32px 32px;
-        mask-image: linear-gradient(to bottom, black, transparent 88%);
-    }
+  .landing-grid {
+    background-image:
+      linear-gradient(to right, rgb(26 23 20 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(26 23 20 / 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(to bottom, black, transparent 88%);
+  }
 
-    .animate-float {
-        animation: landing-float 6s ease-in-out infinite;
-    }
+  .animate-float {
+    animation: landing-float 6s ease-in-out infinite;
+  }
 }
 
 @keyframes landing-float {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
 
-    50% {
-        transform: translateY(-7px);
-    }
+  50% {
+    transform: translateY(-7px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .landing-page *,
-    .landing-page *::before,
-    .landing-page *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-    }
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

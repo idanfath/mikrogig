@@ -31,7 +31,7 @@ const Login = () => {
             />
             <FieldDescription>
               {errors.email && (
-                <span className="text-destructive ">
+                <span className="text-destructive">
                   {sentenceCase(errors.email)}
                 </span>
               )}
@@ -50,7 +50,7 @@ const Login = () => {
             />
             <FieldDescription>
               {errors.password && (
-                <span className="text-destructive ">
+                <span className="text-destructive">
                   {sentenceCase(errors.password)}
                 </span>
               )}
@@ -78,9 +78,7 @@ const Login = () => {
             type="button"
             variant="outline"
             className="mt-4 flex w-full items-center justify-center gap-2"
-            onClick={() =>
-              (window.location.href = '/auth/google/redirect')
-            }
+            onClick={() => (window.location.href = '/auth/google/redirect')}
             mobileLarge
           >
             <img

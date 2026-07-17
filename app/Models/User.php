@@ -18,12 +18,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
 #[Guarded(['id'])]
 #[Appends(['avatar_url', 'is_banned'])]
-#[Hidden(['password', 'remember_token', 'avatar'])]
+#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -59,16 +61,63 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function updateAvatar(UploadedFile $file): string
     {
-        if ($this->avatar && $this->avatar !== 'avatars/default_avatar.jpg') {
-            Storage::disk('cos')->delete($this->avatar);
-        }
-
         $content = file_get_contents($file->getRealPath());
 
-        if ($file->getSize() > 2.5 * 1024 * 1024) {
+        if ($content === false || $content === '') {
+            throw new \RuntimeException('Failed to read uploaded avatar.');
+        }
+
+        return $this->storeAvatarBytes($content);
+    }
+
+    public function updateAvatarFromUrl(string $url): ?string
+    {
+        try {
+            $response = Http::timeout(5)
+                ->connectTimeout(3)
+                ->withHeaders(['Accept' => 'image/*'])
+                ->get($url);
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            $content = $response->body();
+            $maxBytes = 5 * 1024 * 1024;
+
+            if ($content === '' || strlen($content) > $maxBytes) {
+                return null;
+            }
+
+            $contentType = strtolower((string) $response->header('Content-Type'));
+
+            if ($contentType !== '' && ! str_starts_with($contentType, 'image/')) {
+                return null;
+            }
+
+            return $this->storeAvatarBytes($content);
+        } catch (\Throwable $e) {
+            Log::warning('Avatar pull from URL failed', [
+                'user_id' => $this->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    private function storeAvatarBytes(string $content): string
+    {
+        if (strlen($content) > 2.5 * 1024 * 1024) {
             $content = app(CompressionService::class)->compress(
-                $content, 'jpg', ['quality' => 80, 'maxWidth' => 512, 'maxHeight' => 512, 'crop' => true]
+                $content,
+                'jpg',
+                ['quality' => 80, 'maxWidth' => 512, 'maxHeight' => 512, 'crop' => true]
             );
+        }
+
+        if ($this->avatar) {
+            Storage::disk('cos')->delete($this->avatar);
         }
 
         $path = 'avatars/'.uniqid().'.jpg';

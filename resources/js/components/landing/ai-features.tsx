@@ -103,19 +103,17 @@ const defaultFeatures: AIFeature[] = [
     className: 'md:col-span-2',
     visual: (
       <div className="grid gap-2 sm:grid-cols-3" aria-hidden="true">
-        {[
-          'Chat dipantau',
-          'Kontrak diperiksa',
-          'Risiko dijelaskan',
-        ].map((item) => (
-          <Badge
-            key={item}
-            variant="success"
-            className="rounded-xl border border-success/12 bg-white/70 px-3 py-2 text-center text-[10px] font-extrabold text-success"
-          >
-            {item}
-          </Badge>
-        ))}
+        {['Chat dipantau', 'Kontrak diperiksa', 'Risiko dijelaskan'].map(
+          (item) => (
+            <Badge
+              key={item}
+              variant="success"
+              className="rounded-xl border border-success/12 bg-white/70 px-3 py-2 text-center text-[10px] font-extrabold text-success"
+            >
+              {item}
+            </Badge>
+          ),
+        )}
       </div>
     ),
   },
@@ -140,11 +138,8 @@ function AIFeatures({
             variant="outline"
             className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-extrabold text-muted-foreground"
           >
-            <Sparkles
-              className="size-3.5 text-primary"
-              aria-hidden="true"
-            />{' '}
-            AI membantu, manusia memutuskan
+            <Sparkles className="size-3.5 text-primary" aria-hidden="true" /> AI
+            membantu, manusia memutuskan
           </Badge>
         }
       />

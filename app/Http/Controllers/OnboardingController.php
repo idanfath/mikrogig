@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CompleteOnboardingProfileRequest;
 use App\Models\User;
-use App\Services\AiService;
+use App\RegionCatalog;
+use App\Services\ProfileEnhancementService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +20,7 @@ class OnboardingController extends Controller
         return match ($user->onboarding_step) {
             'pick_role' => inertia('onboarding/role'),
             'setup_avatar' => inertia('onboarding/avatar'),
-            'profile' => inertia('onboarding/profile'),
+            'profile' => inertia('onboarding/profile', ['max_date_of_birth' => now('Asia/Jakarta')->subYears(18)->toDateString()]),
             default => redirect()->route('app.home'),
         };
     }
@@ -61,28 +64,12 @@ class OnboardingController extends Controller
         return redirect()->route('onboarding')->with('success', 'Foto profil berhasil diperbarui!');
     }
 
-    public function setupProfile(Request $request)
+    public function setupProfile(CompleteOnboardingProfileRequest $request, RegionCatalog $regions): RedirectResponse
     {
         $user = Auth::user();
-
-        $rules = [
-            'date_of_birth' => 'required|date|before_or_equal:'.now('Asia/Jakarta')->subYears(18)->toDateString(),
-            'province_id' => 'required|string|size:2',
-            'regency_id' => 'required|string|size:4',
-            'province_name' => 'required|string|max:255',
-            'regency_name' => 'required|string|max:255',
-        ];
-
-        if ($user->role->value === 'freelancer') {
-            $rules += [
-                'title' => 'required|string|max:255',
-                'bio' => 'required|string',
-                'skills' => 'required|array|min:1',
-                'skills.*' => 'string',
-            ];
-        }
-
-        $validated = $request->validate($rules);
+        $validated = $request->validated();
+        $province = $regions->province($validated['province_id']);
+        $regency = $regions->regency($validated['province_id'], $validated['regency_id']);
 
         if ($user->role->value === 'freelancer') {
             $user->freelancerProfile()->updateOrCreate(
@@ -99,8 +86,8 @@ class OnboardingController extends Controller
             'date_of_birth' => $validated['date_of_birth'],
             'province_id' => $validated['province_id'],
             'regency_id' => $validated['regency_id'],
-            'province_name' => $validated['province_name'],
-            'regency_name' => $validated['regency_name'],
+            'province_name' => $province['name'],
+            'regency_name' => $regency['name'],
         ]);
 
         $user->onboarding_step = null;
@@ -122,105 +109,11 @@ class OnboardingController extends Controller
         $value = $validated['value'] ?? null;
         $context = $validated['context'] ?? [];
 
-        $aiService = app(AiService::class);
-
-        $contextInfo = '';
-        if (! empty($context['skills'])) {
-            $skillsList = is_array($context['skills']) ? implode(', ', $context['skills']) : $context['skills'];
-            $contextInfo .= "\nKeahlian / Skills: ".$skillsList;
-        }
-
-        if ($field === 'title') {
-            $systemPrompt = config('ai.prompts.enhance_title');
-
-            $userMessage = 'Original Title: '.$value;
-            if ($contextInfo) {
-                $userMessage .= "\n\nAdditional Context:".$contextInfo;
-            }
-        } elseif ($field === 'bio') {
-            if (! empty($context['title'])) {
-                $contextInfo .= "\nJudul Profil: ".$context['title'];
-            }
-
-            $systemPrompt = config('ai.prompts.enhance_bio');
-
-            $userMessage = 'Original Bio: '.$value;
-            if ($contextInfo) {
-                $userMessage .= "\n\nAdditional Context:".$contextInfo;
-            }
-        } else {
-            $systemPrompt = config('ai.prompts.enhance_skills');
-            $userMessage = 'Judul Profil: '.($context['title'] ?? '')."\nBio: ".($context['bio'] ?? '');
-        }
-
         try {
-            $options = [];
-            $model = config('ai.model', '');
-
-            $enhancedValue = $aiService->chat($systemPrompt, $userMessage, $options);
-
-            $cleanValue = trim($enhancedValue);
-            $cleanValue = preg_replace('/<think>.*?<\/think>/is', '', $cleanValue);
-            $cleanValue = trim($cleanValue);
-
-            // check if the response is JSON
-            $isJson = false;
-            $parsedJson = null;
-            if (str_starts_with($cleanValue, '{') || str_starts_with($cleanValue, '[')) {
-                $raw = $cleanValue;
-                // strip markdown if any
-                if (str_starts_with($raw, '```')) {
-                    $raw = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $raw);
-                }
-                $decoded = json_decode(trim($raw), true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $isJson = true;
-                    $parsedJson = $decoded;
-                }
-            }
-
-            if ($field === 'skills') {
-                $parsedValue = [];
-                if ($isJson) {
-                    $parsedValue = $parsedJson;
-                    // if it is wrapped in an associative array ({"keahlian": [...]})
-                    if (is_array($parsedValue) && count($parsedValue) > 0 && ! array_is_list($parsedValue)) {
-                        $firstVal = reset($parsedValue);
-                        if (is_array($firstVal)) {
-                            $parsedValue = $firstVal;
-                        }
-                    }
-                } else {
-                    $cleaned = preg_replace('/[\[\]"\'`]/', '', $cleanValue);
-                    $parsedValue = array_map('trim', explode(',', $cleaned));
-                }
-
-                $parsedValue = array_filter(array_map('strtolower', $parsedValue));
-
-                return response()->json([
-                    'value' => array_values($parsedValue),
-                ]);
-            }
-
-            // for title and bio, extract standard keys if returned in JSON object
-            $resultString = $cleanValue;
-            if ($isJson && is_array($parsedJson)) {
-                if (isset($parsedJson[$field])) {
-                    $resultString = $parsedJson[$field];
-                } elseif (isset($parsedJson['value'])) {
-                    $resultString = $parsedJson['value'];
-                } else {
-                    $firstVal = reset($parsedJson);
-                    if (is_string($firstVal)) {
-                        $resultString = $firstVal;
-                    }
-                }
-            }
-
-            $resultString = preg_replace('/^["\'`]|["\'`]$/', '', $resultString);
+            $enhanced = app(ProfileEnhancementService::class)->enhance($field, $value, $context);
 
             return response()->json([
-                'value' => trim($resultString),
+                'value' => $enhanced,
             ]);
         } catch (\Exception $e) {
             return response()->json([

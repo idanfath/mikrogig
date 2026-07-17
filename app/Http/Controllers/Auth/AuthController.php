@@ -225,6 +225,10 @@ class AuthController extends Controller
                 ]);
             }
 
+            if (! $user->avatar && $avatarUrl = $googleUser->getAvatar()) {
+                $user->updateAvatarFromUrl($avatarUrl);
+            }
+
             Auth::login($user);
 
             $user->refresh();
