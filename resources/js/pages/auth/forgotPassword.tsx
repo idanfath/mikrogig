@@ -2,7 +2,12 @@ import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
 import { login } from '@/routes';
@@ -51,17 +56,13 @@ const ForgotPassword = () => {
             required
             value={data.email}
             onChange={(e) => setData('email', e.currentTarget.value)}
+            aria-invalid={!!errors.email}
             mobileLarge
           />
-          <FieldDescription>
-            {errors.email ? (
-              <span className="text-destructive">
-                {sentenceCase(errors.email)}
-              </span>
-            ) : (
-              'Masukkan email terdaftar Anda.'
-            )}
-          </FieldDescription>
+          <FieldDescription>Masukkan email terdaftar Anda.</FieldDescription>
+          <FieldError>
+            {errors.email ? sentenceCase(errors.email) : undefined}
+          </FieldError>
         </Field>
 
         <Button

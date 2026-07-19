@@ -1,7 +1,7 @@
 import { Form, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
 import { login } from '@/routes';
@@ -24,15 +24,12 @@ const Register = () => {
               name="name"
               autoComplete="name"
               placeholder="John Doe"
+              aria-invalid={!!errors.name}
               mobileLarge
             />
-            <FieldDescription>
-              {errors.name && (
-                <span className="text-destructive">
-                  {sentenceCase(errors.name)}
-                </span>
-              )}
-            </FieldDescription>
+            <FieldError>
+              {errors.name ? sentenceCase(errors.name) : undefined}
+            </FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.email}>
@@ -43,15 +40,12 @@ const Register = () => {
               type="email"
               autoComplete="email"
               placeholder="example@email.com"
+              aria-invalid={!!errors.email}
               mobileLarge
             />
-            <FieldDescription>
-              {errors.email && (
-                <span className="text-destructive">
-                  {sentenceCase(errors.email)}
-                </span>
-              )}
-            </FieldDescription>
+            <FieldError>
+              {errors.email ? sentenceCase(errors.email) : undefined}
+            </FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.password}>
@@ -62,15 +56,12 @@ const Register = () => {
               type="password"
               autoComplete="new-password"
               placeholder="••••••••"
+              aria-invalid={!!errors.password}
               mobileLarge
             />
-            <FieldDescription>
-              {errors.password && (
-                <span className="text-destructive">
-                  {sentenceCase(errors.password)}
-                </span>
-              )}
-            </FieldDescription>
+            <FieldError>
+              {errors.password ? sentenceCase(errors.password) : undefined}
+            </FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.password_confirmation}>
@@ -83,15 +74,14 @@ const Register = () => {
               type="password"
               autoComplete="new-password"
               placeholder="••••••••"
+              aria-invalid={!!errors.password_confirmation}
               mobileLarge
             />
-            <FieldDescription>
-              {errors.password_confirmation && (
-                <span className="text-destructive">
-                  {sentenceCase(errors.password_confirmation)}
-                </span>
-              )}
-            </FieldDescription>
+            <FieldError>
+              {errors.password_confirmation
+                ? sentenceCase(errors.password_confirmation)
+                : undefined}
+            </FieldError>
           </Field>
 
           <Button

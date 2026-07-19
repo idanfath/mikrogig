@@ -20,6 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field';
@@ -446,9 +447,7 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
                     aria-invalid={Boolean(form.errors.name)}
                     disabled={form.processing}
                   />
-                  {form.errors.name && (
-                    <FieldDescription>{form.errors.name}</FieldDescription>
-                  )}
+                  <FieldError>{form.errors.name}</FieldError>
                 </Field>
                 <Field data-invalid={Boolean(form.errors.date_of_birth)}>
                   <div className="flex items-center gap-1">
@@ -493,11 +492,7 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
                       />
                     </PopoverContent>
                   </Popover>
-                  {form.errors.date_of_birth && (
-                    <FieldDescription>
-                      {form.errors.date_of_birth}
-                    </FieldDescription>
-                  )}
+                  <FieldError>{form.errors.date_of_birth}</FieldError>
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="province_id">Provinsi</FieldLabel>
@@ -792,9 +787,7 @@ function FreelancerFields({
           aria-invalid={Boolean(form.errors.title)}
           disabled={form.processing || enhancingTitle}
         />
-        {form.errors.title && (
-          <FieldDescription>{form.errors.title}</FieldDescription>
-        )}
+        <FieldError>{form.errors.title}</FieldError>
       </Field>
       <Field data-invalid={Boolean(form.errors.bio)}>
         <div className="flex items-center justify-between gap-2">
@@ -826,9 +819,7 @@ function FreelancerFields({
           aria-invalid={Boolean(form.errors.bio)}
           disabled={form.processing || enhancingBio}
         />
-        {form.errors.bio && (
-          <FieldDescription>{form.errors.bio}</FieldDescription>
-        )}
+        <FieldError>{form.errors.bio}</FieldError>
       </Field>
       <Field data-invalid={Boolean(form.errors.skills)}>
         <div className="flex items-center justify-between gap-2">
@@ -871,9 +862,7 @@ function FreelancerFields({
         >
           Tambah
         </Button>
-        {form.errors.skills && (
-          <FieldDescription>{form.errors.skills}</FieldDescription>
-        )}
+        <FieldError>{form.errors.skills}</FieldError>
         {form.data.skills.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
             {form.data.skills.map((skill) => (

@@ -1,7 +1,12 @@
 import { Form, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
 import password from '@/routes/password';
@@ -29,17 +34,13 @@ const PasswordReset = () => {
                 type="password"
                 autoComplete="new-password"
                 required
+                aria-invalid={!!errors.password}
                 mobileLarge
               />
-              <FieldDescription>
-                {errors.password ? (
-                  <span className="text-destructive">
-                    {sentenceCase(errors.password)}
-                  </span>
-                ) : (
-                  'Masukkan password baru Anda.'
-                )}
-              </FieldDescription>
+              <FieldDescription>Masukkan password baru Anda.</FieldDescription>
+              <FieldError>
+                {errors.password ? sentenceCase(errors.password) : undefined}
+              </FieldError>
             </Field>
 
             <Field
@@ -55,17 +56,15 @@ const PasswordReset = () => {
                 type="password"
                 autoComplete="new-password"
                 required
+                aria-invalid={!!errors.password_confirmation}
                 mobileLarge
               />
-              <FieldDescription>
-                {errors.password_confirmation ? (
-                  <span className="text-destructive">
-                    {sentenceCase(errors.password_confirmation)}
-                  </span>
-                ) : (
-                  'Ulangi password baru Anda.'
-                )}
-              </FieldDescription>
+              <FieldDescription>Ulangi password baru Anda.</FieldDescription>
+              <FieldError>
+                {errors.password_confirmation
+                  ? sentenceCase(errors.password_confirmation)
+                  : undefined}
+              </FieldError>
             </Field>
 
             <Button

@@ -1,7 +1,7 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
 import { register } from '@/routes';
@@ -27,15 +27,12 @@ const Login = () => {
               type="email"
               autoComplete="email"
               placeholder="example@email.com"
+              aria-invalid={!!errors.email}
               mobileLarge
             />
-            <FieldDescription>
-              {errors.email && (
-                <span className="text-destructive">
-                  {sentenceCase(errors.email)}
-                </span>
-              )}
-            </FieldDescription>
+            <FieldError>
+              {errors.email ? sentenceCase(errors.email) : undefined}
+            </FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.password}>
@@ -46,15 +43,12 @@ const Login = () => {
               type="password"
               autoComplete="current-password"
               placeholder="••••••••"
+              aria-invalid={!!errors.password}
               mobileLarge
             />
-            <FieldDescription>
-              {errors.password && (
-                <span className="text-destructive">
-                  {sentenceCase(errors.password)}
-                </span>
-              )}
-            </FieldDescription>
+            <FieldError>
+              {errors.password ? sentenceCase(errors.password) : undefined}
+            </FieldError>
           </Field>
 
           <Button
