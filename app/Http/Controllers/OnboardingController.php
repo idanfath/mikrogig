@@ -96,7 +96,6 @@ class OnboardingController extends Controller
         return redirect()->route('app.home')->with('success', 'Profil berhasil dilengkapi!');
     }
 
-    // BEHOLD!!!! SUCH ABOMINATION OF A CODE!!!!!!!!!!!!!!!!!
     public function enhanceInputField(Request $request)
     {
         $validated = $request->validate([
@@ -116,8 +115,12 @@ class OnboardingController extends Controller
                 'value' => $enhanced,
             ]);
         } catch (\Exception $e) {
+            logger()->error('API error', [
+                'message' => $e->getMessage(),
+            ]);
+
             return response()->json([
-                'error' => 'Gagal meningkatkan input dengan AI.',
+                'error' => 'Peningkatan Gagal.',
             ], 500);
         }
     }

@@ -34,3 +34,4 @@ CLAUDE.md
 /.github
 GEMINI.md
 *.ignore
+/llm

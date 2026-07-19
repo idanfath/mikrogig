@@ -32,6 +32,11 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         Inertia::handleExceptionsUsing(function (ExceptionResponse $response) {
             if ($response->statusCode() === 429) {
+                // useHttp / JSON clients need Laravel's default JSON 429 body
+                if ($response->request->expectsJson() || $response->request->wantsJson()) {
+                    return null;
+                }
+
                 return back()->with('error', 'Too Many Request!');
             }
 

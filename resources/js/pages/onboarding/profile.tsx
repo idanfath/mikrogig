@@ -223,6 +223,16 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     data.province_id !== '' &&
     data.regency_id !== '';
 
+  const toastEnhanceError = (error: any, fallback: string) => {
+    if (error?.response?.status === 429) {
+      toast.error('Coba Lagi Nanti.');
+
+      return;
+    }
+
+    toast.error(error.message || fallback);
+  };
+
   const handleEnhance = async (field: 'title' | 'bio', value: string) => {
     if (!value.trim()) {
       return;
@@ -254,7 +264,9 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
 
       if (result.value) {
         setData(field, result.value);
-        toast.success('Profil berhasil ditingkatkan.');
+        if (result.value !== value) {
+          toast.success('Profil berhasil ditingkatkan.');
+        }
 
         if (field === 'title') {
           setLastEnhancedTitle(result.value);
@@ -263,7 +275,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Gagal meningkatkan dengan AI');
+      toastEnhanceError(error, 'Gagal meningkatkan dengan AI');
     } finally {
       if (field === 'title') {
         setEnhancingTitle(false);
@@ -311,7 +323,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
         toast.success('Rekomendasi keahlian berhasil ditambahkan.');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Gagal merekomendasikan keahlian');
+      toastEnhanceError(error, 'Gagal merekomendasikan keahlian');
     } finally {
       setEnhancingSkills(false);
     }

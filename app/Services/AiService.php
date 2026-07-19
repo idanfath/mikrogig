@@ -23,6 +23,8 @@ class AiService
 
         $response = Http::withToken(config('ai.api_key'))
             ->timeout(30)
+            ->withHeader('X-9Router-Token-Saver', 'off')
+            ->asJson()
             ->post(config('ai.base_url').'/chat/completions', $payload);
 
         $response->throw();
