@@ -1,7 +1,7 @@
 import { useForm, usePage, useHttp } from '@inertiajs/react';
 import { format, subYears } from 'date-fns';
 import { CalendarIcon, Loader2, MapPin, Sparkles, X } from 'lucide-react';
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Badge } from '@/components/ui/badge';
@@ -27,22 +27,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import OnboardingLayout from '@/layout/OnboardingLayout';
+import { getProfileEnhancementAvailability } from '@/lib/profile-enhancement';
+import freelancer from '@/routes/freelancer';
 import { resolve } from '@/routes/locations';
 import onboarding from '@/routes/onboarding';
-import { provinces as provincesRoute, regencies as regenciesRoute } from '@/routes/regions';
+import {
+  provinces as provincesRoute,
+  regencies as regenciesRoute,
+} from '@/routes/regions';
 import type { Auth } from '@/types/auth';
-
-type Region = {
-  id: string;
-  name: string;
-};
-
-type Regency = Region & {
-  province_id: string;
-};
+import type { Region, Regency } from '@/types/region';
+import { id } from 'date-fns/locale';
 
 const OnboardingProfile: InertiaPageWithLayout = () => {
-  const { auth, max_date_of_birth } = usePage<{ auth: Auth; max_date_of_birth?: string }>().props;
+  const { auth, max_date_of_birth } = usePage<{
+    auth: Auth;
+    max_date_of_birth?: string;
+  }>().props;
   const enhanceHttp = useHttp({
     field: '',
     value: '',
@@ -95,7 +96,6 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     latestProvinceRef.current = pid;
 
     if (!pid) {
-
       return;
     }
 
@@ -204,6 +204,14 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     null,
   );
   const [lastEnhancedBio, setLastEnhancedBio] = useState<string | null>(null);
+  const enhancementAvailability = getProfileEnhancementAvailability({
+    title: data.title,
+    bio: data.bio,
+    skills: data.skills,
+    lastEnhancedTitle,
+    lastEnhancedBio,
+    processing: processing || enhancingTitle || enhancingBio || enhancingSkills,
+  });
 
   const selectedProvinceName = provinces.find(
     (province) => province.id === data.province_id,
@@ -259,11 +267,12 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     }));
 
     try {
-      const response = await enhanceHttp.post(onboarding.enhance.url());
+      const response = await enhanceHttp.post(freelancer.enhance.url());
       const result = response as any;
 
       if (result.value) {
         setData(field, result.value);
+
         if (result.value !== value) {
           toast.success('Profil berhasil ditingkatkan.');
         }
@@ -307,7 +316,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     }));
 
     try {
-      const response = await enhanceHttp.post(onboarding.enhance.url());
+      const response = await enhanceHttp.post(freelancer.enhance.url());
       const result = response as any;
 
       if (result.value && Array.isArray(result.value)) {
@@ -369,24 +378,21 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel htmlFor="title">Judul Profil</FieldLabel>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-xs"
-                    disabled={
-                      !data.title.trim() ||
-                      data.title === lastEnhancedTitle ||
-                      enhancingTitle ||
-                      processing
-                    }
-                    onClick={() => handleEnhance('title', data.title)}
-                  >
-                    <Sparkles
-                      className={`size-3.5 text-violet-500 ${enhancingTitle ? 'animate-pulse' : ''}`}
-                    />
-                    {enhancingTitle ? 'Memproses...' : 'Tingkatkan dengan AI'}
-                  </Button>
+                  {(enhancementAvailability.title || enhancingTitle) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs"
+                      disabled={!enhancementAvailability.title}
+                      onClick={() => handleEnhance('title', data.title)}
+                    >
+                      <Sparkles
+                        className={`size-3.5 text-primary ${enhancingTitle ? 'animate-pulse' : ''}`}
+                      />
+                      {enhancingTitle ? 'Memproses...' : 'Tingkatkan dengan AI'}
+                    </Button>
+                  )}
                 </div>
                 <FieldDescription>
                   Contoh: Tukang Las, Cleaning Service, Supir Pribadi, Buruh
@@ -404,24 +410,21 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel htmlFor="bio">Bio</FieldLabel>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-xs"
-                    disabled={
-                      !data.bio.trim() ||
-                      data.bio === lastEnhancedBio ||
-                      enhancingBio ||
-                      processing
-                    }
-                    onClick={() => handleEnhance('bio', data.bio)}
-                  >
-                    <Sparkles
-                      className={`size-3.5 text-violet-500 ${enhancingBio ? 'animate-pulse' : ''}`}
-                    />
-                    {enhancingBio ? 'Memproses...' : 'Tingkatkan dengan AI'}
-                  </Button>
+                  {(enhancementAvailability.bio || enhancingBio) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs"
+                      disabled={!enhancementAvailability.bio}
+                      onClick={() => handleEnhance('bio', data.bio)}
+                    >
+                      <Sparkles
+                        className={`size-3.5 text-primary ${enhancingBio ? 'animate-pulse' : ''}`}
+                      />
+                      {enhancingBio ? 'Memproses...' : 'Tingkatkan dengan AI'}
+                    </Button>
+                  )}
                 </div>
                 <FieldDescription>
                   Ceritakan tentang dirimu dan pengalamanmu
@@ -440,27 +443,23 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel>Keahlian</FieldLabel>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-xs"
-                    disabled={
-                      !data.title.trim() ||
-                      !data.bio.trim() ||
-                      data.skills.length > 0 ||
-                      enhancingSkills ||
-                      processing
-                    }
-                    onClick={handleEnhanceSkills}
-                  >
-                    <Sparkles
-                      className={`size-3.5 text-violet-500 ${enhancingSkills ? 'animate-pulse' : ''}`}
-                    />
-                    {enhancingSkills
-                      ? 'Memproses...'
-                      : 'Rekomendasikan Keahlian'}
-                  </Button>
+                  {(enhancementAvailability.skills || enhancingSkills) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs"
+                      disabled={!enhancementAvailability.skills}
+                      onClick={handleEnhanceSkills}
+                    >
+                      <Sparkles
+                        className={`size-3.5 text-primary ${enhancingSkills ? 'animate-pulse' : ''}`}
+                      />
+                      {enhancingSkills
+                        ? 'Memproses...'
+                        : 'Rekomendasikan Keahlian'}
+                    </Button>
+                  )}
                 </div>
                 <FieldDescription>
                   Tambahkan keahlian yang kamu miliki
@@ -510,9 +509,9 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
                   id="date_of_birth"
                   className="w-full justify-start font-normal"
                 >
-                  <CalendarIcon className=" size-4" />
+                  <CalendarIcon className="size-4" />
                   {data.date_of_birth
-                    ? format(new Date(data.date_of_birth), 'dd MMMM yyyy')
+                    ? format(new Date(data.date_of_birth), 'dd MMMM yyyy', { locale: id })
                     : 'Pilih tanggal lahir'}
                 </Button>
               </PopoverTrigger>
@@ -528,8 +527,16 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
                       : undefined
                   }
                   captionLayout="dropdown"
-                  defaultMonth={max_date_of_birth ? new Date(max_date_of_birth) : subYears(new Date(), 18)}
-                  disabled={{ after: max_date_of_birth ? new Date(max_date_of_birth) : subYears(new Date(), 18) }}
+                  defaultMonth={
+                    max_date_of_birth
+                      ? new Date(max_date_of_birth)
+                      : subYears(new Date(), 18)
+                  }
+                  disabled={{
+                    after: max_date_of_birth
+                      ? new Date(max_date_of_birth)
+                      : subYears(new Date(), 18),
+                  }}
                   onSelect={(date) => {
                     if (date) {
                       setData('date_of_birth', format(date, 'yyyy-MM-dd'));
@@ -542,7 +549,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
             </Popover>
           </Field>
 
-          <Field >
+          <Field>
             <Field>
               <FieldLabel htmlFor="province_id">Provinsi</FieldLabel>
               <Select

@@ -17,6 +17,19 @@ export function getDeviceInformation() {
   return { memory, cores, connection };
 }
 
-export function sentenceCase(str: string) {
+export function sentenceCase(str: string, force: boolean = false): string {
+  if (force) {
+    str = str.toLowerCase();
+  }
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+export function capitalize(str: string, force: boolean = false): string {
+  const words = str.split(' ');
+  for (let i = 0; i < words.length; i++) {
+    if (force || i === 0) {
+      words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
+    }
+  }
+  return words.join(' ');
 }

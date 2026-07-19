@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -55,8 +56,22 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function AvatarUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => Storage::url($this->avatar ?? 'avatars/default_avatar.jpg')
+            get: fn () => Storage::disk('cos')->url($this->avatar ?? 'avatars/default_avatar.jpg')
         );
+    }
+
+    public function clearAvatar(): void
+    {
+        if ($this->avatar === null) {
+            return;
+        }
+
+        $avatar = $this->avatar;
+
+        $this->avatar = null;
+        $this->save();
+
+        $this->deleteAvatarAfterCommit($avatar);
     }
 
     public function updateAvatar(UploadedFile $file): string
@@ -116,17 +131,36 @@ class User extends Authenticatable implements MustVerifyEmail
             );
         }
 
-        if ($this->avatar) {
-            Storage::disk('cos')->delete($this->avatar);
-        }
-
         $path = 'avatars/'.uniqid().'.jpg';
         Storage::disk('cos')->put($path, $content, 'public');
 
-        $this->avatar = $path;
-        $this->save();
+        $oldAvatar = $this->avatar;
+
+        try {
+            $this->avatar = $path;
+            $this->save();
+        } catch (\Throwable $exception) {
+            Storage::disk('cos')->delete($path);
+
+            throw $exception;
+        }
+
+        if ($oldAvatar !== null) {
+            $this->deleteAvatarAfterCommit($oldAvatar);
+        }
 
         return $path;
+    }
+
+    private function deleteAvatarAfterCommit(string $avatar): void
+    {
+        if (DB::transactionLevel() > 0) {
+            DB::afterCommit(fn () => Storage::disk('cos')->delete($avatar));
+
+            return;
+        }
+
+        Storage::disk('cos')->delete($avatar);
     }
 
     protected $withExists = ['activeBan'];

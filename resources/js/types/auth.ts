@@ -11,7 +11,12 @@ export type User = {
   is_banned: boolean;
   created_at: string;
   updated_at: string;
-  [key: string]: any; // This allows for additional properties...
+  date_of_birth?: string | null;
+  province_id?: string | null;
+  regency_id?: string | null;
+  province_name?: string | null;
+  regency_name?: string | null;
+  location?: string | null;
 };
 
 export type Auth = {

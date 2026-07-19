@@ -95,6 +95,9 @@ Artisan::command('onboarding:set {email} {step}', function ($email, $step) {
 
         return;
     }
+    if ($step == 'null') {
+        $step = null;
+    }
     $user->onboarding_step = $step;
     $user->save();
     $this->info("Onboarding step set to '{$step}' for user: {$email}");
