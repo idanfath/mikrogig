@@ -44,19 +44,15 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/ui/user-avatar';
+import { useDetectLocation } from '@/hooks/use-detect-location';
+import { useRegionSelect } from '@/hooks/use-region-select';
 import AppLayout from '@/layout/AppLayout';
 import { compressImage } from '@/lib/image_utility';
 import { getProfileEnhancementAvailability } from '@/lib/profile-enhancement';
 import { capitalize, cn, sentenceCase } from '@/lib/utils';
 import app from '@/routes/app';
 import freelancer from '@/routes/freelancer';
-import { resolve } from '@/routes/locations';
-import {
-  provinces as provincesRoute,
-  regencies as regenciesRoute,
-} from '@/routes/regions';
 import { UserRoleFrontendLabel, type UserRole } from '@/types/enum';
-import type { Region, Regency } from '@/types/region';
 import { id } from 'date-fns/locale';
 
 type FreelancerProfile = {
@@ -104,10 +100,6 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
   const [editing, setEditing] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [skillInput, setSkillInput] = useState('');
-  const [provinces, setProvinces] = useState<Region[]>([]);
-  const [regencies, setRegencies] = useState<Regency[]>([]);
-  const [loadingRegencies, setLoadingRegencies] = useState(false);
-  const [detecting, setDetecting] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [enhancingTitle, setEnhancingTitle] = useState(false);
   const [enhancingBio, setEnhancingBio] = useState(false);
@@ -117,13 +109,12 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
   );
   const [lastEnhancedBio, setLastEnhancedBio] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const latestProvinceRef = useRef('');
   const enhanceHttp = useHttp({
     field: '',
     value: '',
     context: { title: '', bio: '', skills: [] as string[], location: '' },
   });
-  const locationHttp = useHttp({ latitude: 0, longitude: 0 });
+  const { detecting, detectLocation } = useDetectLocation();
   const form = useForm<ProfileForm>({
     name: profile.name,
     date_of_birth: profile.date_of_birth ?? '',
@@ -135,58 +126,17 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
     avatar: null,
     remove_avatar: false,
   });
-
-  useEffect(() => {
-    if (!editing || provinces.length > 0) {
-      return;
-    }
-
-    void fetch(provincesRoute.url())
-      .then((response) =>
-        response.ok ? (response.json() as Promise<Region[]>) : Promise.reject(),
-      )
-      .then(setProvinces)
-      .catch(() => toast.error('Gagal memuat data provinsi.'));
-  }, [editing, provinces.length]);
-
-  useEffect(() => {
-    if (!editing) {
-      return;
-    }
-
-    const provinceId = form.data.province_id;
-    latestProvinceRef.current = provinceId;
-
-    if (!provinceId) {
-      return;
-    }
-
-    const loadRegencies = async () => {
-      setLoadingRegencies(true);
-
-      try {
-        const response = await fetch(regenciesRoute.url(provinceId));
-
-        if (!response.ok) {
-          throw new Error('Gagal memuat data kabupaten/kota.');
-        }
-
-        if (latestProvinceRef.current !== provinceId) {
-          return;
-        }
-
-        setRegencies((await response.json()) as Regency[]);
-      } catch {
-        toast.error('Gagal memuat data kabupaten/kota.');
-      } finally {
-        if (latestProvinceRef.current === provinceId) {
-          setLoadingRegencies(false);
-        }
-      }
-    };
-
-    void loadRegencies();
-  }, [editing, form.data.province_id]);
+  const {
+    provinces,
+    regencies,
+    loadingRegencies,
+    selectedProvinceName,
+    selectedRegencyName,
+  } = useRegionSelect({
+    provinceId: form.data.province_id,
+    regencyId: form.data.regency_id,
+    enabled: editing,
+  });
 
   useEffect(() => {
     return () => {
@@ -196,12 +146,6 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
     };
   }, [avatarPreview]);
 
-  const selectedProvinceName = provinces.find(
-    (province) => province.id === form.data.province_id,
-  )?.name;
-  const selectedRegencyName = regencies.find(
-    (regency) => regency.id === form.data.regency_id,
-  )?.name;
   const enhancementAvailability = getProfileEnhancementAvailability({
     title: form.data.title,
     bio: form.data.bio,
@@ -430,50 +374,6 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
     }
   };
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation tidak didukung oleh browser Anda.');
-
-      return;
-    }
-
-    setDetecting(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          locationHttp.transform(() => ({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          }));
-          const result = (await locationHttp.post(resolve.url())) as {
-            province_id: string;
-            regency_id: string;
-          };
-
-          form.setData((data) => ({
-            ...data,
-            province_id: result.province_id,
-            regency_id: result.regency_id,
-          }));
-          toast.success('Lokasi berhasil dideteksi.');
-        } catch (error: any) {
-          toast.error(error.message || 'Gagal mendeteksi lokasi.');
-        } finally {
-          setDetecting(false);
-        }
-      },
-      (error) => {
-        toast.error(
-          error.code === error.PERMISSION_DENIED
-            ? 'Izin lokasi ditolak oleh browser. Silakan aktifkan izin lokasi.'
-            : 'Gagal mengakses GPS.',
-        );
-        setDetecting(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
-  };
-
   const selectedBirthDate = form.data.date_of_birth
     ? new Date(form.data.date_of_birth)
     : undefined;
@@ -604,7 +504,6 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
                   <Select
                     value={form.data.province_id}
                     onValueChange={(province_id) => {
-                      setRegencies([]);
                       form.setData((data) => ({
                         ...data,
                         province_id,
@@ -654,7 +553,15 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={detectLocation}
+                    onClick={() =>
+                      detectLocation((location) => {
+                        form.setData((data) => ({
+                          ...data,
+                          province_id: location.province_id,
+                          regency_id: location.regency_id,
+                        }));
+                      })
+                    }
                     disabled={form.processing || detecting}
                     className="h-11 w-full"
                   >

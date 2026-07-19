@@ -2,7 +2,7 @@ import { useForm, usePage, useHttp } from '@inertiajs/react';
 import { format, subYears } from 'date-fns';
 import { CalendarIcon, Loader2, MapPin, Sparkles, X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,17 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useDetectLocation } from '@/hooks/use-detect-location';
+import { useRegionSelect } from '@/hooks/use-region-select';
 import OnboardingLayout from '@/layout/OnboardingLayout';
 import { getProfileEnhancementAvailability } from '@/lib/profile-enhancement';
 import freelancer from '@/routes/freelancer';
-import { resolve } from '@/routes/locations';
 import onboarding from '@/routes/onboarding';
-import {
-  provinces as provincesRoute,
-  regencies as regenciesRoute,
-} from '@/routes/regions';
 import type { Auth } from '@/types/auth';
-import type { Region, Regency } from '@/types/region';
 import { id } from 'date-fns/locale';
 
 const OnboardingProfile: InertiaPageWithLayout = () => {
@@ -49,10 +45,7 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     value: '',
     context: {},
   });
-  const locationHttp = useHttp({
-    latitude: 0,
-    longitude: 0,
-  });
+  const { detecting, detectLocation } = useDetectLocation();
   const isFreelancer = auth.user.role === 'freelancer';
 
   const { data, setData, post, processing } = useForm({
@@ -63,72 +56,20 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     province_id: '',
     regency_id: '',
   });
-
-  const [provinces, setProvinces] = useState<Region[]>([]);
-  const [regencies, setRegencies] = useState<Regency[]>([]);
-  const [loadingProvinces, setLoadingProvinces] = useState(true);
-  const [loadingRegencies, setLoadingRegencies] = useState(false);
-
-  useEffect(() => {
-    const loadProvinces = async () => {
-      try {
-        const response = await fetch(provincesRoute.url());
-
-        if (!response.ok) {
-          throw new Error('Gagal memuat data provinsi.');
-        }
-
-        setProvinces((await response.json()) as Region[]);
-      } catch {
-        toast.error('Gagal memuat data provinsi.');
-      } finally {
-        setLoadingProvinces(false);
-      }
-    };
-
-    void loadProvinces();
-  }, []);
-
-  const latestProvinceRef = useRef('');
-
-  useEffect(() => {
-    const pid = data.province_id;
-    latestProvinceRef.current = pid;
-
-    if (!pid) {
-      return;
-    }
-
-    const loadRegencies = async () => {
-      setLoadingRegencies(true);
-
-      try {
-        const response = await fetch(regenciesRoute.url(pid));
-
-        if (!response.ok) {
-          throw new Error('Gagal memuat data kabupaten/kota.');
-        }
-
-        if (latestProvinceRef.current !== pid) {
-          return;
-        }
-
-        setRegencies((await response.json()) as Regency[]);
-      } catch {
-        toast.error('Gagal memuat data kabupaten/kota.');
-      } finally {
-        if (latestProvinceRef.current === pid) {
-          setLoadingRegencies(false);
-        }
-      }
-    };
-
-    void loadRegencies();
-  }, [data.province_id]);
+  const {
+    provinces,
+    regencies,
+    loadingProvinces,
+    loadingRegencies,
+    selectedProvinceName,
+    selectedRegencyName,
+  } = useRegionSelect({
+    provinceId: data.province_id,
+    regencyId: data.regency_id,
+    enabled: true,
+  });
 
   const handleProvinceChange = (id: string) => {
-    setRegencies([]);
-
     setData((prev) => ({
       ...prev,
       province_id: id,
@@ -145,54 +86,6 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
       ...prev,
       regency_id: id,
     }));
-  };
-
-  const [detecting, setDetecting] = useState(false);
-
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation tidak didukung oleh browser Anda.');
-
-      return;
-    }
-
-    setDetecting(true);
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          locationHttp.transform(() => ({ latitude, longitude }));
-          const result = (await locationHttp.post(resolve.url())) as {
-            province_id: string;
-            regency_id: string;
-          };
-
-          setData((prev) => ({
-            ...prev,
-            province_id: result.province_id,
-            regency_id: result.regency_id,
-          }));
-          toast.success('Lokasi berhasil dideteksi.');
-        } catch (err: any) {
-          toast.error(err.message || 'Gagal mendeteksi lokasi.');
-        } finally {
-          setDetecting(false);
-        }
-      },
-      (err) => {
-        let msg = 'Gagal mengakses GPS.';
-
-        if (err.code === err.PERMISSION_DENIED) {
-          msg =
-            'Izin lokasi ditolak oleh browser. Silakan aktifkan izin lokasi.';
-        }
-
-        toast.error(msg);
-        setDetecting(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
   };
 
   const [skillInput, setSkillInput] = useState('');
@@ -212,13 +105,6 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     lastEnhancedBio,
     processing: processing || enhancingTitle || enhancingBio || enhancingSkills,
   });
-
-  const selectedProvinceName = provinces.find(
-    (province) => province.id === data.province_id,
-  )?.name;
-  const selectedRegencyName = regencies.find(
-    (regency) => regency.id === data.regency_id,
-  )?.name;
 
   const isProfileComplete = isFreelancer
     ? data.title.trim() !== '' &&
@@ -602,7 +488,15 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={detectLocation}
+              onClick={() =>
+                detectLocation((location) => {
+                  setData((prev) => ({
+                    ...prev,
+                    province_id: location.province_id,
+                    regency_id: location.regency_id,
+                  }));
+                })
+              }
               disabled={processing || loadingProvinces || detecting}
               className="h-11 w-full gap-2"
             >
