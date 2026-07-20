@@ -109,7 +109,7 @@ function AppSidebar({ className }: AppSidebarProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={app.home()}>
+                  <Link href={app.account()}>
                     <Settings aria-hidden="true" />
                     Pengaturan
                   </Link>

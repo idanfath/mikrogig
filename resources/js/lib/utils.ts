@@ -18,6 +18,9 @@ export function getDeviceInformation() {
 }
 
 export function sentenceCase(str: string, force: boolean = false): string {
+  if (str === null || str === undefined) {
+    return '';
+  }
   if (force) {
     str = str.toLowerCase();
   }

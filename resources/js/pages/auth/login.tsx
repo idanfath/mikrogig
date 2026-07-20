@@ -30,9 +30,7 @@ const Login = () => {
               aria-invalid={!!errors.email}
               mobileLarge
             />
-            <FieldError>
-              {errors.email ? sentenceCase(errors.email) : undefined}
-            </FieldError>
+            <FieldError>{sentenceCase(errors.email)}</FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.password}>
@@ -46,9 +44,7 @@ const Login = () => {
               aria-invalid={!!errors.password}
               mobileLarge
             />
-            <FieldError>
-              {errors.password ? sentenceCase(errors.password) : undefined}
-            </FieldError>
+            <FieldError>{sentenceCase(errors.password)}</FieldError>
           </Field>
 
           <Button

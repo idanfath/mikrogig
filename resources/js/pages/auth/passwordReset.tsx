@@ -38,9 +38,7 @@ const PasswordReset = () => {
                 mobileLarge
               />
               <FieldDescription>Masukkan password baru Anda.</FieldDescription>
-              <FieldError>
-                {errors.password ? sentenceCase(errors.password) : undefined}
-              </FieldError>
+              <FieldError>{sentenceCase(errors.password)}</FieldError>
             </Field>
 
             <Field
@@ -61,9 +59,7 @@ const PasswordReset = () => {
               />
               <FieldDescription>Ulangi password baru Anda.</FieldDescription>
               <FieldError>
-                {errors.password_confirmation
-                  ? sentenceCase(errors.password_confirmation)
-                  : undefined}
+                {sentenceCase(errors.password_confirmation)}
               </FieldError>
             </Field>
 

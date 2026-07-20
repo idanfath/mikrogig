@@ -60,9 +60,7 @@ const ForgotPassword = () => {
             mobileLarge
           />
           <FieldDescription>Masukkan email terdaftar Anda.</FieldDescription>
-          <FieldError>
-            {errors.email ? sentenceCase(errors.email) : undefined}
-          </FieldError>
+          <FieldError>{sentenceCase(errors.email)}</FieldError>
         </Field>
 
         <Button

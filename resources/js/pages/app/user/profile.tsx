@@ -45,6 +45,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/ui/user-avatar';
+import {
+  appPageCardClassName,
+  appPageClassName,
+} from '@/components/layout/app-page';
 import { useDetectLocation } from '@/hooks/use-detect-location';
 import { useRegionSelect } from '@/hooks/use-region-select';
 import AppLayout from '@/layout/AppLayout';
@@ -388,11 +392,10 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
     <>
       <Head title="Profil" />
       <TooltipProvider>
-        <form
-          onSubmit={submit}
-          className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pb-6"
-        >
-          <section className="flex flex-col gap-5 rounded-2xl border bg-card p-6 shadow-xs">
+        <form onSubmit={submit} className={appPageClassName}>
+          <section
+            className={cn(appPageCardClassName, 'flex flex-col gap-5')}
+          >
             <ProfileHeader
               profile={profile}
               avatarUrl={displayAvatarUrl}
@@ -578,7 +581,7 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
           </section>
 
           {editing && isFreelancer && (
-            <section className="rounded-2xl border bg-card p-6 shadow-xs">
+            <section className={appPageCardClassName}>
               <FieldGroup>
                 <FreelancerFields
                   form={form}

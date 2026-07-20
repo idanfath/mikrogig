@@ -1,4 +1,4 @@
-import { House, UserRound } from 'lucide-react';
+import { House, Settings, UserRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import app from '@/routes/app';
@@ -36,6 +36,11 @@ export const appNavigation: AppNavigationCategory[] = [
         label: 'Profil',
         icon: UserRound,
         href: app.profile(),
+      },
+      {
+        label: 'Pengaturan',
+        icon: Settings,
+        href: app.account(),
       },
     ],
   },

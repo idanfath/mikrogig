@@ -27,9 +27,7 @@ const Register = () => {
               aria-invalid={!!errors.name}
               mobileLarge
             />
-            <FieldError>
-              {errors.name ? sentenceCase(errors.name) : undefined}
-            </FieldError>
+            <FieldError>{sentenceCase(errors.name)}</FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.email}>
@@ -43,9 +41,7 @@ const Register = () => {
               aria-invalid={!!errors.email}
               mobileLarge
             />
-            <FieldError>
-              {errors.email ? sentenceCase(errors.email) : undefined}
-            </FieldError>
+            <FieldError>{sentenceCase(errors.email)}</FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.password}>
@@ -59,9 +55,7 @@ const Register = () => {
               aria-invalid={!!errors.password}
               mobileLarge
             />
-            <FieldError>
-              {errors.password ? sentenceCase(errors.password) : undefined}
-            </FieldError>
+            <FieldError>{sentenceCase(errors.password)}</FieldError>
           </Field>
 
           <Field className="mb-4" data-invalid={!!errors.password_confirmation}>
@@ -78,9 +72,7 @@ const Register = () => {
               mobileLarge
             />
             <FieldError>
-              {errors.password_confirmation
-                ? sentenceCase(errors.password_confirmation)
-                : undefined}
+              {sentenceCase(errors.password_confirmation)}
             </FieldError>
           </Field>
 
