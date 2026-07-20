@@ -24,8 +24,6 @@ const PasswordReset = () => {
       >
         {({ errors, processing }) => (
           <>
-            <input type="hidden" name="token" value="" />
-
             <Field className="mb-4" data-invalid={!!errors.password}>
               <FieldLabel htmlFor="password">Password Baru</FieldLabel>
               <Input
@@ -33,6 +31,7 @@ const PasswordReset = () => {
                 name="password"
                 type="password"
                 autoComplete="new-password"
+                placeholder="••••••••"
                 required
                 aria-invalid={!!errors.password}
                 mobileLarge
@@ -53,6 +52,7 @@ const PasswordReset = () => {
                 name="password_confirmation"
                 type="password"
                 autoComplete="new-password"
+                placeholder="••••••••"
                 required
                 aria-invalid={!!errors.password_confirmation}
                 mobileLarge

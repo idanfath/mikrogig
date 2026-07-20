@@ -58,6 +58,7 @@ Route::middleware(['auth', 'verified', 'no_banned_user'])->group(function () {
 Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])->group(function () {
   Route::group(['prefix' => 'app'], function () {
     Route::get('/', [AppController::class, 'index'])->name('app.home');
+    Route::get('/user', [AppController::class, 'user'])->name('app.user');
     Route::get('/profile', [ProfileController::class, 'index'])->name('app.profile');
     Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('app.profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('app.profile.update');

@@ -8,6 +8,8 @@ export type AppNavigationItem = {
   label: string;
   icon: LucideIcon;
   href: RouteDefinition<'get'>;
+  /** render auth avatar instead of lucide icon */
+  avatar?: boolean;
 };
 
 export type AppNavigationCategory = {
@@ -57,14 +59,10 @@ export const mobileAppNavigation: AppNavigationCategory = {
       href: app.home(),
     },
     {
-      label: 'Profil',
+      label: 'Akun',
       icon: UserRound,
-      href: app.profile(),
-    },
-    {
-      label: 'Pengaturan',
-      icon: Settings,
-      href: app.account(),
+      href: app.user(),
+      avatar: true,
     },
   ],
 };

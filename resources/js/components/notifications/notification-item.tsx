@@ -21,16 +21,14 @@ export function NotificationItem({
 
   return (
     <div
-      className={`flex cursor-pointer items-start justify-between gap-4 bg-muted/40 transition-colors duration-200 hover:bg-muted/70 ${
-        isCompact ? 'rounded-xl p-3.5' : 'rounded-2xl p-5'
-      } ${isUnread ? 'bg-primary/[0.04] ring-1 ring-primary/10' : ''}`}
+      className={`flex cursor-pointer items-start justify-between gap-4 bg-muted transition-colors duration-200 hover:outline-1  ${isCompact ? 'rounded-xl p-3.5' : 'rounded-2xl p-5'
+        } ${isUnread ? 'bg-primary/4 ring-1 ring-primary/10' : ''}`}
       onClick={() => onOpen(message)}
     >
       <div className="flex min-w-0 flex-1 items-start gap-4">
         <div
-          className={`relative flex shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ${
-            isCompact ? 'mt-0 size-8' : 'mt-0.5 size-9'
-          }`}
+          className={`relative flex shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ${isCompact ? 'mt-0 size-8' : 'mt-0.5 size-9'
+            }`}
         >
           <Bell className={isCompact ? 'size-3.5' : 'size-4'} />
           {isUnread && (
@@ -52,16 +50,14 @@ export function NotificationItem({
             )}
           </div>
           <p
-            className={`text-xs leading-relaxed text-muted-foreground ${
-              isCompact ? 'mt-0.5 line-clamp-1' : 'mt-1 line-clamp-2'
-            }`}
+            className={`text-xs leading-relaxed text-muted-foreground ${isCompact ? 'mt-0.5 line-clamp-1' : 'mt-1 line-clamp-2'
+              }`}
           >
             {message.body ?? 'Tidak ada detail pesan.'}
           </p>
           <span
-            className={`block font-medium text-muted-foreground/80 ${
-              isCompact ? 'mt-1 text-[10px]' : 'mt-2 text-[11px]'
-            }`}
+            className={`block font-medium text-muted-foreground/80 ${isCompact ? 'mt-1 text-[10px]' : 'mt-2 text-[11px]'
+              }`}
           >
             {formatRelativeTime(message.created_at)}
           </span>
@@ -83,9 +79,8 @@ export function NotificationItem({
         <Button
           variant="ghost"
           size="sm"
-          className={`font-semibold text-destructive transition-none hover:bg-destructive/10 hover:text-destructive ${
-            isCompact ? 'h-6 px-2 text-[10px]' : 'h-7 px-2.5 text-[11px]'
-          }`}
+          className={`font-semibold text-destructive transition-none hover:bg-destructive/10 hover:text-destructive ${isCompact ? 'h-6 px-2 text-[10px]' : 'h-7 px-2.5 text-[11px]'
+            }`}
           onClick={() => onDelete(message.id)}
         >
           Hapus

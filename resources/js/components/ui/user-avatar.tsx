@@ -2,6 +2,7 @@ import { User as UserIcon } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import asset from '@/lib/assets';
 
 type UserAvatarProps = {
   user: {
@@ -11,7 +12,7 @@ type UserAvatarProps = {
   };
   className?: string;
   size?: 'sm' | 'lg';
-  fallbackType?: 'initials' | 'icon' | 'text';
+  fallbackType?: 'initials' | 'icon' | 'text' | 'default';
 };
 
 const sizeClasses = {
@@ -38,7 +39,7 @@ export function UserAvatar({
   user,
   className,
   size,
-  fallbackType = 'initials',
+  fallbackType = 'default',
 }: UserAvatarProps) {
   const initials = user.name
     .split(' ')
@@ -73,6 +74,13 @@ export function UserAvatar({
           <UserIcon className={cn('text-muted-foreground', iconSizes[sizeKey])} />
         )}
         {fallbackType === 'initials' && initials}
+        {fallbackType === 'default' && (
+          <img
+            src={asset('avatars/default_avatar.jpg')}
+            alt="Default Avatar"
+            className="object-cover h-full w-full rounded-full"
+          />
+        )}
       </AvatarFallback>
     </Avatar>
   );

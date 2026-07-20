@@ -35,3 +35,5 @@ CLAUDE.md
 GEMINI.md
 *.ignore
 /llm
+/tests/Feature/*
+/tests/Unit/*
