@@ -11,7 +11,8 @@ export type AppNavigationItem = {
 };
 
 export type AppNavigationCategory = {
-  id: 'application' | 'account';
+  id: 'application' | 'account' | string;
+  hidden?: boolean;
   label: string;
   items: AppNavigationItem[];
 };
@@ -45,3 +46,25 @@ export const appNavigation: AppNavigationCategory[] = [
     ],
   },
 ];
+
+export const mobileAppNavigation: AppNavigationCategory = {
+  id: 'mobile',
+  label: 'Navigasi',
+  items: [
+    {
+      label: 'Beranda',
+      icon: House,
+      href: app.home(),
+    },
+    {
+      label: 'Profil',
+      icon: UserRound,
+      href: app.profile(),
+    },
+    {
+      label: 'Pengaturan',
+      icon: Settings,
+      href: app.account(),
+    },
+  ],
+};

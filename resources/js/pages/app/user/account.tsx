@@ -31,78 +31,97 @@ const AccountPage: InertiaPageWithLayout<Props> = ({ hasPassword }) => {
             : 'Atur password agar bisa masuk tanpa Google.'
         }
       >
-        <AppPageCard>
-          <h2 className="mb-4 text-base font-medium">{title}</h2>
-          <Form
-            action={app.account.password.url()}
-            method="put"
-            className="flex flex-col gap-4"
-            options={{ preserveScroll: true }}
-            resetOnSuccess
-          >
-            {({ errors, processing }) => (
-              <>
-                {hasPassword ? (
-                  <Field data-invalid={!!errors.current_password}>
-                    <FieldLabel htmlFor="current_password">
-                      Password saat ini
-                    </FieldLabel>
+        <Form
+          action={app.account.password.url()}
+          method="put"
+          className="flex flex-col gap-6"
+          options={{ preserveScroll: true }}
+          resetOnSuccess
+        >
+          {({ errors, processing, resetAndClearErrors }) => (
+            <>
+              <AppPageCard>
+                <h2 className="mb-4 text-base font-medium">{title}</h2>
+                <div className="flex flex-col gap-4">
+                  {hasPassword ? (
+                    <Field data-invalid={!!errors.current_password}>
+                      <FieldLabel htmlFor="current_password">
+                        Password saat ini
+                      </FieldLabel>
+                      <Input
+                        id="current_password"
+                        name="current_password"
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        aria-invalid={!!errors.current_password}
+                      />
+                      <FieldError>
+                        {sentenceCase(errors.current_password)}
+                      </FieldError>
+                    </Field>
+                  ) : null}
+
+                  <Field data-invalid={!!errors.password}>
+                    <FieldLabel htmlFor="password">Password baru</FieldLabel>
                     <Input
-                      id="current_password"
-                      name="current_password"
+                      id="password"
+                      name="password"
                       type="password"
-                      autoComplete="current-password"
+                      autoComplete="new-password"
                       required
-                      aria-invalid={!!errors.current_password}
+                      aria-invalid={!!errors.password}
                     />
+                    <FieldDescription>
+                      Gunakan password yang kuat dan unik.
+                    </FieldDescription>
                     <FieldError>
-                      {sentenceCase(errors.current_password)}
+                      {sentenceCase(errors.password)}
                     </FieldError>
                   </Field>
-                ) : null}
 
-                <Field data-invalid={!!errors.password}>
-                  <FieldLabel htmlFor="password">Password baru</FieldLabel>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    aria-invalid={!!errors.password}
-                  />
-                  <FieldDescription>
-                    Gunakan password yang kuat dan unik.
-                  </FieldDescription>
-                  <FieldError>
-                    {sentenceCase(errors.password)}
-                  </FieldError>
-                </Field>
+                  <Field data-invalid={!!errors.password_confirmation}>
+                    <FieldLabel htmlFor="password_confirmation">
+                      Konfirmasi password baru
+                    </FieldLabel>
+                    <Input
+                      id="password_confirmation"
+                      name="password_confirmation"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      aria-invalid={!!errors.password_confirmation}
+                    />
+                    <FieldError>
+                      {sentenceCase(errors.password_confirmation)}
+                    </FieldError>
+                  </Field>
+                </div>
+              </AppPageCard>
 
-                <Field data-invalid={!!errors.password_confirmation}>
-                  <FieldLabel htmlFor="password_confirmation">
-                    Konfirmasi password baru
-                  </FieldLabel>
-                  <Input
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    aria-invalid={!!errors.password_confirmation}
-                  />
-                  <FieldError>
-                    {sentenceCase(errors.password_confirmation)}
-                  </FieldError>
-                </Field>
-
-                <Button type="submit" disabled={processing} className="self-start">
-                  {processing ? 'Menyimpan...' : title}
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  mobileLarge
+                  className="w-full sm:w-auto"
+                  disabled={processing}
+                  onClick={() => resetAndClearErrors()}
+                >
+                  Batal
                 </Button>
-              </>
-            )}
-          </Form>
-        </AppPageCard>
+                <Button
+                  type="submit"
+                  mobileLarge
+                  className="w-full sm:w-auto"
+                  disabled={processing}
+                >
+                  {processing ? 'Menyimpan...' : 'Simpan'}
+                </Button>
+              </div>
+            </>
+          )}
+        </Form>
       </AppPage>
     </>
   );

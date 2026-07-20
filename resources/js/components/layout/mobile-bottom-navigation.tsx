@@ -1,14 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
 
-import { appNavigation } from '@/components/layout/app-navigation';
+import { appNavigation, mobileAppNavigation } from '@/components/layout/app-navigation';
 import { cn } from '@/lib/utils';
 
 function MobileBottomNavigation() {
   const { url } = usePage();
   const currentPath = url.split('?')[0];
-  const applicationNavigation = appNavigation.find(
-    (category) => category.id === 'application',
-  );
 
   return (
     <nav
@@ -16,7 +13,7 @@ function MobileBottomNavigation() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       <div className="mx-auto flex h-16 max-w-md">
-        {applicationNavigation?.items.map((item) => {
+        {mobileAppNavigation?.items.map((item) => {
           const Icon = item.icon;
           const isActive = currentPath === item.href.url;
 

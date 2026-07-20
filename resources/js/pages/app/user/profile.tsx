@@ -45,10 +45,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/ui/user-avatar';
-import {
-  appPageCardClassName,
-  appPageClassName,
-} from '@/components/layout/app-page';
+import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { useDetectLocation } from '@/hooks/use-detect-location';
 import { useRegionSelect } from '@/hooks/use-region-select';
 import AppLayout from '@/layout/AppLayout';
@@ -59,6 +56,7 @@ import app from '@/routes/app';
 import freelancer from '@/routes/freelancer';
 import { UserRoleFrontendLabel, type UserRole } from '@/types/enum';
 import { id } from 'date-fns/locale';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type FreelancerProfile = {
   title: string | null;
@@ -392,236 +390,239 @@ const ProfilePage: InertiaPageWithLayout<Props> = ({
     <>
       <Head title="Profil" />
       <TooltipProvider>
-        <form onSubmit={submit} className={appPageClassName}>
-          <section
-            className={cn(appPageCardClassName, 'flex flex-col gap-5')}
+        <AppPage>
+          <form
+            onSubmit={submit}
+            className="flex w-full flex-col gap-6"
           >
-            <ProfileHeader
-              profile={profile}
-              avatarUrl={displayAvatarUrl}
-              isOwner={is_owner}
-              editing={editing}
-              onEdit={() => setEditing(true)}
-            />
+            <AppPageCard className="flex flex-col gap-5">
+              <ProfileHeader
+                profile={profile}
+                avatarUrl={displayAvatarUrl}
+                isOwner={is_owner}
+                editing={editing}
+                onEdit={() => setEditing(true)}
+              />
 
-            {is_owner && editing && (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInput.current?.click()}
-                  disabled={form.processing}
-                >
-                  <Camera data-icon="inline-start" />
-                  Ganti foto
-                </Button>
-                {(form.data.avatar !== null ||
-                  (has_custom_avatar && !form.data.remove_avatar)) && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={removeAvatar}
-                      disabled={form.processing}
-                    >
-                      <Trash data-icon="inline-start" />
-                      Hapus foto
-                    </Button>
-                  )}
-                <input
-                  ref={fileInput}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={selectAvatar}
-                />
-              </div>
-            )}
-
-            {!editing ? (
-              <ProfileDetails profile={profile} isOwner={is_owner} />
-            ) : (
-              <FieldGroup>
-                <Field data-invalid={Boolean(form.errors.name)}>
-                  <FieldLabel htmlFor="name">Nama</FieldLabel>
-                  <Input
-                    id="name"
-                    value={form.data.name}
-                    onChange={(event) => form.setData('name', event.target.value)}
-                    aria-invalid={Boolean(form.errors.name)}
-                    disabled={form.processing}
-                  />
-                  <FieldError>{form.errors.name}</FieldError>
-                </Field>
-                <Field data-invalid={Boolean(form.errors.date_of_birth)}>
-                  <div className="flex items-center gap-1">
-                    <FieldLabel htmlFor="date_of_birth">Tanggal lahir</FieldLabel>
-                    <PrivacyTooltip />
-                  </div>
-                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        id="date_of_birth"
-                        className="w-full justify-start font-normal"
-                        disabled={form.processing}
-                      >
-                        <CalendarIcon data-icon="inline-start" />
-                        {selectedBirthDate
-                          ? format(selectedBirthDate, 'dd MMMM yyyy', { locale: id })
-                          : 'Pilih tanggal lahir'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className="w-auto overflow-hidden p-0"
-                      align="start"
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={selectedBirthDate}
-                        captionLayout="dropdown"
-                        defaultMonth={defaultBirthMonth}
-                        disabled={{ after: defaultBirthMonth }}
-                        onSelect={(date) => {
-                          if (date) {
-                            form.setData(
-                              'date_of_birth',
-                              format(date, 'yyyy-MM-dd', { locale: id }),
-                            );
-                          }
-
-                          setCalendarOpen(false);
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FieldError>{form.errors.date_of_birth}</FieldError>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="province_id">Provinsi</FieldLabel>
-                  <Select
-                    value={form.data.province_id}
-                    onValueChange={(province_id) => {
-                      form.setData((data) => ({
-                        ...data,
-                        province_id,
-                        regency_id: '',
-                      }));
-                    }}
-                    disabled={form.processing}
-                  >
-                    <SelectTrigger id="province_id" className="h-11 w-full">
-                      <SelectValue placeholder="Pilih provinsi" />
-                    </SelectTrigger>
-                    <SelectContent position="popper">
-                      {provinces.map((province) => (
-                        <SelectItem key={province.id} value={province.id}>
-                          {province.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="regency_id">Kabupaten / Kota</FieldLabel>
-                  <Select
-                    value={form.data.regency_id}
-                    onValueChange={(regency_id) =>
-                      form.setData('regency_id', regency_id)
-                    }
-                    disabled={
-                      form.processing ||
-                      loadingRegencies ||
-                      !form.data.province_id
-                    }
-                  >
-                    <SelectTrigger id="regency_id" className="h-11 w-full">
-                      <SelectValue placeholder="Pilih kabupaten / kota" />
-                    </SelectTrigger>
-                    <SelectContent position="popper">
-                      {regencies.map((regency) => (
-                        <SelectItem key={regency.id} value={regency.id}>
-                          {regency.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
+              {is_owner && editing && (
+                <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() =>
-                      detectLocation((location) => {
+                    onClick={() => fileInput.current?.click()}
+                    disabled={form.processing}
+                  >
+                    <Camera data-icon="inline-start" />
+                    Ganti foto
+                  </Button>
+                  {(form.data.avatar !== null ||
+                    (has_custom_avatar && !form.data.remove_avatar)) && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={removeAvatar}
+                        disabled={form.processing}
+                      >
+                        <Trash data-icon="inline-start" />
+                        Hapus foto
+                      </Button>
+                    )}
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={selectAvatar}
+                  />
+                </div>
+              )}
+
+              {!editing ? (
+                <ProfileDetails profile={profile} isOwner={is_owner} />
+              ) : (
+                <FieldGroup>
+                  <Field data-invalid={Boolean(form.errors.name)}>
+                    <FieldLabel htmlFor="name">Nama</FieldLabel>
+                    <Input
+                      id="name"
+                      value={form.data.name}
+                      onChange={(event) => form.setData('name', event.target.value)}
+                      aria-invalid={Boolean(form.errors.name)}
+                      disabled={form.processing}
+                    />
+                    <FieldError>{form.errors.name}</FieldError>
+                  </Field>
+                  <Field data-invalid={Boolean(form.errors.date_of_birth)}>
+                    <div className="flex items-center gap-1">
+                      <FieldLabel htmlFor="date_of_birth">Tanggal lahir</FieldLabel>
+                      <PrivacyTooltip />
+                    </div>
+                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          id="date_of_birth"
+                          className="w-full justify-start font-normal"
+                          disabled={form.processing}
+                        >
+                          <CalendarIcon data-icon="inline-start" />
+                          {selectedBirthDate
+                            ? format(selectedBirthDate, 'dd MMMM yyyy', { locale: id })
+                            : 'Pilih tanggal lahir'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-auto overflow-hidden p-0"
+                        align="start"
+                      >
+                        <Calendar
+                          mode="single"
+                          selected={selectedBirthDate}
+                          captionLayout="dropdown"
+                          defaultMonth={defaultBirthMonth}
+                          disabled={{ after: defaultBirthMonth }}
+                          onSelect={(date) => {
+                            if (date) {
+                              form.setData(
+                                'date_of_birth',
+                                format(date, 'yyyy-MM-dd', { locale: id }),
+                              );
+                            }
+
+                            setCalendarOpen(false);
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FieldError>{form.errors.date_of_birth}</FieldError>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="province_id">Provinsi</FieldLabel>
+                    <Select
+                      value={form.data.province_id}
+                      onValueChange={(province_id) => {
                         form.setData((data) => ({
                           ...data,
-                          province_id: location.province_id,
-                          regency_id: location.regency_id,
+                          province_id,
+                          regency_id: '',
                         }));
-                      })
-                    }
-                    disabled={form.processing || detecting}
-                    className="h-11 w-full"
-                  >
-                    {detecting ? (
-                      <Loader2
-                        className="animate-spin text-primary"
-                        data-icon="inline-start"
-                      />
-                    ) : (
-                      <MapPin className="text-primary" data-icon="inline-start" />
-                    )}
-                    {detecting
-                      ? 'Mendeteksi Lokasi...'
-                      : 'Deteksi Lokasi Otomatis (GPS)'}
-                  </Button>
-                </Field>
-              </FieldGroup>
+                      }}
+                      disabled={form.processing}
+                    >
+                      <SelectTrigger id="province_id" className="h-11 w-full">
+                        <SelectValue placeholder="Pilih provinsi" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        {provinces.map((province) => (
+                          <SelectItem key={province.id} value={province.id}>
+                            {province.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="regency_id">Kabupaten / Kota</FieldLabel>
+                    <Select
+                      value={form.data.regency_id}
+                      onValueChange={(regency_id) =>
+                        form.setData('regency_id', regency_id)
+                      }
+                      disabled={
+                        form.processing ||
+                        loadingRegencies ||
+                        !form.data.province_id
+                      }
+                    >
+                      <SelectTrigger id="regency_id" className="h-11 w-full">
+                        <SelectValue placeholder="Pilih kabupaten / kota" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        {regencies.map((regency) => (
+                          <SelectItem key={regency.id} value={regency.id}>
+                            {regency.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        detectLocation((location) => {
+                          form.setData((data) => ({
+                            ...data,
+                            province_id: location.province_id,
+                            regency_id: location.regency_id,
+                          }));
+                        })
+                      }
+                      disabled={form.processing || detecting}
+                      className="h-11 w-full"
+                    >
+                      {detecting ? (
+                        <Loader2
+                          className="animate-spin text-primary"
+                          data-icon="inline-start"
+                        />
+                      ) : (
+                        <MapPin className="text-primary" data-icon="inline-start" />
+                      )}
+                      {detecting
+                        ? 'Mendeteksi Lokasi...'
+                        : 'Deteksi Lokasi Otomatis (GPS)'}
+                    </Button>
+                  </Field>
+                </FieldGroup>
+              )}
+            </AppPageCard>
+
+            {editing && isFreelancer && (
+              <AppPageCard>
+                <FieldGroup>
+                  <FreelancerFields
+                    form={form}
+                    skillInput={skillInput}
+                    setSkillInput={setSkillInput}
+                    addSkill={addSkill}
+                    enhance={enhance}
+                    enhanceSkills={enhanceSkills}
+                    availability={enhancementAvailability}
+                    enhancingTitle={enhancingTitle}
+                    enhancingBio={enhancingBio}
+                    enhancingSkills={enhancingSkills}
+                  />
+                </FieldGroup>
+              </AppPageCard>
             )}
-          </section>
 
-          {editing && isFreelancer && (
-            <section className={appPageCardClassName}>
-              <FieldGroup>
-                <FreelancerFields
-                  form={form}
-                  skillInput={skillInput}
-                  setSkillInput={setSkillInput}
-                  addSkill={addSkill}
-                  enhance={enhance}
-                  enhanceSkills={enhanceSkills}
-                  availability={enhancementAvailability}
-                  enhancingTitle={enhancingTitle}
-                  enhancingBio={enhancingBio}
-                  enhancingSkills={enhancingSkills}
-                />
-              </FieldGroup>
-            </section>
-          )}
-
-          {editing && (
-            <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                mobileLarge
-                className="w-full sm:w-auto"
-                onClick={cancel}
-                disabled={form.processing}
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                mobileLarge
-                className="w-full sm:w-auto"
-                disabled={form.processing}
-              >
-                {form.processing ? 'Menyimpan...' : 'Simpan'}
-              </Button>
-            </div>
-          )}
-        </form>
+            {editing && (
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  mobileLarge
+                  className="w-full sm:w-auto"
+                  onClick={cancel}
+                  disabled={form.processing}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  mobileLarge
+                  className="w-full sm:w-auto"
+                  disabled={form.processing}
+                >
+                  {form.processing ? 'Menyimpan...' : 'Simpan'}
+                </Button>
+              </div>
+            )}
+          </form>
+        </AppPage>
       </TooltipProvider>
     </>
   );
@@ -671,6 +672,20 @@ function ProfileHeader({
 }
 
 function PrivacyTooltip() {
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Info size={12} />
+        </PopoverTrigger>
+        <PopoverContent className='w-fit py-2 text-muted-foreground'>
+          Hanya terlihat oleh Anda.
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
