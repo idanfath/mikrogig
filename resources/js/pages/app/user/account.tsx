@@ -22,25 +22,21 @@ const AccountPage: InertiaPageWithLayout<Props> = ({ hasPassword }) => {
 
   return (
     <>
-      <Head title="Akun" />
+      <Head title="Pengaturan Akun" />
       <AppPage
-        title="Akun"
-        description={
-          hasPassword
-            ? 'Ganti password akun kamu.'
-            : 'Atur password agar bisa masuk tanpa Google.'
-        }
+        title="Pengaturan Akun"
+        description="Kelola pengaturan akun Anda, termasuk mengubah password dan email."
       >
-        <Form
-          action={app.account.password.url()}
-          method="put"
-          className="flex flex-col gap-6"
-          options={{ preserveScroll: true }}
-          resetOnSuccess
-        >
-          {({ errors, processing, resetAndClearErrors }) => (
-            <>
-              <AppPageCard>
+        <AppPageCard>
+          <Form
+            action={app.account.password.url()}
+            method="put"
+            className="flex flex-col"
+            options={{ preserveScroll: true }}
+            resetOnSuccess
+          >
+            {({ errors, processing, resetAndClearErrors }) => (
+              <>
                 <h2 className="mb-4 text-base font-medium">{title}</h2>
                 <div className="flex flex-col gap-4">
                   {hasPassword ? (
@@ -53,6 +49,7 @@ const AccountPage: InertiaPageWithLayout<Props> = ({ hasPassword }) => {
                         name="current_password"
                         type="password"
                         autoComplete="current-password"
+                        placeholder='••••••••'
                         required
                         aria-invalid={!!errors.current_password}
                       />
@@ -69,12 +66,10 @@ const AccountPage: InertiaPageWithLayout<Props> = ({ hasPassword }) => {
                       name="password"
                       type="password"
                       autoComplete="new-password"
+                      placeholder='••••••••'
                       required
                       aria-invalid={!!errors.password}
                     />
-                    <FieldDescription>
-                      Gunakan password yang kuat dan unik.
-                    </FieldDescription>
                     <FieldError>
                       {sentenceCase(errors.password)}
                     </FieldError>
@@ -89,6 +84,7 @@ const AccountPage: InertiaPageWithLayout<Props> = ({ hasPassword }) => {
                       name="password_confirmation"
                       type="password"
                       autoComplete="new-password"
+                      placeholder='••••••••'
                       required
                       aria-invalid={!!errors.password_confirmation}
                     />
@@ -96,33 +92,30 @@ const AccountPage: InertiaPageWithLayout<Props> = ({ hasPassword }) => {
                       {sentenceCase(errors.password_confirmation)}
                     </FieldError>
                   </Field>
+                  <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                      disabled={processing}
+                      onClick={() => resetAndClearErrors()}
+                    >
+                      Batal
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="w-full sm:w-auto"
+                      disabled={processing}
+                    >
+                      {processing ? 'Menyimpan...' : 'Simpan'}
+                    </Button>
+                  </div>
                 </div>
-              </AppPageCard>
-
-              <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  mobileLarge
-                  className="w-full sm:w-auto"
-                  disabled={processing}
-                  onClick={() => resetAndClearErrors()}
-                >
-                  Batal
-                </Button>
-                <Button
-                  type="submit"
-                  mobileLarge
-                  className="w-full sm:w-auto"
-                  disabled={processing}
-                >
-                  {processing ? 'Menyimpan...' : 'Simpan'}
-                </Button>
-              </div>
-            </>
-          )}
-        </Form>
-      </AppPage>
+              </>
+            )}
+          </Form>
+        </AppPageCard>
+      </AppPage >
     </>
   );
 };

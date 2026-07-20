@@ -1,9 +1,9 @@
-import { useForm, usePage, useHttp } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { format, subYears } from 'date-fns';
-import { CalendarIcon, Loader2, MapPin, Sparkles, X } from 'lucide-react';
+import { CalendarIcon, Loader2, MapPin, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { ProfileEnhanceButton } from '@/components/profile/profile-enhance-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -27,10 +27,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDetectLocation } from '@/hooks/use-detect-location';
+import { useProfileEnhance } from '@/hooks/use-profile-enhance';
 import { useRegionSelect } from '@/hooks/use-region-select';
 import OnboardingLayout from '@/layout/OnboardingLayout';
-import { getProfileEnhancementAvailability } from '@/lib/profile-enhancement';
-import freelancer from '@/routes/freelancer';
 import onboarding from '@/routes/onboarding';
 import type { Auth } from '@/types/auth';
 import { id } from 'date-fns/locale';
@@ -40,11 +39,6 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     auth: Auth;
     max_date_of_birth?: string;
   }>().props;
-  const enhanceHttp = useHttp({
-    field: '',
-    value: '',
-    context: {},
-  });
   const { detecting, detectLocation } = useDetectLocation();
   const isFreelancer = auth.user.role === 'freelancer';
 
@@ -68,6 +62,27 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
     regencyId: data.regency_id,
     enabled: true,
   });
+  const enhanceLocation =
+    selectedRegencyName && selectedProvinceName
+      ? `${selectedRegencyName}, ${selectedProvinceName}`
+      : '';
+  const {
+    availability,
+    enhancingTitle,
+    enhancingBio,
+    enhancingSkills,
+    enhance,
+    enhanceSkills,
+  } = useProfileEnhance({
+    title: data.title,
+    bio: data.bio,
+    skills: data.skills,
+    location: enhanceLocation,
+    formProcessing: processing,
+    onTitleChange: (value) => setData('title', value),
+    onBioChange: (value) => setData('bio', value),
+    onSkillsChange: (skills) => setData('skills', skills),
+  });
 
   const handleProvinceChange = (id: string) => {
     setData((prev) => ({
@@ -90,139 +105,17 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
 
   const [skillInput, setSkillInput] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [enhancingTitle, setEnhancingTitle] = useState(false);
-  const [enhancingBio, setEnhancingBio] = useState(false);
-  const [enhancingSkills, setEnhancingSkills] = useState(false);
-  const [lastEnhancedTitle, setLastEnhancedTitle] = useState<string | null>(
-    null,
-  );
-  const [lastEnhancedBio, setLastEnhancedBio] = useState<string | null>(null);
-  const enhancementAvailability = getProfileEnhancementAvailability({
-    title: data.title,
-    bio: data.bio,
-    skills: data.skills,
-    lastEnhancedTitle,
-    lastEnhancedBio,
-    processing: processing || enhancingTitle || enhancingBio || enhancingSkills,
-  });
 
   const isProfileComplete = isFreelancer
     ? data.title.trim() !== '' &&
-    data.bio.trim() !== '' &&
-    data.skills.length > 0 &&
-    data.date_of_birth !== '' &&
-    data.province_id !== '' &&
-    data.regency_id !== ''
+      data.bio.trim() !== '' &&
+      data.skills.length > 0 &&
+      data.date_of_birth !== '' &&
+      data.province_id !== '' &&
+      data.regency_id !== ''
     : data.date_of_birth !== '' &&
-    data.province_id !== '' &&
-    data.regency_id !== '';
-
-  const toastEnhanceError = (error: any, fallback: string) => {
-    if (error?.response?.status === 429) {
-      toast.error('Coba Lagi Nanti.');
-
-      return;
-    }
-
-    toast.error(error.message || fallback);
-  };
-
-  const handleEnhance = async (field: 'title' | 'bio', value: string) => {
-    if (!value.trim()) {
-      return;
-    }
-
-    if (field === 'title') {
-      setEnhancingTitle(true);
-    } else {
-      setEnhancingBio(true);
-    }
-
-    enhanceHttp.transform(() => ({
-      field,
-      value,
-      context: {
-        title: data.title,
-        bio: data.bio,
-        skills: data.skills,
-        location:
-          selectedRegencyName && selectedProvinceName
-            ? `${selectedRegencyName}, ${selectedProvinceName}`
-            : '',
-      },
-    }));
-
-    try {
-      const response = await enhanceHttp.post(freelancer.enhance.url());
-      const result = response as any;
-
-      if (result.value) {
-        setData(field, result.value);
-
-        if (result.value !== value) {
-          toast.success('Profil berhasil ditingkatkan.');
-        }
-
-        if (field === 'title') {
-          setLastEnhancedTitle(result.value);
-        } else {
-          setLastEnhancedBio(result.value);
-        }
-      }
-    } catch (error: any) {
-      toastEnhanceError(error, 'Gagal meningkatkan dengan AI');
-    } finally {
-      if (field === 'title') {
-        setEnhancingTitle(false);
-      } else {
-        setEnhancingBio(false);
-      }
-    }
-  };
-
-  const handleEnhanceSkills = async () => {
-    if (!data.title.trim() && !data.bio.trim()) {
-      return;
-    }
-
-    setEnhancingSkills(true);
-
-    enhanceHttp.transform(() => ({
-      field: 'skills',
-      value: '',
-      context: {
-        title: data.title,
-        bio: data.bio,
-        skills: data.skills,
-        location:
-          selectedRegencyName && selectedProvinceName
-            ? `${selectedRegencyName}, ${selectedProvinceName}`
-            : '',
-      },
-    }));
-
-    try {
-      const response = await enhanceHttp.post(freelancer.enhance.url());
-      const result = response as any;
-
-      if (result.value && Array.isArray(result.value)) {
-        const newSkills = [...data.skills];
-        result.value.forEach((skill: string) => {
-          const trimmed = skill.trim().toLowerCase();
-
-          if (trimmed && !newSkills.includes(trimmed)) {
-            newSkills.push(trimmed);
-          }
-        });
-        setData('skills', newSkills);
-        toast.success('Rekomendasi keahlian berhasil ditambahkan.');
-      }
-    } catch (error: any) {
-      toastEnhanceError(error, 'Gagal merekomendasikan keahlian');
-    } finally {
-      setEnhancingSkills(false);
-    }
-  };
+      data.province_id !== '' &&
+      data.regency_id !== '';
 
   const addSkill = () => {
     const items = skillInput
@@ -264,21 +157,12 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel htmlFor="title">Judul Profil</FieldLabel>
-                  {(enhancementAvailability.title || enhancingTitle) && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 gap-1.5 text-xs"
-                      disabled={!enhancementAvailability.title}
-                      onClick={() => handleEnhance('title', data.title)}
-                    >
-                      <Sparkles
-                        className={`size-3.5 text-primary ${enhancingTitle ? 'animate-pulse' : ''}`}
-                      />
-                      {enhancingTitle ? 'Memproses...' : 'Tingkatkan dengan AI'}
-                    </Button>
-                  )}
+                  <ProfileEnhanceButton
+                    available={availability.title}
+                    loading={enhancingTitle}
+                    idleLabel="Tingkatkan dengan AI"
+                    onClick={() => enhance('title')}
+                  />
                 </div>
                 <FieldDescription>
                   Contoh: Tukang Las, Cleaning Service, Supir Pribadi, Buruh
@@ -296,21 +180,12 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel htmlFor="bio">Bio</FieldLabel>
-                  {(enhancementAvailability.bio || enhancingBio) && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 gap-1.5 text-xs"
-                      disabled={!enhancementAvailability.bio}
-                      onClick={() => handleEnhance('bio', data.bio)}
-                    >
-                      <Sparkles
-                        className={`size-3.5 text-primary ${enhancingBio ? 'animate-pulse' : ''}`}
-                      />
-                      {enhancingBio ? 'Memproses...' : 'Tingkatkan dengan AI'}
-                    </Button>
-                  )}
+                  <ProfileEnhanceButton
+                    available={availability.bio}
+                    loading={enhancingBio}
+                    idleLabel="Tingkatkan dengan AI"
+                    onClick={() => enhance('bio')}
+                  />
                 </div>
                 <FieldDescription>
                   Ceritakan tentang dirimu dan pengalamanmu
@@ -329,23 +204,12 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel>Keahlian</FieldLabel>
-                  {(enhancementAvailability.skills || enhancingSkills) && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 gap-1.5 text-xs"
-                      disabled={!enhancementAvailability.skills}
-                      onClick={handleEnhanceSkills}
-                    >
-                      <Sparkles
-                        className={`size-3.5 text-primary ${enhancingSkills ? 'animate-pulse' : ''}`}
-                      />
-                      {enhancingSkills
-                        ? 'Memproses...'
-                        : 'Rekomendasikan Keahlian'}
-                    </Button>
-                  )}
+                  <ProfileEnhanceButton
+                    available={availability.skills}
+                    loading={enhancingSkills}
+                    idleLabel="Rekomendasikan Keahlian"
+                    onClick={enhanceSkills}
+                  />
                 </div>
                 <FieldDescription>
                   Tambahkan keahlian yang kamu miliki
@@ -397,7 +261,9 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
                 >
                   <CalendarIcon className="size-4" />
                   {data.date_of_birth
-                    ? format(new Date(data.date_of_birth), 'dd MMMM yyyy', { locale: id })
+                    ? format(new Date(data.date_of_birth), 'dd MMMM yyyy', {
+                        locale: id,
+                      })
                     : 'Pilih tanggal lahir'}
                 </Button>
               </PopoverTrigger>

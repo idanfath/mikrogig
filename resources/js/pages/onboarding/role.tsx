@@ -25,36 +25,38 @@ const OnboardingRole: InertiaPageWithLayout = () => {
   return (
     <form
       onSubmit={submit}
-      className="relative isolate flex flex-1 flex-col gap-4 overflow-hidden "
+      className="relative isolate flex flex-1 flex-col gap-4 overflow-hidden"
     >
-      <PickCard
-        title="Menawarkan Jasa"
-        description="Saya ingin menawarkan keahlian saya."
-        badge={UserRoleFrontendLabel.freelancer}
-        illustration={{
-          src: asset('assets/illustrations/worker_illustration.png'),
-          alt: 'Ilustrasi freelancer bekerja dengan laptop',
-          height: 240,
-          translateY: -35,
-          translateX: 0,
-        }}
-        isSelected={data.role === 'freelancer'}
-        onSelect={() => setData('role', 'freelancer')}
-      />
-      <PickCard
-        title="Mencari Jasa"
-        description="Saya ingin mencari penyedia jasa freelance."
-        badge={UserRoleFrontendLabel.client}
-        illustration={{
-          src: asset('assets/illustrations/client_informal_illustration.png'),
-          alt: 'Ilustrasi klien mencari jasa freelance',
-          height: 250,
-          translateY: -45,
-          translateX: 0,
-        }}
-        isSelected={data.role === 'client'}
-        onSelect={() => setData('role', 'client')}
-      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <PickCard
+          title="Menawarkan Jasa"
+          description="Saya ingin menawarkan keahlian saya."
+          badge={UserRoleFrontendLabel.freelancer}
+          illustration={{
+            src: asset('assets/illustrations/worker_illustration.png'),
+            alt: 'Ilustrasi freelancer bekerja dengan laptop',
+            height: 240,
+            translateY: -35,
+            translateX: 0,
+          }}
+          isSelected={data.role === 'freelancer'}
+          onSelect={() => setData('role', 'freelancer')}
+        />
+        <PickCard
+          title="Mencari Jasa"
+          description="Saya ingin mencari penyedia jasa freelance."
+          badge={UserRoleFrontendLabel.client}
+          illustration={{
+            src: asset('assets/illustrations/client_informal_illustration.png'),
+            alt: 'Ilustrasi klien mencari jasa freelance',
+            height: 250,
+            translateY: -45,
+            translateX: 0,
+          }}
+          isSelected={data.role === 'client'}
+          onSelect={() => setData('role', 'client')}
+        />
+      </div>
 
       <div className="flex flex-col justify-end gap-3 sm:flex-row">
         <Button
