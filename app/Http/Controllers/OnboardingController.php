@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CompleteOnboardingProfileRequest;
+use App\Http\Requests\SelectRoleRequest;
+use App\Http\Requests\SetupAvatarRequest;
 use App\Models\User;
 use App\RegionCatalog;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
 class OnboardingController extends Controller
 {
@@ -24,37 +24,23 @@ class OnboardingController extends Controller
     };
   }
 
-  public function selectRole(Request $request)
+  public function selectRole(SelectRoleRequest $request)
   {
-    $validator = Validator::make($request->all(), [
-      'role' => ['required', 'in:freelancer,client'],
-    ]);
-
-    if ($validator->fails()) {
-      return back()
-        ->withErrors($validator)
-        ->with('error', 'Peran yang dipilih tidak valid.');
-    }
-
     $user = Auth::user();
 
     if ($user->role !== null) {
       return back()->with('error', 'Peran sudah dipilih sebelumnya.');
     }
 
-    $user->role = $validator->validated()['role'];
+    $user->role = $request->validated()['role'];
     $user->onboarding_step = 'setup_avatar';
     $user->save();
 
     return redirect()->route('onboarding')->with('success', 'Peran berhasil dipilih!');
   }
 
-  public function setupAvatar(Request $request)
+  public function setupAvatar(SetupAvatarRequest $request)
   {
-    $request->validate([
-      'avatar' => 'required|image|mimes:jpeg,png,webp|max:5120',
-    ]);
-
     $user = Auth::user();
     $user->updateAvatar($request->file('avatar'));
     $user->onboarding_step = $this->nextStep($user);

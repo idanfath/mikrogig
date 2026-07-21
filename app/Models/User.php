@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Jobs\SendMailJob;
-use App\Services\CompressionService;
+use App\Services\ImageCompressionService;
 use App\Services\MailService;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
@@ -30,7 +30,9 @@ use Illuminate\Support\Facades\URL;
 class User extends Authenticatable implements MustVerifyEmail
 {
   /** @use HasFactory<UserFactory> */
-  use HasFactory, MustVerifyEmailTrait, Notifiable;
+  use HasFactory;
+  use MustVerifyEmailTrait;
+  use Notifiable;
 
   /**
    * Get the attributes that should be cast.
@@ -56,7 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
   protected function AvatarUrl(): Attribute
   {
     return Attribute::make(
-      get: fn() => Storage::disk('cos')->url($this->avatar ?? 'avatars/default_avatar.jpg')
+      get: fn () => Storage::disk('cos')->url($this->avatar ?? 'avatars/default_avatar.jpg')
     );
   }
 
@@ -124,7 +126,7 @@ class User extends Authenticatable implements MustVerifyEmail
   private function storeAvatarBytes(string $content): string
   {
     if (strlen($content) > 2.5 * 1024 * 1024) {
-      $content = app(CompressionService::class)->compress(
+      $content = app(ImageCompressionService::class)->compress(
         $content,
         'jpg',
         ['quality' => 80, 'maxWidth' => 512, 'maxHeight' => 512, 'crop' => true]
@@ -155,7 +157,7 @@ class User extends Authenticatable implements MustVerifyEmail
   private function deleteAvatarAfterCommit(string $avatar): void
   {
     if (DB::transactionLevel() > 0) {
-      DB::afterCommit(fn() => Storage::disk('cos')->delete($avatar));
+      DB::afterCommit(fn () => Storage::disk('cos')->delete($avatar));
 
       return;
     }
@@ -168,7 +170,7 @@ class User extends Authenticatable implements MustVerifyEmail
   protected function IsBanned(): Attribute
   {
     return Attribute::make(
-      get: fn() => (bool) ($this->active_ban_exists ?? $this->activeBan()->exists())
+      get: fn () => (bool) ($this->active_ban_exists ?? $this->activeBan()->exists())
     );
   }
 
@@ -194,7 +196,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
   protected function location(): Attribute
   {
-    return Attribute::get(fn() => $this->regency_name && $this->province_name
+    return Attribute::get(fn () => $this->regency_name && $this->province_name
       ? "{$this->regency_name}, {$this->province_name}"
       : null);
   }
