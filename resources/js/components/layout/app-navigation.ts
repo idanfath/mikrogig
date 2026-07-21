@@ -3,12 +3,13 @@ import type { LucideIcon } from 'lucide-react';
 
 import app from '@/routes/app';
 import type { RouteDefinition } from '@/wayfinder';
+import { UserRole } from '@/types';
 
 export type AppNavigationItem = {
   label: string;
   icon: LucideIcon;
   href: RouteDefinition<'get'>;
-  /** render auth avatar instead of lucide icon */
+  allowedRoles?: UserRole[];
   avatar?: boolean;
 };
 
@@ -66,3 +67,37 @@ export const mobileAppNavigation: AppNavigationCategory = {
     },
   ],
 };
+
+export function isNavItemAllowed(
+  item: AppNavigationItem,
+  role?: UserRole | null,
+): boolean {
+  if (!item.allowedRoles?.length) {
+    return true;
+  }
+
+  if (!role) {
+    return false;
+  }
+
+  return item.allowedRoles.includes(role);
+}
+
+export function filterNavItems(
+  items: AppNavigationItem[],
+  role?: UserRole | null,
+): AppNavigationItem[] {
+  return items.filter((item) => isNavItemAllowed(item, role));
+}
+
+export function filterNavCategories(
+  categories: AppNavigationCategory[],
+  role?: UserRole | null,
+): AppNavigationCategory[] {
+  return categories
+    .map((category) => ({
+      ...category,
+      items: filterNavItems(category.items, role),
+    }))
+    .filter((category) => category.items.length > 0);
+}

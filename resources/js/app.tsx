@@ -11,9 +11,7 @@ createInertiaApp({
       eager: true,
     }) as Record<string, any>;
     const page = pages[`./pages/${name}.tsx`];
-    // kalau gapunya layout, pake MasterLayout
-    // any page that uses a layout must explicitly set
-    // MasterLayout as it's layout's layout, otherwise it wont be wrapped by MasterLayout
+    // kalau gapunya layout, pake master layout
     page.default.layout =
       page.default.layout || ((page: ReactNode) => <Layout>{page}</Layout>);
 

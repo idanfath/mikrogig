@@ -21,8 +21,8 @@ function ProfileDetails({ profile, isOwner }: ProfileDetailsProps) {
           <p>
             {profile.date_of_birth
               ? format(new Date(profile.date_of_birth), 'dd MMMM yyyy', {
-                  locale: id,
-                })
+                locale: id,
+              })
               : '-'}
           </p>
         </div>
@@ -47,6 +47,9 @@ function ProfileDetails({ profile, isOwner }: ProfileDetailsProps) {
             ))}
           </div>
         </>
+      )}
+      {!isOwner && !profile.freelancer_profile && (
+        <p className="text-muted-foreground">Belum ada detail profil.</p>
       )}
     </div>
   );

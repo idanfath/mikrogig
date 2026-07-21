@@ -108,14 +108,14 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
 
   const isProfileComplete = isFreelancer
     ? data.title.trim() !== '' &&
-      data.bio.trim() !== '' &&
-      data.skills.length > 0 &&
-      data.date_of_birth !== '' &&
-      data.province_id !== '' &&
-      data.regency_id !== ''
+    data.bio.trim() !== '' &&
+    data.skills.length > 0 &&
+    data.date_of_birth !== '' &&
+    data.province_id !== '' &&
+    data.regency_id !== ''
     : data.date_of_birth !== '' &&
-      data.province_id !== '' &&
-      data.regency_id !== '';
+    data.province_id !== '' &&
+    data.regency_id !== '';
 
   const addSkill = () => {
     const items = skillInput
@@ -262,8 +262,8 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
                   <CalendarIcon className="size-4" />
                   {data.date_of_birth
                     ? format(new Date(data.date_of_birth), 'dd MMMM yyyy', {
-                        locale: id,
-                      })
+                      locale: id,
+                    })
                     : 'Pilih tanggal lahir'}
                 </Button>
               </PopoverTrigger>

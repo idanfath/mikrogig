@@ -36,3 +36,23 @@ export function capitalize(str: string, force: boolean = false): string {
   }
   return words.join(' ');
 }
+
+export function isInternalActionUrl(url: string): boolean {
+  try {
+    return new URL(url, window.location.origin).origin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+export function toInertiaHref(url: string): string {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (parsed.origin === window.location.origin) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}

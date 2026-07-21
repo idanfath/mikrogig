@@ -1,6 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
 
-import { mobileAppNavigation } from '@/components/layout/app-navigation';
+import {
+  filterNavItems,
+  mobileAppNavigation,
+} from '@/components/layout/app-navigation';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { cn } from '@/lib/utils';
 import type { Auth } from '@/types/auth';
@@ -12,6 +15,7 @@ function MobileBottomNavigation() {
   } = usePage<{ auth: Auth }>();
   const currentPath = url.split('?')[0];
   const user = auth.user;
+  const items = filterNavItems(mobileAppNavigation.items, user?.role);
 
   return (
     <nav
@@ -19,7 +23,7 @@ function MobileBottomNavigation() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       <div className="mx-auto flex h-14 max-w-md">
-        {mobileAppNavigation.items.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const isActive = currentPath === item.href.url;
 

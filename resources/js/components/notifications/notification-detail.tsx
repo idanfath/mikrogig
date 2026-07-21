@@ -1,6 +1,8 @@
 import { ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { InboxMessage } from './types';
+import { Link } from '@inertiajs/react';
+import { isInternalActionUrl, toInertiaHref } from '@/lib/utils';
 
 type NotificationDetailProps = {
   message: InboxMessage;
@@ -11,6 +13,10 @@ export function NotificationDetail({
   message,
   onDelete,
 }: NotificationDetailProps) {
+  const actionUrl = message.action_url;
+  const actionLabel = message.action_label ?? 'Buka Link';
+  const isInternal = actionUrl ? isInternalActionUrl(actionUrl) : false;
+
   return (
     <div className="flex flex-col gap-4 text-left">
       <div className="max-h-[50vh] overflow-y-auto pr-2 text-base leading-relaxed text-foreground">
@@ -25,18 +31,21 @@ export function NotificationDetail({
           <Trash2 data-icon="inline-start" />
           Hapus
         </Button>
-        {message.action_url && (
+        {actionUrl ? (
           <Button asChild className="w-full sm:w-auto">
-            <a
-              href={message.action_url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ExternalLink data-icon="inline-end" />
-              {message.action_label ?? 'Buka Link'}
-            </a>
+            {isInternal ? (
+              <Link href={toInertiaHref(actionUrl)}>
+                <ExternalLink data-icon="inline-end" />
+                {actionLabel}
+              </Link>
+            ) : (
+              <a href={actionUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink data-icon="inline-end" />
+                {actionLabel}
+              </a>
+            )}
           </Button>
-        )}
+        ) : null}
       </div>
     </div>
   );

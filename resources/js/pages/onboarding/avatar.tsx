@@ -77,7 +77,6 @@ const OnboardingAvatar: InertiaPageWithLayout = () => {
           <UserAvatar
             user={{ name: auth.user.name, avatar_url: displayUrl }}
             size="lg"
-            className="border-2 border-dashed border-neutral-200 bg-neutral-50/50 dark:border-neutral-700 dark:bg-neutral-800/50"
           />
           <div className="flex h-full flex-col gap-1">
             <div className="flex items-center gap-2">

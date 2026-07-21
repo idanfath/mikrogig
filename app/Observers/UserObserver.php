@@ -14,6 +14,9 @@ class UserObserver
    */
   public function created(User $user): void
   {
+    if (str_ends_with($user->email, '@example.com')) {
+      return;
+    }
     app(NotificationService::class)->send(
       title: 'Selamat Bergabung!',
       targetType: NotificationTargetType::User,
@@ -29,7 +32,7 @@ class UserObserver
         createdBy: null,
         body: 'Akun Anda didaftarkan melalui Google. Untuk keamanan tambahan, silakan atur kata sandi untuk akun Anda. Klik tombol di "Atur Kata Sandi" untuk mengatur kata sandi.',
         action_label: 'Atur Kata Sandi',
-        action_url: route('app.account'),
+        action_url: route('app.account', absolute: false),
         recipientIds: [$user->id]
       );
     }

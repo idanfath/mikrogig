@@ -1,7 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Bell, ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react';
 
-import { appNavigation } from '@/components/layout/app-navigation';
+import {
+  appNavigation,
+  filterNavCategories,
+} from '@/components/layout/app-navigation';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import {
   DropdownMenu,
@@ -40,11 +43,12 @@ function AppSidebar({ className }: AppSidebarProps) {
   const { isMobile } = useSidebar();
   const currentPath = url.split('?')[0];
   const user = auth.user;
+  const categories = filterNavCategories(appNavigation, user?.role);
 
   return (
     <Sidebar className={className} collapsible="icon">
       <SidebarContent>
-        {appNavigation.map((category) => (
+        {categories.map((category) => (
           <SidebarGroup key={category.id}>
             <SidebarGroupLabel>{category.label}</SidebarGroupLabel>
             <SidebarGroupContent>

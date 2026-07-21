@@ -2,6 +2,7 @@ import toast from 'react-hot-toast';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Eye, X, ExternalLink } from 'lucide-react';
+import { isInternalActionUrl, toInertiaHref } from '@/lib/utils';
 import app from '@/routes/app';
 
 export function showNotificationToast(e: {
@@ -28,6 +29,7 @@ export function showNotificationToast(e: {
           <div className="mt-3 flex gap-2">
             <Button
               size="sm"
+              variant="outline"
               className="font-semibold"
               onClick={() => {
                 toast.dismiss(t.id);
@@ -43,11 +45,15 @@ export function showNotificationToast(e: {
             {e.action_url && (
               <Button
                 size="sm"
-                variant="outline"
                 className="font-semibold"
                 onClick={() => {
                   toast.dismiss(t.id);
-                  router.visit(e.action_url!);
+                  const url = e.action_url!;
+                  if (isInternalActionUrl(url)) {
+                    router.visit(toInertiaHref(url));
+                    return;
+                  }
+                  window.open(url, '_blank', 'noopener,noreferrer');
                 }}
               >
                 <ExternalLink data-icon="inline-start" />

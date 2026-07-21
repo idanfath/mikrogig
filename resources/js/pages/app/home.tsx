@@ -6,9 +6,6 @@ const Home: InertiaPageWithLayout = () => {
   const auth = usePage().props.auth;
   return (
     <>
-      <pre className="rounded bg-gray-100 p-4 text-xs">
-        {JSON.stringify(auth, null, 2)}
-      </pre>
     </>
   );
 };
