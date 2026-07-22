@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\OnboardingStep;
 use App\Models\User;
 use App\Services\BanService;
 use App\Services\MailService;
@@ -95,10 +96,21 @@ Artisan::command('onboarding:set {email} {step}', function ($email, $step) {
 
         return;
     }
-    if ($step == 'null') {
-        $step = null;
+
+    if ($step === 'null') {
+        $user->onboarding_step = null;
+    } else {
+        $parsed = OnboardingStep::tryFrom($step);
+
+        if ($parsed === null) {
+            $this->error("Invalid step: {$step}. Use pick_role, setup_avatar, profile, or null.");
+
+            return;
+        }
+
+        $user->onboarding_step = $parsed;
     }
-    $user->onboarding_step = $step;
+
     $user->save();
     $this->info("Onboarding step set to '{$step}' for user: {$email}");
 })->purpose('Set onboarding step for a user by email');

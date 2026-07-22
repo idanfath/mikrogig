@@ -17,4 +17,12 @@ enum UserRole: string
   {
     return array_column(self::cases(), 'value');
   }
+
+  public static function selectable(): array
+  {
+    return [
+      self::Freelancer,
+      self::Client,
+    ];
+  }
 }

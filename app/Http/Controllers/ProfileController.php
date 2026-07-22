@@ -9,12 +9,10 @@ use App\Models\User;
 use App\Services\ProfileEnhancementService;
 use App\RegionCatalog;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Arr;
-use Inertia\Response;
 
 class ProfileController extends Controller
 {
@@ -25,9 +23,7 @@ class ProfileController extends Controller
 
   public function show(Request $request, User $user)
   {
-    if ($user->onboarding_step !== null || !$user->hasVerifiedEmail() || $user->is_banned) {
-      abort(404);
-    }
+    $this->authorize('view', $user);
 
     return $this->renderProfile($user, $request->user());
   }

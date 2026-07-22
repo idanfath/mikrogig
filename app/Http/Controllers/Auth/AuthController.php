@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,239 +14,215 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
-  public function showLoginForm()
-  {
-    return inertia('auth/login');
-  }
-
-  public function login(LoginRequest $request)
-  {
-    $v = $request->validated();
-
-    $user = User::where('email', $v['email'])->first();
-    if ($user && is_null($user->password) && $user->google_id) {
-      return back()->with('error', 'Akun ini didaftarkan via Google. Silakan masuk menggunakan Google.');
+    public function showLoginForm()
+    {
+        return inertia('auth/login');
     }
 
-    if (Auth::attempt($v)) {
-      $request->session()->regenerate();
+    public function login(LoginRequest $request)
+    {
+        $v = $request->validated();
 
-      return $this->redirectAfterLogin(Auth::user())->with('success', 'Login berhasil!');
-    }
-
-    return back()->with('error', 'Email atau password salah');
-  }
-
-  public function showRegistrationForm()
-  {
-    return inertia('auth/register');
-  }
-
-  public function register(RegisterRequest $request)
-  {
-    $credentials = $request->validated();
-
-    $user = User::create($credentials);
-    if (method_exists($user, 'sendEmailVerificationNotification')) {
-      $user->sendEmailVerificationNotification();
-    }
-
-    Auth::login($user);
-
-    return $this->redirectAfterLogin($user)->with('success', 'Daftar berhasil!');
-  }
-
-  public function logout(Request $request)
-  {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect()->route('home')->with('success', 'Logout berhasil!');
-  }
-
-  protected function redirectAfterLogin(User $user)
-  {
-    if (!$user->hasVerifiedEmail()) {
-      return redirect()->signedRoute('verification.notice', ['user' => $user->id]);
-    }
-
-    if ($user->onboarding_step) {
-      return redirect()->route('onboarding');
-    }
-
-    return redirect()->intended(route('app.home'));
-  }
-
-  public function showVerificationNotice(User $user)
-  {
-    if (!$user) {
-      return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
-    }
-
-    return inertia('auth/verification/notice', ['id' => $user->id]);
-  }
-
-  public function verify(Request $request, User $user)
-  {
-    if ($user->hasVerifiedEmail()) {
-      if (Auth::check()) {
-        return redirect()->route('app.home')->with('success', 'Email kamu sudah diverifikasi.');
-      } else {
-        return redirect()->route('login')->with('success', 'Email kamu sudah diverifikasi. Silakan login.');
-      }
-    }
-
-    $user->markEmailAsVerified();
-
-    Auth::login($user);
-
-    return redirect()->route('app.home')->with('success', 'Email terverifikasi!');
-
-    // or dont log the user and just ask them to relog
-    // redirect()->route('login')->with('success', 'Email terverifikasi! Silakan login untuk melanjutkan.');
-  }
-
-  public function resendVerification(Request $request)
-  {
-    $user = Auth::user();
-
-    logger()->info("Resending verification email to user ID {$user->id} ({$user->email})");
-
-    $user->sendEmailVerificationNotification();
-
-    return back()->with('success', 'Link verifikasi telah dikirim.');
-  }
-
-  public function showForgotForm()
-  {
-    return inertia('auth/forgotPassword');
-  }
-
-  public function submitForgot(Request $request)
-  {
-    $validator = Validator::make($request->all(), [
-      'email' => ['required', 'email', 'exists:users,email'],
-    ]);
-
-    if ($validator->fails()) {
-      return back()
-        ->withErrors($validator)
-        ->with('error', 'Gagal mengirim link reset password.');
-    }
-
-    $v = $validator->validated();
-
-    $user = User::where('email', $v['email'])->first();
-
-    if ($user) {
-      $user->sendResetPasswordNotification();
-    }
-
-    return back()->with('success', 'Link reset password telah dikirim.');
-  }
-
-  public function showResetForm(Request $request, User $user)
-  {
-    $email = $request->string('email')->toString();
-
-    $this->ensurePasswordResetEmailMatches($user, $email);
-
-    // signed get only; post must not trust client email field
-    $request->session()->put('password_reset', [
-      'user_id' => $user->id,
-      'email' => strtolower($email),
-    ]);
-
-    return inertia('auth/passwordReset', [
-      'id' => $user->id,
-    ]);
-  }
-
-  public function submitReset(Request $request, User $user)
-  {
-    $reset = $request->session()->get('password_reset');
-
-    if (
-      !is_array($reset) ||
-      ($reset['user_id'] ?? null) !== $user->id ||
-      !is_string($reset['email'] ?? null)
-    ) {
-      abort(403);
-    }
-
-    $this->ensurePasswordResetEmailMatches($user, $reset['email']);
-
-    $validator = Validator::make($request->all(), [
-      'password' => ['required', 'confirmed', Password::defaults()],
-    ]);
-
-    if ($validator->fails()) {
-      return back()
-        ->withErrors($validator)
-        ->with('error', 'Gagal mereset password.');
-    }
-
-    $v = $validator->validated();
-
-    $user->password = $v['password'];
-    $user->save();
-
-    $request->session()->forget('password_reset');
-
-    Auth::login($user);
-
-    return redirect()->route('app.home')->with('success', 'Password berhasil direset!');
-  }
-
-  private function ensurePasswordResetEmailMatches(User $user, string $email): void
-  {
-    if ($email === '' || !hash_equals(strtolower($user->email), strtolower($email))) {
-      abort(403);
-    }
-  }
-
-  public function redirectToGoogle()
-  {
-    return Socialite::driver('google')->redirect();
-  }
-
-  public function handleGoogleCallback()
-  {
-    try {
-      $googleUser = Socialite::driver('google')->user();
-
-      $user = User::where('google_id', $googleUser->getId())
-        ->orWhere('email', $googleUser->getEmail())
-        ->first();
-
-      if ($user) {
-        if (!$user->google_id) {
-          $user->update([
-            'google_id' => $googleUser->getId(),
-            'email_verified_at' => $user->email_verified_at ?? now(),
-          ]);
+        $user = User::where('email', $v['email'])->first();
+        if ($user && is_null($user->password) && $user->google_id) {
+            return back()->with('error', 'Akun ini didaftarkan via Google. Silakan masuk menggunakan Google.');
         }
-      } else {
-        $user = User::create([
-          'name' => $googleUser->getName(),
-          'email' => $googleUser->getEmail(),
-          'google_id' => $googleUser->getId(),
-          'email_verified_at' => now(),
-        ]);
-      }
 
-      if (!$user->avatar && $avatarUrl = $googleUser->getAvatar()) {
-        $user->updateAvatarFromUrl($avatarUrl);
-      }
+        if (Auth::attempt($v)) {
+            $request->session()->regenerate();
 
-      Auth::login($user);
+            return $this->redirectAfterLogin(Auth::user())->with('success', 'Login berhasil!');
+        }
 
-      $user->refresh();
-
-      return $this->redirectAfterLogin($user)->with('success', 'Login berhasil!');
-    } catch (\Exception $e) {
-      return redirect()->route('login')->with('error', 'Login Google gagal: ' . $e->getMessage());
+        return back()->with('error', 'Email atau password salah');
     }
-  }
+
+    public function showRegistrationForm()
+    {
+        return inertia('auth/register');
+    }
+
+    public function register(RegisterRequest $request)
+    {
+        $credentials = $request->validated();
+
+        $user = User::create($credentials);
+        if (method_exists($user, 'sendEmailVerificationNotification')) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        Auth::login($user);
+
+        return $this->redirectAfterLogin($user)->with('success', 'Daftar berhasil!');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home')->with('success', 'Logout berhasil!');
+    }
+
+    protected function redirectAfterLogin(User $user)
+    {
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->signedRoute('verification.notice', ['user' => $user->id]);
+        }
+
+        if ($user->onboarding_step) {
+            return redirect()->route('onboarding');
+        }
+
+        return redirect()->intended(route('app.home'));
+    }
+
+    public function showVerificationNotice(User $user)
+    {
+        if (! $user) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
+        }
+
+        return inertia('auth/verification/notice', ['id' => $user->id]);
+    }
+
+    public function verify(Request $request, User $user)
+    {
+        if ($user->hasVerifiedEmail()) {
+            if (Auth::check()) {
+                return redirect()->route('app.home')->with('success', 'Email kamu sudah diverifikasi.');
+            } else {
+                return redirect()->route('login')->with('success', 'Email kamu sudah diverifikasi. Silakan login.');
+            }
+        }
+
+        $user->markEmailAsVerified();
+
+        Auth::login($user);
+
+        return redirect()->route('app.home')->with('success', 'Email terverifikasi!');
+
+        // or dont log the user and just ask them to relog
+        // redirect()->route('login')->with('success', 'Email terverifikasi! Silakan login untuk melanjutkan.');
+    }
+
+    public function resendVerification(Request $request)
+    {
+        $user = Auth::user();
+
+        logger()->info("Resending verification email to user ID {$user->id} ({$user->email})");
+
+        $user->sendEmailVerificationNotification();
+
+        return back()->with('success', 'Link verifikasi telah dikirim.');
+    }
+
+    public function showForgotForm()
+    {
+        return inertia('auth/forgotPassword');
+    }
+
+    public function submitForgot(ForgotPasswordRequest $request)
+    {
+        $user = User::where('email', $request->validated('email'))->first();
+
+        if ($user) {
+            $user->sendResetPasswordNotification();
+        }
+
+        return back()->with('success', 'Link reset password telah dikirim.');
+    }
+
+    public function showResetForm(Request $request, User $user)
+    {
+        $email = $request->string('email')->toString();
+
+        $this->ensurePasswordResetEmailMatches($user, $email);
+
+        // signed get only; post must not trust client email field
+        $request->session()->put('password_reset', [
+            'user_id' => $user->id,
+            'email' => strtolower($email),
+        ]);
+
+        return inertia('auth/passwordReset', [
+            'id' => $user->id,
+        ]);
+    }
+
+    public function submitReset(ResetPasswordRequest $request, User $user)
+    {
+        $reset = $request->session()->get('password_reset');
+
+        if (
+            ! is_array($reset) ||
+            ($reset['user_id'] ?? null) !== $user->id ||
+            ! is_string($reset['email'] ?? null)
+        ) {
+            abort(403);
+        }
+
+        $this->ensurePasswordResetEmailMatches($user, $reset['email']);
+
+        $user->password = $request->validated('password');
+        $user->save();
+
+        $request->session()->forget('password_reset');
+
+        Auth::login($user);
+
+        return redirect()->route('app.home')->with('success', 'Password berhasil direset!');
+    }
+
+    private function ensurePasswordResetEmailMatches(User $user, string $email): void
+    {
+        if ($email === '' || ! hash_equals(strtolower($user->email), strtolower($email))) {
+            abort(403);
+        }
+    }
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            $user = User::where('google_id', $googleUser->getId())
+                ->orWhere('email', $googleUser->getEmail())
+                ->first();
+
+            if ($user) {
+                if (! $user->google_id) {
+                    $user->update([
+                        'google_id' => $googleUser->getId(),
+                        'email_verified_at' => $user->email_verified_at ?? now(),
+                    ]);
+                }
+            } else {
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'email_verified_at' => now(),
+                ]);
+            }
+
+            if (! $user->avatar && $avatarUrl = $googleUser->getAvatar()) {
+                $user->updateAvatarFromUrl($avatarUrl);
+            }
+
+            Auth::login($user);
+
+            $user->refresh();
+
+            return $this->redirectAfterLogin($user)->with('success', 'Login berhasil!');
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Login Google gagal: '.$e->getMessage());
+        }
+    }
 }
