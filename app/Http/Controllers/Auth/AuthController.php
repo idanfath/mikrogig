@@ -11,8 +11,12 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\User;
 use App\Services\UserAvatarService;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -117,61 +121,53 @@ class AuthController extends Controller
 
     public function submitForgot(ForgotPasswordRequest $request)
     {
-        $user = User::where('email', $request->validated('email'))->first();
-
-        if ($user) {
-            $user->sendResetPasswordNotification();
-        }
+        Password::sendResetLink($request->only('email'));
 
         return back()->with('success', 'Link reset password telah dikirim.');
     }
 
-    public function showResetForm(Request $request, User $user)
+    public function showResetForm(Request $request, string $token)
     {
-        $email = $request->string('email')->toString();
-
-        $this->ensurePasswordResetEmailMatches($user, $email);
-
-        // signed get only; post must not trust client email field
-        $request->session()->put('password_reset', [
-            'user_id' => $user->id,
-            'email' => strtolower($email),
-        ]);
-
         return inertia('auth/passwordReset', [
-            'id' => $user->id,
+            'token' => $token,
+            'email' => $request->string('email')->toString(),
         ]);
     }
 
-    public function submitReset(ResetPasswordRequest $request, User $user)
+    public function submitReset(ResetPasswordRequest $request)
     {
-        $reset = $request->session()->get('password_reset');
+        $validated = $request->validated();
+        $resetUser = null;
 
-        if (
-            ! is_array($reset) ||
-            ($reset['user_id'] ?? null) !== $user->id ||
-            ! is_string($reset['email'] ?? null)
-        ) {
-            abort(403);
+        $status = Password::reset(
+            [
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+                'token' => $validated['token'],
+            ],
+            function (User $user, string $password) use (&$resetUser, $request): void {
+                $user->forceFill([
+                    'password' => $password,
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+
+                DB::table(config('session.table'))
+                    ->where('user_id', $user->id)
+                    ->delete();
+
+                Auth::login($user);
+                $request->session()->regenerate();
+                $resetUser = $user;
+            },
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return back()->with('error', 'Gagal mereset password.');
         }
 
-        $this->ensurePasswordResetEmailMatches($user, $reset['email']);
-
-        $user->password = $request->validated('password');
-        $user->save();
-
-        $request->session()->forget('password_reset');
-
-        Auth::login($user);
-
-        return redirect()->route('app.home')->with('success', 'Password berhasil direset!');
-    }
-
-    private function ensurePasswordResetEmailMatches(User $user, string $email): void
-    {
-        if ($email === '' || ! hash_equals(strtolower($user->email), strtolower($email))) {
-            abort(403);
-        }
+        return $this->redirectAfterLogin($resetUser)->with('success', 'Password berhasil direset!');
     }
 
     public function redirectToGoogle()
