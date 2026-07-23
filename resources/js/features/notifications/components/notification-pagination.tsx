@@ -1,14 +1,12 @@
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import type { PaginatedInbox } from './types';
+import type { PaginatedInbox } from '../types';
 
 type NotificationPaginationProps = {
   inbox: PaginatedInbox;
 };
 
-export function NotificationPagination({
-  inbox,
-}: NotificationPaginationProps) {
+export function NotificationPagination({ inbox }: NotificationPaginationProps) {
   return (
     <div className="flex items-center justify-between px-2 py-4">
       <div className="text-sm text-muted-foreground">

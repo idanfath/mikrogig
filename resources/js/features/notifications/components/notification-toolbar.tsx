@@ -1,7 +1,7 @@
-import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { PaginatedInbox } from './types';
+import type { PaginatedInbox } from '../types';
 
 type NotificationToolbarProps = {
   inbox: PaginatedInbox;
@@ -21,7 +21,7 @@ export function NotificationToolbar({
   onMarkAllRead,
 }: NotificationToolbarProps) {
   return (
-    <div className="flex  gap-2  flex-row items-center flex-wrap justify-between">
+    <div className="flex flex-row flex-wrap items-center justify-between gap-2">
       <div>
         <h2 className="text-xl font-bold tracking-tight">Kotak Masuk</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -59,7 +59,7 @@ export function NotificationToolbar({
             </Button>
           </>
         )}
-        <div className="flex  gap-1.5">
+        <div className="flex gap-1.5">
           <Button
             variant="outline"
             size="icon-sm"

@@ -1,16 +1,14 @@
 import { router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  asNotificationPageProps,
-  type InboxMessage,
-  type NotificationPageProps,
-} from '@/components/notifications/types';
+import { asNotificationPageProps } from '@/features/notifications/types';
+import type {
+  InboxMessage,
+  NotificationPageProps,
+} from '@/features/notifications/types';
 import app from '@/routes/app';
-import toast from 'react-hot-toast';
 
 export function useNotificationInbox() {
-  const { inbox, filters, auth } =
-    usePage<NotificationPageProps>().props;
+  const { inbox, filters, auth } = usePage<NotificationPageProps>().props;
   const [selected, setSelected] = useState<InboxMessage | null>(null);
   const [open, setOpen] = useState(false);
   const [isCompact, setIsCompact] = useState(() => {
@@ -18,7 +16,10 @@ export function useNotificationInbox() {
       return false;
     }
 
-    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('notif_compact') : null;
+    const stored =
+      typeof localStorage !== 'undefined'
+        ? localStorage.getItem('notif_compact')
+        : null;
 
     if (stored !== null) {
       return stored === 'true';
@@ -132,10 +133,7 @@ export function useNotificationInbox() {
           auth: {
             ...props.auth,
             unread_notifications_count: wasUnread
-              ? Math.max(
-                0,
-                (props.auth?.unread_notifications_count ?? 1) - 1,
-              )
+              ? Math.max(0, (props.auth?.unread_notifications_count ?? 1) - 1)
               : props.auth?.unread_notifications_count,
           },
           inbox: {
@@ -177,7 +175,6 @@ export function useNotificationInbox() {
         },
       },
     );
-
   };
 
   const closeDetail = useCallback(() => {

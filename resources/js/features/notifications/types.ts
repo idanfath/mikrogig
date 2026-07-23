@@ -8,6 +8,14 @@ export type InboxMessage = {
   read_at: string | null;
 };
 
+export type NotificationReceivedEvent = {
+  id: number;
+  title: string;
+  body?: string | null;
+  action_url?: string | null;
+  action_label?: string | null;
+};
+
 export type PaginatedInbox = {
   data: InboxMessage[];
   current_page: number;

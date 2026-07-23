@@ -1,11 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react';
+import { ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react';
 
 import {
   appNavigation,
   filterNavCategories,
 } from '@/components/layout/app-navigation';
-import { UserAvatar } from '@/components/ui/user-avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +26,8 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import { NotificationSidebarItem } from '@/features/notifications/components/notification-sidebar-item';
 import { logout } from '@/routes';
 import app from '@/routes/app';
 import type { Auth } from '@/types/auth';
@@ -118,15 +119,10 @@ function AppSidebar({ className }: AppSidebarProps) {
                     Pengaturan
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={app.notifications()}>
-                    <Bell aria-hidden="true" />
-                    Notifikasi
-                  </Link>
-                </DropdownMenuItem>
+                <NotificationSidebarItem />
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild variant="destructive">
-                  <Link href={logout()} method="post" className='w-full'>
+                  <Link href={logout()} method="post" className="w-full">
                     <LogOut aria-hidden="true" />
                     Keluar
                   </Link>

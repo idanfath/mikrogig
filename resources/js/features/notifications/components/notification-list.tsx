@@ -1,7 +1,7 @@
 import { InfiniteScroll } from '@inertiajs/react';
+import type { InboxMessage, PaginatedInbox } from '../types';
 import { NotificationEmpty } from './notification-empty';
 import { NotificationItem } from './notification-item';
-import type { InboxMessage, PaginatedInbox } from './types';
 
 type NotificationListProps = {
   inbox: PaginatedInbox;

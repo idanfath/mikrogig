@@ -1,8 +1,8 @@
+import { Link } from '@inertiajs/react';
 import { ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { InboxMessage } from './types';
-import { Link } from '@inertiajs/react';
 import { isInternalActionUrl, toInertiaHref } from '@/lib/utils';
+import type { InboxMessage } from '../types';
 
 type NotificationDetailProps = {
   message: InboxMessage;

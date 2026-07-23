@@ -13,8 +13,8 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { formatRelativeTime } from '@/lib/date';
+import type { InboxMessage } from '../types';
 import { NotificationDetail } from './notification-detail';
-import type { InboxMessage } from './types';
 
 type NotificationDetailPanelProps = {
   open: boolean;

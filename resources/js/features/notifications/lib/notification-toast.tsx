@@ -1,17 +1,12 @@
-import toast from 'react-hot-toast';
 import { router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
 import { Eye, X, ExternalLink } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/button';
+import type { NotificationReceivedEvent } from '@/features/notifications/types';
 import { isInternalActionUrl, toInertiaHref } from '@/lib/utils';
 import app from '@/routes/app';
 
-export function showNotificationToast(e: {
-  id: number;
-  title: string;
-  body?: string | null;
-  action_url?: string | null;
-  action_label?: string | null;
-}) {
+export function showNotificationToast(e: NotificationReceivedEvent) {
   const isMobile = window.innerWidth < 768;
 
   toast(
@@ -33,9 +28,7 @@ export function showNotificationToast(e: {
               className="font-semibold"
               onClick={() => {
                 toast.dismiss(t.id);
-                router.visit(
-                  app.notifications.url({ query: { open: e.id } }),
-                );
+                router.visit(app.notifications.url({ query: { open: e.id } }));
               }}
             >
               <Eye data-icon="inline-start" />
@@ -49,10 +42,13 @@ export function showNotificationToast(e: {
                 onClick={() => {
                   toast.dismiss(t.id);
                   const url = e.action_url!;
+
                   if (isInternalActionUrl(url)) {
                     router.visit(toInertiaHref(url));
+
                     return;
                   }
+
                   window.open(url, '_blank', 'noopener,noreferrer');
                 }}
               >
