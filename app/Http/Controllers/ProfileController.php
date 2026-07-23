@@ -7,6 +7,7 @@ use App\Http\Requests\EnhanceProfileRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use App\Services\ProfileEnhancementService;
+use App\Services\UserAvatarService;
 use App\RegionCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,17 +29,18 @@ class ProfileController extends Controller
     return $this->renderProfile($user, $request->user());
   }
 
-  public function update(UpdateProfileRequest $request, RegionCatalog $regions)
+  public function update(UpdateProfileRequest $request, RegionCatalog $regions, UserAvatarService $avatarService)
   {
-    $user = $request->user();
     $validated = $request->validated();
+    $user = $request->user();
+
     $province = $regions->province($validated['province_id']);
     $regency = $regions->regency($validated['province_id'], $validated['regency_id']);
 
     $newAvatar = null;
 
     try {
-      DB::transaction(function () use ($request, $user, $validated, $province, $regency, &$newAvatar): void {
+      DB::transaction(function () use ($request, $user, $validated, $province, $regency, $avatarService, &$newAvatar): void {
         $user->update([
           ...Arr::only($validated, ['name', 'date_of_birth', 'province_id', 'regency_id']),
           'province_name' => $province['name'],
@@ -57,9 +59,9 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-          $newAvatar = $user->updateAvatar($request->file('avatar'));
+          $newAvatar = $avatarService->upload($user, $request->file('avatar'));
         } elseif ($request->boolean('remove_avatar')) {
-          $user->clearAvatar();
+          $avatarService->remove($user);
         }
       });
     } catch (\Throwable $exception) {

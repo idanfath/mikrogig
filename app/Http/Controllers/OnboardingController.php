@@ -7,6 +7,7 @@ use App\Http\Requests\CompleteOnboardingProfileRequest;
 use App\Http\Requests\SelectRoleRequest;
 use App\Http\Requests\SetupAvatarRequest;
 use App\RegionCatalog;
+use App\Services\UserAvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -34,10 +35,10 @@ class OnboardingController extends Controller
         return redirect()->route('onboarding')->with('success', 'Peran berhasil dipilih!');
     }
 
-    public function setupAvatar(SetupAvatarRequest $request)
+    public function setupAvatar(SetupAvatarRequest $request, UserAvatarService $avatarService)
     {
         $user = Auth::user();
-        $user->updateAvatar($request->file('avatar'));
+        $avatarService->upload($user, $request->file('avatar'));
         $user->onboarding_step = $user->onboarding_step?->next();
         $user->save();
 

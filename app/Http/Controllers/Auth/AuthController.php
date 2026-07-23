@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\RegisterUserAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\User;
+use App\Services\UserAvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
@@ -42,14 +44,9 @@ class AuthController extends Controller
         return inertia('auth/register');
     }
 
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request, RegisterUserAction $registerUser)
     {
-        $credentials = $request->validated();
-
-        $user = User::create($credentials);
-        if (method_exists($user, 'sendEmailVerificationNotification')) {
-            $user->sendEmailVerificationNotification();
-        }
+        $user = $registerUser->execute($request->validated());
 
         Auth::login($user);
 
@@ -213,7 +210,7 @@ class AuthController extends Controller
             }
 
             if (! $user->avatar && $avatarUrl = $googleUser->getAvatar()) {
-                $user->updateAvatarFromUrl($avatarUrl);
+                app(UserAvatarService::class)->importFromUrl($user, $avatarUrl);
             }
 
             Auth::login($user);

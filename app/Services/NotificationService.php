@@ -31,49 +31,61 @@ class NotificationService
         ?string $action_label = null,
         ?bool $sendEmail = false
     ): void {
-        $notification = Notification::create([
-            'created_by' => $createdBy,
-            'title' => $title,
-            'body' => $body,
-            'target_type' => $targetType->value,
-            'action_url' => $action_url,
-            'action_label' => $action_label,
-        ]);
+        DB::transaction(function () use (
+            $title,
+            $targetType,
+            $createdBy,
+            $body,
+            $recipientIds,
+            $role,
+            $action_url,
+            $action_label,
+            $sendEmail
+        ) {
+            $notification = Notification::create([
+                'created_by' => $createdBy,
+                'title' => $title,
+                'body' => $body,
+                'target_type' => $targetType->value,
+                'action_url' => $action_url,
+                'action_label' => $action_label,
+            ]);
 
-        // Start query for recipients based on target type
-        $query = $this->recipientQuery($targetType, $recipientIds, $role);
+            // Start query for recipients based on target type
+            $query = $this->recipientQuery($targetType, $recipientIds, $role);
 
-        $emailData = $this->mailService::buildEmailData(
-            subject: $notification->title,
-            body: $notification->body,
-            actionUrl: $notification->action_url,
-            actionLabel: $notification->action_label
-        );
+            $emailData = $this->mailService::buildEmailData(
+                subject: $notification->title,
+                body: $notification->body,
+                actionUrl: $notification->action_url,
+                actionLabel: $notification->action_label
+            );
 
-        $query->select(['id', 'email'])->chunkById(100, function ($users) use ($notification, $sendEmail, $emailData) {
-            $recipientRows = [];
-            foreach ($users as $user) {
-                $recipientRows[] = [
-                    'notification_id' => $notification->id,
-                    'user_id' => $user->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            $query->select(['id', 'email'])->chunkById(100, function ($users) use ($notification, $sendEmail, $emailData) {
+                $recipientRows = [];
+                foreach ($users as $user) {
+                    $recipientRows[] = [
+                        'notification_id' => $notification->id,
+                        'user_id' => $user->id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
 
-                if ($sendEmail) {
-                    SendMailJob::dispatch($user->email, $notification->title, $emailData);
+                    if ($sendEmail) {
+                        SendMailJob::dispatch($user->email, $notification->title, $emailData)->afterCommit();
+                    }
                 }
-            }
 
-            DB::transaction(fn () => NotificationRecipient::insert($recipientRows));
+                NotificationRecipient::insert($recipientRows);
 
-            $recipients = NotificationRecipient::where('notification_id', $notification->id)
-                ->whereIn('user_id', $users->pluck('id'))
-                ->get();
+                $recipients = NotificationRecipient::where('notification_id', $notification->id)
+                    ->whereIn('user_id', $users->pluck('id'))
+                    ->get();
 
-            foreach ($recipients as $recipient) {
-                broadcast(new NotificationReceived($recipient))->toOthers();
-            }
+                foreach ($recipients as $recipient) {
+                    broadcast(new NotificationReceived($recipient))->toOthers();
+                }
+            });
         });
     }
 
