@@ -99,10 +99,9 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('app.home')->with('success', 'Email terverifikasi!');
-
-        // or dont log the user and just ask them to relog
-        // redirect()->route('login')->with('success', 'Email terverifikasi! Silakan login untuk melanjutkan.');
+        // return redirect()->route('app.home')->with('success', 'Email terverifikasi!');
+        // nah we dont log the user and just ask them to relog
+        return redirect()->route('login')->with('success', 'Email terverifikasi! Silakan login untuk melanjutkan.');
     }
 
     public function resendVerification(Request $request)

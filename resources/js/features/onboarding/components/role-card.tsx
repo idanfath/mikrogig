@@ -1,6 +1,6 @@
-import { Badge } from '../ui/badge';
+import { Badge } from '@/components/ui/badge';
 
-type PickCardProps = {
+type RoleCardProps = {
   description: string;
   illustration: {
     alt: string;
@@ -15,21 +15,20 @@ type PickCardProps = {
   title: string;
 };
 
-export default function PickCard({
+export function RoleCard({
   description,
   illustration,
   badge,
   isSelected,
   onSelect,
   title,
-}: PickCardProps) {
+}: RoleCardProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-pressed={isSelected}
-      className={`flex min-h-52 flex-col overflow-hidden rounded-lg border-2 bg-card text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none ${isSelected ? 'border-primary' : 'border-border hover:border-primary/50'
-        }`}
+      className={`flex min-h-52 flex-col overflow-hidden rounded-lg border-2 bg-card text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none ${isSelected ? 'border-primary' : 'border-border hover:border-primary/50'}`}
     >
       <div className="flex h-30 w-full justify-center overflow-hidden bg-secondary px-3 pt-4">
         <img

@@ -1,7 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import type { ChangeEvent, FormEvent } from 'react';
-import { useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
+import type { FormEvent } from 'react';
+import { useState } from 'react';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
@@ -9,9 +8,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { useProfileEnhance } from '@/features/profile/hooks/use-profile-enhance';
 import type { ProfileForm, ProfilePageProps } from '@/features/profile/types';
 import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
-import { useDetectLocation } from '@/hooks/use-detect-location';
-import { compressImage } from '@/lib/image_utility';
+import { useDetectLocation } from '@/features/regions/hooks/use-detect-location';
 import app from '@/routes/app';
+import { useAvatarSelection } from '../hooks/use-avatar-selection';
 import { AvatarActions } from './avatar-actions';
 import { BasicFields } from './basic-fields';
 import { FreelancerFields } from './freelancer-fields';
@@ -27,9 +26,6 @@ export function ProfilePage({
   const isFreelancer = profile.role === 'freelancer';
   const [editing, setEditing] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [skillInput, setSkillInput] = useState('');
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
   const { detecting, detectLocation } = useDetectLocation();
   const form = useForm<ProfileForm>({
     name: profile.name,
@@ -45,6 +41,7 @@ export function ProfilePage({
   const {
     provinces,
     regencies,
+    loadingProvinces,
     loadingRegencies,
     selectedProvinceName,
     selectedRegencyName,
@@ -76,19 +73,15 @@ export function ProfilePage({
     onSkillsChange: (skills) => form.setData('skills', skills),
   });
 
-  useEffect(() => {
-    return () => {
-      if (avatarPreview) {
-        URL.revokeObjectURL(avatarPreview);
-      }
-    };
-  }, [avatarPreview]);
-
   const existingAvatarUrl =
     has_custom_avatar && !form.data.remove_avatar
       ? profile.avatar_url
       : undefined;
-  const displayAvatarUrl = avatarPreview ?? existingAvatarUrl;
+  const avatarSelection = useAvatarSelection({
+    existingUrl: existingAvatarUrl,
+    onFileChange: (avatar) =>
+      form.setData((data) => ({ ...data, avatar, remove_avatar: false })),
+  });
 
   const resetForm = () => {
     form.setData({
@@ -103,13 +96,8 @@ export function ProfilePage({
       remove_avatar: false,
     });
     form.clearErrors();
-    setAvatarPreview(null);
-    setSkillInput('');
+    avatarSelection.clearSelection();
     resetLastEnhanced();
-
-    if (fileInput.current) {
-      fileInput.current.value = '';
-    }
   };
 
   const cancel = () => {
@@ -128,62 +116,23 @@ export function ProfilePage({
           avatar: null,
           remove_avatar: false,
         }));
-        setAvatarPreview(null);
+        avatarSelection.clearSelection();
         resetLastEnhanced();
         setEditing(false);
       },
     });
   };
 
-  const selectAvatar = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    try {
-      const avatar = await compressImage(
-        file,
-        'profile_picture',
-        undefined,
-        false,
-        512 * 1024,
-      );
-
-      setAvatarPreview(URL.createObjectURL(avatar));
-      form.setData((data) => ({ ...data, avatar, remove_avatar: false }));
-    } catch {
-      toast.error('Gagal mengompres gambar.');
-    } finally {
-      if (fileInput.current) {
-        fileInput.current.value = '';
-      }
-    }
-  };
-
   const removeAvatar = () => {
     if (form.data.avatar !== null) {
       form.setData('avatar', null);
-      setAvatarPreview(null);
+      avatarSelection.clearSelection();
 
       return;
     }
 
     if (has_custom_avatar) {
       form.setData('remove_avatar', true);
-    }
-  };
-
-  const addSkill = () => {
-    const skills = skillInput
-      .split(',')
-      .map((skill) => skill.trim().toLowerCase())
-      .filter((skill) => skill && !form.data.skills.includes(skill));
-
-    if (skills.length > 0) {
-      form.setData('skills', [...form.data.skills, ...skills]);
-      setSkillInput('');
     }
   };
 
@@ -194,7 +143,7 @@ export function ProfilePage({
           <AppPageCard className="flex flex-col gap-5">
             <ProfileHeader
               profile={profile}
-              avatarUrl={displayAvatarUrl}
+              avatarUrl={avatarSelection.displayedUrl}
               isOwner={is_owner}
               editing={editing}
               onEdit={() => setEditing(true)}
@@ -202,13 +151,14 @@ export function ProfilePage({
 
             {is_owner && editing && (
               <AvatarActions
-                fileInputRef={fileInput}
+                fileInputRef={avatarSelection.inputRef}
                 processing={form.processing}
+                hasAvatar={Boolean(avatarSelection.displayedUrl)}
                 canRemove={
                   form.data.avatar !== null ||
                   (has_custom_avatar && !form.data.remove_avatar)
                 }
-                onSelect={selectAvatar}
+                onSelect={avatarSelection.handleFileChange}
                 onRemove={removeAvatar}
               />
             )}
@@ -224,6 +174,8 @@ export function ProfilePage({
                 errors={{
                   name: form.errors.name,
                   date_of_birth: form.errors.date_of_birth,
+                  province_id: form.errors.province_id,
+                  regency_id: form.errors.regency_id,
                 }}
                 processing={form.processing}
                 calendarOpen={calendarOpen}
@@ -231,6 +183,7 @@ export function ProfilePage({
                 maxDateOfBirth={max_date_of_birth}
                 provinces={provinces}
                 regencies={regencies}
+                loadingProvinces={loadingProvinces}
                 loadingRegencies={loadingRegencies}
                 detecting={detecting}
                 onNameChange={(value) => form.setData('name', value)}
@@ -273,15 +226,7 @@ export function ProfilePage({
                     skills: form.errors.skills,
                   }}
                   processing={form.processing}
-                  skillInput={skillInput}
-                  onSkillInputChange={setSkillInput}
-                  onAddSkill={addSkill}
-                  onRemoveSkill={(skill) =>
-                    form.setData(
-                      'skills',
-                      form.data.skills.filter((item) => item !== skill),
-                    )
-                  }
+                  onSkillsChange={(skills) => form.setData('skills', skills)}
                   onTitleChange={(value) => form.setData('title', value)}
                   onBioChange={(value) => form.setData('bio', value)}
                   availability={availability}

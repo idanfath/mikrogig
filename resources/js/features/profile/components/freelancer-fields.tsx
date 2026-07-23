@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import type { KeyboardEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,10 +22,7 @@ type FreelancerFieldsProps = {
     skills?: string;
   };
   processing: boolean;
-  skillInput: string;
-  onSkillInputChange: (value: string) => void;
-  onAddSkill: () => void;
-  onRemoveSkill: (skill: string) => void;
+  onSkillsChange: (skills: string[]) => void;
   onTitleChange: (value: string) => void;
   onBioChange: (value: string) => void;
   availability: {
@@ -47,10 +44,7 @@ function FreelancerFields({
   skills,
   errors,
   processing,
-  skillInput,
-  onSkillInputChange,
-  onAddSkill,
-  onRemoveSkill,
+  onSkillsChange,
   onTitleChange,
   onBioChange,
   availability,
@@ -61,6 +55,28 @@ function FreelancerFields({
   onEnhanceBio,
   onEnhanceSkills,
 }: FreelancerFieldsProps) {
+  const [skillInput, setSkillInput] = useState('');
+  const normalizedSkills = useMemo(() => normalizeSkills(skills), [skills]);
+
+  useEffect(() => {
+    if (!areSkillsEqual(skills, normalizedSkills)) {
+      onSkillsChange(normalizedSkills);
+    }
+  }, [normalizedSkills, onSkillsChange, skills]);
+  const addSkills = () => {
+    const nextSkills = normalizeSkills([...normalizedSkills, skillInput]);
+
+    if (nextSkills.length !== normalizedSkills.length) {
+      onSkillsChange(nextSkills);
+    }
+
+    setSkillInput('');
+  };
+
+  const removeSkill = (skill: string) => {
+    onSkillsChange(normalizedSkills.filter((item) => item !== skill));
+  };
+
   return (
     <>
       <Field data-invalid={Boolean(errors.title)}>
@@ -125,11 +141,11 @@ function FreelancerFields({
         <Input
           placeholder="Contoh: Las, Cat, Listrik"
           value={skillInput}
-          onChange={(event) => onSkillInputChange(event.target.value)}
-          onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+          onChange={(event) => setSkillInput(event.target.value)}
+          onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
-              onAddSkill();
+              addSkills();
             }
           }}
           disabled={processing || enhancingSkills}
@@ -137,20 +153,20 @@ function FreelancerFields({
         <Button
           type="button"
           variant="outline"
-          onClick={onAddSkill}
+          onClick={addSkills}
           disabled={processing || enhancingSkills}
         >
           Tambah
         </Button>
         <FieldError>{errors.skills}</FieldError>
-        {skills.length > 0 && (
+        {normalizedSkills.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
-            {skills.map((skill) => (
+            {normalizedSkills.map((skill) => (
               <Badge key={skill} variant="accent" className="gap-1">
                 {skill}
                 <button
                   type="button"
-                  onClick={() => onRemoveSkill(skill)}
+                  onClick={() => removeSkill(skill)}
                   className="ml-1 hover:text-destructive"
                   aria-label={`Hapus ${skill}`}
                 >
@@ -165,4 +181,22 @@ function FreelancerFields({
   );
 }
 
-export { FreelancerFields };
+function normalizeSkills(skills: string[]): string[] {
+  return [
+    ...new Set(
+      skills
+        .flatMap((skill) => skill.split(','))
+        .map((skill) => skill.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function areSkillsEqual(first: string[], second: string[]): boolean {
+  return (
+    first.length === second.length &&
+    first.every((skill, index) => skill === second[index])
+  );
+}
+
+export { FreelancerFields, normalizeSkills };
