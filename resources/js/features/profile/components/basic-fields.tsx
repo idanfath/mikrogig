@@ -1,7 +1,6 @@
 import { format, subYears } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { CalendarIcon, Loader2, MapPin } from 'lucide-react';
-import { PrivacyTooltip } from '@/components/profile/privacy-tooltip';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -23,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { PrivacyTooltip } from './privacy-tooltip';
 
 type RegionOption = {
   id: string;
@@ -186,9 +186,7 @@ function BasicFields({
           ) : (
             <MapPin className="text-primary" data-icon="inline-start" />
           )}
-          {detecting
-            ? 'Mendeteksi Lokasi...'
-            : 'Deteksi Lokasi Otomatis (GPS)'}
+          {detecting ? 'Mendeteksi Lokasi...' : 'Deteksi Lokasi Otomatis (GPS)'}
         </Button>
       </Field>
     </FieldGroup>

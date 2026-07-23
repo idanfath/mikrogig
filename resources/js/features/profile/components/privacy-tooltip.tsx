@@ -32,7 +32,7 @@ function PrivacyTooltip() {
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="text-muted-foreground hover:text-muted-foreground "
+          className="text-muted-foreground hover:text-muted-foreground"
           aria-label="Informasi privasi"
         >
           <Info size={12} />

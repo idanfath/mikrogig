@@ -1,9 +1,9 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { format, subYears } from 'date-fns';
+import { id } from 'date-fns/locale';
 import { CalendarIcon, Loader2, MapPin, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { ProfileEnhanceButton } from '@/components/profile/profile-enhance-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -26,13 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ProfileEnhanceButton } from '@/features/profile/components/profile-enhance-button';
+import { useProfileEnhance } from '@/features/profile/hooks/use-profile-enhance';
 import { useDetectLocation } from '@/hooks/use-detect-location';
-import { useProfileEnhance } from '@/hooks/use-profile-enhance';
 import { useRegionSelect } from '@/hooks/use-region-select';
 import OnboardingLayout from '@/layout/OnboardingLayout';
 import onboarding from '@/routes/onboarding';
 import type { Auth } from '@/types/auth';
-import { id } from 'date-fns/locale';
 
 const OnboardingProfile: InertiaPageWithLayout = () => {
   const { auth, max_date_of_birth } = usePage<{
@@ -108,14 +108,14 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
 
   const isProfileComplete = isFreelancer
     ? data.title.trim() !== '' &&
-    data.bio.trim() !== '' &&
-    data.skills.length > 0 &&
-    data.date_of_birth !== '' &&
-    data.province_id !== '' &&
-    data.regency_id !== ''
+      data.bio.trim() !== '' &&
+      data.skills.length > 0 &&
+      data.date_of_birth !== '' &&
+      data.province_id !== '' &&
+      data.regency_id !== ''
     : data.date_of_birth !== '' &&
-    data.province_id !== '' &&
-    data.regency_id !== '';
+      data.province_id !== '' &&
+      data.regency_id !== '';
 
   const addSkill = () => {
     const items = skillInput
@@ -262,8 +262,8 @@ const OnboardingProfile: InertiaPageWithLayout = () => {
                   <CalendarIcon className="size-4" />
                   {data.date_of_birth
                     ? format(new Date(data.date_of_birth), 'dd MMMM yyyy', {
-                      locale: id,
-                    })
+                        locale: id,
+                      })
                     : 'Pilih tanggal lahir'}
                 </Button>
               </PopoverTrigger>

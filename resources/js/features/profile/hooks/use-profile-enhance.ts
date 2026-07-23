@@ -1,7 +1,7 @@
 import { useHttp } from '@inertiajs/react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { getProfileEnhancementAvailability } from '@/lib/profile-enhancement';
+import { getProfileEnhancementAvailability } from '@/features/profile/lib/profile-enhancement';
 import freelancer from '@/routes/freelancer';
 
 type UseProfileEnhanceOptions = {

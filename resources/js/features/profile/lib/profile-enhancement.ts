@@ -16,10 +16,12 @@ export function getProfileEnhancementAvailability({
   processing,
 }: ProfileEnhancementAvailabilityInput) {
   return {
-    title:
-      !processing && title.trim() !== '' && title !== lastEnhancedTitle,
+    title: !processing && title.trim() !== '' && title !== lastEnhancedTitle,
     bio: !processing && bio.trim() !== '' && bio !== lastEnhancedBio,
     skills:
-      !processing && title.trim() !== '' && bio.trim() !== '' && skills.length === 0,
+      !processing &&
+      title.trim() !== '' &&
+      bio.trim() !== '' &&
+      skills.length === 0,
   };
 }

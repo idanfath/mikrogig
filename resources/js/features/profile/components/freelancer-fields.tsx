@@ -1,6 +1,5 @@
 import { X } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
-import { ProfileEnhanceButton } from '@/components/profile/profile-enhance-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +10,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { ProfileEnhanceButton } from './profile-enhance-button';
 
 type FreelancerFieldsProps = {
   title: string;

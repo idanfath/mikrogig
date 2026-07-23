@@ -1,11 +1,11 @@
 import { Pencil } from 'lucide-react';
-import { PrivacyTooltip } from '@/components/profile/privacy-tooltip';
-import type { Profile } from '@/components/profile/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { capitalize } from '@/lib/utils';
 import { UserRoleFrontendLabel } from '@/types/enum';
+import type { Profile } from '../types';
+import { PrivacyTooltip } from './privacy-tooltip';
 
 type ProfileHeaderProps = {
   profile: Profile;

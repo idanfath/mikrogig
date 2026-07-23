@@ -1,8 +1,8 @@
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { PrivacyTooltip } from '@/components/profile/privacy-tooltip';
-import type { Profile } from '@/components/profile/types';
 import { Badge } from '@/components/ui/badge';
+import type { Profile } from '../types';
+import { PrivacyTooltip } from './privacy-tooltip';
 
 type ProfileDetailsProps = {
   profile: Profile;
@@ -21,8 +21,8 @@ function ProfileDetails({ profile, isOwner }: ProfileDetailsProps) {
           <p>
             {profile.date_of_birth
               ? format(new Date(profile.date_of_birth), 'dd MMMM yyyy', {
-                locale: id,
-              })
+                  locale: id,
+                })
               : '-'}
           </p>
         </div>
