@@ -10,6 +10,7 @@ use App\RegionCatalog;
 use App\Services\UserAvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OnboardingController extends Controller
 {
@@ -38,9 +39,8 @@ class OnboardingController extends Controller
     public function setupAvatar(SetupAvatarRequest $request, UserAvatarService $avatarService)
     {
         $user = Auth::user();
-        $avatarService->upload($user, $request->file('avatar'));
         $user->onboarding_step = $user->onboarding_step?->next();
-        $user->save();
+        $avatarService->upload($user, $request->file('avatar'));
 
         return redirect()->route('onboarding')->with('success', 'Foto profil berhasil diperbarui!');
     }
@@ -52,27 +52,27 @@ class OnboardingController extends Controller
         $province = $regions->province($validated['province_id']);
         $regency = $regions->regency($validated['province_id'], $validated['regency_id']);
 
-        if ($user->role->value === 'freelancer') {
-            $user->freelancerProfile()->updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'title' => $validated['title'],
-                    'bio' => $validated['bio'],
-                    'skills' => array_map('strtolower', $validated['skills']),
-                ],
-            );
-        }
+        DB::transaction(function () use ($user, $validated, $province, $regency): void {
+            if ($user->role->value === 'freelancer') {
+                $user->freelancerProfile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'title' => $validated['title'],
+                        'bio' => $validated['bio'],
+                        'skills' => array_map('strtolower', $validated['skills']),
+                    ],
+                );
+            }
 
-        $user->update([
-            'date_of_birth' => $validated['date_of_birth'],
-            'province_id' => $validated['province_id'],
-            'regency_id' => $validated['regency_id'],
-            'province_name' => $province['name'],
-            'regency_name' => $regency['name'],
-        ]);
-
-        $user->onboarding_step = null;
-        $user->save();
+            $user->update([
+                'date_of_birth' => $validated['date_of_birth'],
+                'province_id' => $validated['province_id'],
+                'regency_id' => $validated['regency_id'],
+                'province_name' => $province['name'],
+                'regency_name' => $regency['name'],
+                'onboarding_step' => null,
+            ]);
+        });
 
         return redirect()->route('app.home')->with('success', 'Profil berhasil dilengkapi!');
     }

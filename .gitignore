@@ -42,3 +42,4 @@ GEMINI.md
 !/tests/Feature/Auth/LoginSecurityTest.php
 /tests/Unit/*
 /tests/Feature/*
+!/tests/Feature/ReliabilityTest.php

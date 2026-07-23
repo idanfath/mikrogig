@@ -20,6 +20,9 @@ return [
 
     'resend' => [
         'key' => env('RESEND_API_KEY'),
+        'domain' => env('RESEND_MAIL_DOMAIN'),
+        'connect_timeout' => env('RESEND_CONNECT_TIMEOUT', 3),
+        'timeout' => env('RESEND_TIMEOUT', 10),
     ],
 
     'ses' => [
