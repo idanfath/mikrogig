@@ -37,4 +37,8 @@ GEMINI.md
 *.ignore
 /llm
 /tests/Feature/*
+!/tests/Feature/Auth/
+/tests/Feature/Auth/*
+!/tests/Feature/Auth/LoginSecurityTest.php
 /tests/Unit/*
+/tests/Feature/*

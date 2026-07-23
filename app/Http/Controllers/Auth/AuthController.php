@@ -26,11 +26,6 @@ class AuthController extends Controller
     {
         $v = $request->validated();
 
-        $user = User::where('email', $v['email'])->first();
-        if ($user && is_null($user->password) && $user->google_id) {
-            return back()->with('error', 'Akun ini didaftarkan via Google. Silakan masuk menggunakan Google.');
-        }
-
         if (Auth::attempt($v)) {
             $request->session()->regenerate();
 
@@ -65,7 +60,7 @@ class AuthController extends Controller
 
     protected function redirectAfterLogin(User $user)
     {
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             return redirect()->signedRoute('verification.notice', ['user' => $user->id]);
         }
 
@@ -78,7 +73,7 @@ class AuthController extends Controller
 
     public function showVerificationNotice(User $user)
     {
-        if (!$user) {
+        if (! $user) {
             return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
         }
 
@@ -153,9 +148,9 @@ class AuthController extends Controller
         $reset = $request->session()->get('password_reset');
 
         if (
-            !is_array($reset) ||
+            ! is_array($reset) ||
             ($reset['user_id'] ?? null) !== $user->id ||
-            !is_string($reset['email'] ?? null)
+            ! is_string($reset['email'] ?? null)
         ) {
             abort(403);
         }
@@ -174,7 +169,7 @@ class AuthController extends Controller
 
     private function ensurePasswordResetEmailMatches(User $user, string $email): void
     {
-        if ($email === '' || !hash_equals(strtolower($user->email), strtolower($email))) {
+        if ($email === '' || ! hash_equals(strtolower($user->email), strtolower($email))) {
             abort(403);
         }
     }
@@ -194,7 +189,7 @@ class AuthController extends Controller
                 ->first();
 
             if ($user) {
-                if (!$user->google_id) {
+                if (! $user->google_id) {
                     $user->update([
                         'google_id' => $googleUser->getId(),
                         'email_verified_at' => $user->email_verified_at ?? now(),
@@ -211,7 +206,7 @@ class AuthController extends Controller
                 app(SendUserOnboardingNotifications::class)->execute($user);
             }
 
-            if (!$user->avatar && $avatarUrl = $googleUser->getAvatar()) {
+            if (! $user->avatar && $avatarUrl = $googleUser->getAvatar()) {
                 app(UserAvatarService::class)->importFromUrl($user, $avatarUrl);
             }
 
@@ -221,7 +216,7 @@ class AuthController extends Controller
 
             return $this->redirectAfterLogin($user)->with('success', 'Login berhasil!');
         } catch (\Exception $e) {
-            return redirect()->route('login')->with('error', 'Login Google gagal: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Login Google gagal: '.$e->getMessage());
         }
     }
 }

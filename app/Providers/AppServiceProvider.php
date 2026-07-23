@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         Inertia::handleExceptionsUsing(function (ExceptionResponse $response) {
             if ($response->statusCode() === 429) {
+                if ($response->request->routeIs('login.submit')) {
+                    return null;
+                }
+
                 // useHttp / JSON clients need Laravel's default JSON 429 body
                 if ($response->request->expectsJson() || $response->request->wantsJson()) {
                     return null;
