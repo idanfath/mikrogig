@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\RegisterUserAction;
+use App\Actions\SendUserOnboardingNotifications;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
@@ -207,6 +208,8 @@ class AuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'email_verified_at' => now(),
                 ]);
+
+                app(SendUserOnboardingNotifications::class)->execute($user);
             }
 
             if (! $user->avatar && $avatarUrl = $googleUser->getAvatar()) {
