@@ -5,8 +5,8 @@ import {
   fetchRegencies,
   getCachedProvinces,
   getCachedRegencies,
-} from '@/lib/region-catalog';
-import type { Region, Regency } from '@/types/region';
+} from '@/features/regions/lib/region-catalog';
+import type { Region, Regency } from '@/features/regions/types';
 
 type UseRegionSelectOptions = {
   provinceId: string;
@@ -39,6 +39,7 @@ export function useRegionSelect({
     const cached = getCachedProvinces();
 
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProvinces(cached);
       setLoadingProvinces(false);
 
@@ -78,6 +79,7 @@ export function useRegionSelect({
     }
 
     if (!provinceId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRegencies([]);
       setLoadingRegencies(false);
 

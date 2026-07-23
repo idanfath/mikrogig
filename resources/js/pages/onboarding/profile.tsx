@@ -28,8 +28,8 @@ import {
 } from '@/components/ui/select';
 import { ProfileEnhanceButton } from '@/features/profile/components/profile-enhance-button';
 import { useProfileEnhance } from '@/features/profile/hooks/use-profile-enhance';
+import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
 import { useDetectLocation } from '@/hooks/use-detect-location';
-import { useRegionSelect } from '@/hooks/use-region-select';
 import OnboardingLayout from '@/layout/OnboardingLayout';
 import onboarding from '@/routes/onboarding';
 import type { Auth } from '@/types/auth';

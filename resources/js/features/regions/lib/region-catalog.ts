@@ -1,8 +1,8 @@
+import type { Region, Regency } from '@/features/regions/types';
 import {
   provinces as provincesRoute,
   regencies as regenciesRoute,
 } from '@/routes/regions';
-import type { Region, Regency } from '@/types/region';
 
 let provincesCache: Region[] | null = null;
 let provincesPromise: Promise<Region[]> | null = null;
