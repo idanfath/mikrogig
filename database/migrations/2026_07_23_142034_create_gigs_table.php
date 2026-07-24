@@ -5,8 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -29,7 +28,7 @@ return new class extends Migration
             $table->text('location_address');
             $table->decimal('location_latitude', 10, 7)->nullable();
             $table->decimal('location_longitude', 10, 7)->nullable();
-            $table->unsignedSmallInteger('location_accuracy_meters')->nullable();
+            $table->unsignedInteger('location_accuracy_meters')->nullable();
             //
             $table->date('work_date');
             $table->time('start_time')->nullable();

@@ -3,21 +3,23 @@
 namespace App\Models;
 
 use App\Enums\GigCategory;
+use App\Enums\GigOfferStatus;
 use App\Enums\GigStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // #[Guarded(['id'])]
 // im not sure if guarded by defautl guards deleted_at, so pake fillable ajah
 #[Fillable([
-    'client_id',
     'title',
     'description',
     'category',
-    'status',
     'province_id',
     'regency_id',
     'province_name',
@@ -29,9 +31,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'work_date',
     'start_time',
     'posted_fee',
-    'started_at',
-    'cancelled_at',
-    'completed_at',
 ])]
 class Gig extends Model
 {
@@ -44,6 +43,8 @@ class Gig extends Model
             'category' => GigCategory::class,
             'status' => GigStatus::class,
             'work_date' => 'date',
+            'posted_fee' => 'integer',
+            'location_accuracy_meters' => 'integer',
             //  decimal strings.
             'location_latitude' => 'decimal:7',
             'location_longitude' => 'decimal:7',
@@ -53,24 +54,24 @@ class Gig extends Model
         ];
     }
 
-    public function client()
+    public function client(): BelongsTo
     {
         return $this->belongsTo(User::class, 'client_id');
     }
 
-    public function offers()
+    public function offers(): HasMany
     {
         return $this->hasMany(GigOffer::class);
     }
 
-    public function acceptedOffer()
+    public function acceptedOffer(): HasOne
     {
         return $this
             ->hasOne(GigOffer::class)
-            ->where('status', 'accepted');
+            ->where('status', GigOfferStatus::ACCEPTED->value);
     }
 
-    public function media()
+    public function media(): HasMany
     {
         return $this
             ->hasMany(GigMedia::class);
@@ -83,6 +84,6 @@ class Gig extends Model
 
     public function scopeStatus(Builder $query, GigStatus $status): Builder
     {
-        return $query->where('status', $status);
+        return $query->where('status', $status->value);
     }
 }

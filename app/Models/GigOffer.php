@@ -8,11 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
-    'gig_id',
-    'freelancer_id',
     'offered_fee',
     'note',
-    'status',
 ])]
 class GigOffer extends Model
 {
@@ -22,6 +19,7 @@ class GigOffer extends Model
     {
         return [
             'status' => GigOfferStatus::class,
+            'offered_fee' => 'integer',
         ];
     }
 

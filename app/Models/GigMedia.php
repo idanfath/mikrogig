@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
-    'gig_id',
     'path',
 ])]
 #[Appends(['url'])]
