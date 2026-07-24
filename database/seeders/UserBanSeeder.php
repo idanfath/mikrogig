@@ -2,49 +2,35 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserRole;
 use App\Models\User;
-use App\Services\BanService;
+use App\Models\UserBan;
 use Illuminate\Database\Seeder;
 
 class UserBanSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $banService = app()->make(BanService::class, ['sendEmail' => false]);
-        $this->command->info('Seeding user bans... (skip sending emails)');
+        $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+        $bans = [
+            ['email' => 'dummy.freelancer1@example.com', 'reason' => 'Permanent seeded ban', 'banned_until' => null, 'unbanned_at' => null, 'unbanned_by' => null],
+            ['email' => 'dummy.client1@example.com', 'reason' => 'Temporary seeded ban', 'banned_until' => now()->addWeek(), 'unbanned_at' => null, 'unbanned_by' => null],
+            ['email' => 'dummy.freelancer2@example.com', 'reason' => 'Expired seeded ban', 'banned_until' => now()->subDay(), 'unbanned_at' => null, 'unbanned_by' => null],
+            ['email' => 'dummy.client2@example.com', 'reason' => 'Manually unbanned seeded ban', 'banned_until' => null, 'unbanned_at' => now(), 'unbanned_by' => $admin->id],
+        ];
 
-        $users = User::query()
-            ->where('email', '!=', 'admin@example.com')
-            ->where('email', '!=', 'user@example.com')
-            ->where('role', UserRole::Freelancer->value)
-            ->orWhere('role', UserRole::Client->value)
-            ->inRandomOrder()
-            ->limit(rand(5, 12))
-            ->get();
+        foreach ($bans as $ban) {
+            $user = User::query()->where('email', $ban['email'])->firstOrFail();
 
-        $admin = User::query()->where('role', UserRole::Admin->value);
-        $this->command->info("Banning {$users->count()} users");
-        foreach ($users as $user) {
-            $banService->ban($user, $admin->inRandomOrder()->first(), fake()->sentence(), rand(1, 100) <= 80 ? now()->addDays(rand(1, 30)) : null);
-        }
-
-        $usersToUnbanCount = rand(2, 3);
-        $this->command->info("Unbanning {$usersToUnbanCount} users");
-        $usersToUnban = User::query()
-            ->whereHas('bans', function ($query) {
-                $query->whereNull('unbanned_at');
-            })
-            ->where('role', UserRole::Freelancer->value)
-            ->orWhere('role', UserRole::Client->value)
-            ->inRandomOrder()
-            ->limit($usersToUnbanCount)
-            ->get();
-        foreach ($usersToUnban as $user) {
-            $banService->unban($user, $admin->inRandomOrder()->first());
+            UserBan::query()->updateOrCreate(
+                ['user_id' => $user->id, 'reason' => $ban['reason']],
+                [
+                    'banned_by' => $admin->id,
+                    'banned_at' => now(),
+                    'banned_until' => $ban['banned_until'],
+                    'unbanned_at' => $ban['unbanned_at'],
+                    'unbanned_by' => $ban['unbanned_by'],
+                ],
+            );
         }
     }
 }
