@@ -68,6 +68,7 @@ class GigOffer extends Model
             ->whereHas('gig', fn (Builder $q) => $q->whereNotIn('status', [
                 GigStatus::Completed,
                 GigStatus::Cancelled,
+                GigStatus::DisputeResolved,
             ]));
     }
 }

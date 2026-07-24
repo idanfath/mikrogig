@@ -23,7 +23,7 @@ final class AcceptGigOffer
     {
         $persistedOffer = GigOffer::query()->findOrFail($offer->id, ['id', 'freelancer_id', 'gig_id']);
 
-        [$acceptedOffer, $winnerId, $autoWithdrawn, $rejectedFreelancerIds] = DB::transaction(
+        [$acceptedOffer, $winnerId, $winnerAutoWithdrawn, $sameGigAutoWithdrawnFreelancerIds] = DB::transaction(
             function () use ($client, $persistedOffer): array {
                 $lockedFreelancer = User::query()->lockForUpdate()->findOrFail($persistedOffer->freelancer_id);
                 $lockedGig = Gig::query()->lockForUpdate()->findOrFail($persistedOffer->gig_id);
@@ -65,18 +65,18 @@ final class AcceptGigOffer
                     throw new DomainException('Freelancer already has active accepted work.');
                 }
 
-                $rejectedFreelancerIds = [];
-                $autoWithdrawn = false;
+                $sameGigAutoWithdrawnFreelancerIds = [];
+                $winnerAutoWithdrawn = false;
 
                 foreach ($lockedOffers as $lockedOffer) {
                     if ($lockedOffer->id === $selectedOffer->id) {
                         $lockedOffer->status = GigOfferStatus::ACCEPTED;
                     } elseif ($lockedOffer->gig_id === $lockedGig->id && $lockedOffer->status === GigOfferStatus::PENDING) {
-                        $lockedOffer->status = GigOfferStatus::REJECTED;
-                        $rejectedFreelancerIds[] = $lockedOffer->freelancer_id;
+                        $lockedOffer->status = GigOfferStatus::AUTO_WITHDRAWN;
+                        $sameGigAutoWithdrawnFreelancerIds[] = $lockedOffer->freelancer_id;
                     } elseif ($lockedOffer->freelancer_id === $lockedFreelancer->id && $lockedOffer->status === GigOfferStatus::PENDING) {
                         $lockedOffer->status = GigOfferStatus::AUTO_WITHDRAWN;
-                        $autoWithdrawn = true;
+                        $winnerAutoWithdrawn = true;
                     }
 
                     $lockedOffer->save();
@@ -88,22 +88,27 @@ final class AcceptGigOffer
                 return [
                     $selectedOffer->refresh(),
                     $lockedFreelancer->id,
-                    $autoWithdrawn,
-                    array_values(array_unique($rejectedFreelancerIds)),
+                    $winnerAutoWithdrawn,
+                    array_values(array_unique($sameGigAutoWithdrawnFreelancerIds)),
                 ];
             },
             attempts: 3,
         );
 
         $winnerBody = 'Penawaran Anda diterima oleh klien.';
-        if ($autoWithdrawn) {
+        if ($winnerAutoWithdrawn) {
             $winnerBody .= ' Aplikasi tertunda lainnya ditarik otomatis karena Anda sekarang berkomitmen pada gig ini.';
         }
 
         $this->notify($client->id, $winnerId, 'Penawaran diterima', $winnerBody);
 
-        foreach ($rejectedFreelancerIds as $freelancerId) {
-            $this->notify($client->id, $freelancerId, 'Penawaran ditolak', 'Penawaran Anda ditolak karena klien memilih freelancer lain.');
+        foreach ($sameGigAutoWithdrawnFreelancerIds as $freelancerId) {
+            $this->notify(
+                $client->id,
+                $freelancerId,
+                'Penawaran ditarik otomatis',
+                'Penawaran Anda ditarik otomatis karena klien memilih freelancer lain. Anda dapat melamar kembali jika gig ini kembali terbuka.',
+            );
         }
 
         return $acceptedOffer;

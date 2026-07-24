@@ -18,6 +18,7 @@ enum GigStatus: string
     case Completed = 'completed';
     case Cancelled = 'cancelled';
     case Disputed = 'disputed';
+    case DisputeResolved = 'dispute_resolved';
 
     public static function defaultValue(): string
     {

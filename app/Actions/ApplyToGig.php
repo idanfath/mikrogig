@@ -10,9 +10,9 @@ use App\Models\Gig;
 use App\Models\GigOffer;
 use App\Models\User;
 use App\Services\NotificationService;
+use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
-use DomainException;
 use Throwable;
 
 final class ApplyToGig
@@ -65,14 +65,17 @@ final class ApplyToGig
                     ->lockForUpdate()
                     ->firstOrFail();
 
-            if ($existingOffer !== null && $existingOffer->status !== GigOfferStatus::WITHDRAWN) {
+            if ($existingOffer !== null && ! in_array($existingOffer->status, [
+                GigOfferStatus::WITHDRAWN,
+                GigOfferStatus::AUTO_WITHDRAWN,
+            ], true)) {
                 throw new DomainException('Existing offer cannot be reused.');
             }
 
             if (GigOffer::query()
-                    ->forFreelancer($lockedFreelancer->id)
-                    ->pending()
-                    ->count() >= 3) {
+                ->forFreelancer($lockedFreelancer->id)
+                ->pending()
+                ->count() >= 3) {
                 throw new DomainException('Freelancer may have at most three pending offers.');
             }
 

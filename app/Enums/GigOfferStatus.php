@@ -8,11 +8,11 @@ enum GigOfferStatus: string
 {
     use HasValues;
 
-    case PENDING = 'pending';  // waiting client to accept or reject
-    case ACCEPTED = 'accepted';  // client accepted
-    case REJECTED = 'rejected';  // client rejected or other worker selected, or gig closed
-    case WITHDRAWN = 'withdrawn';  // offer withdrawn
-    case AUTO_WITHDRAWN = 'auto_withdrawn';  // offer auto-withdrawn cz user accepted by other gig
+    case PENDING = 'pending';
+    case ACCEPTED = 'accepted';
+    case REJECTED = 'rejected';
+    case WITHDRAWN = 'withdrawn';
+    case AUTO_WITHDRAWN = 'auto_withdrawn';
 
     public static function defaultValue(): string
     {
