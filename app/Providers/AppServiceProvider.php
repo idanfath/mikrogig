@@ -66,7 +66,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(
-            fn(): ?Password => app()->isProduction()
+            fn (): ?Password => app()->isProduction()
                 ? Password::min(12)
                     ->mixedCase()
                     ->letters()
@@ -80,15 +80,17 @@ class AppServiceProvider extends ServiceProvider
     protected function configureFreshMigrationStorageCleanup(): void
     {
         Event::listen(CommandStarting::class, function (CommandStarting $event): void {
-            if (!$this->app->isLocal() || $event->command !== 'migrate:fresh') {
+            if (! $this->app->isLocal() || $event->command !== 'migrate:fresh') {
                 return;
             }
 
             $disk = Storage::disk('cos');
 
             foreach (['avatars', 'gigs'] as $directory) {
-                if (!$disk->deleteDirectory($directory)) {
-                    throw new RuntimeException("Failed to delete COS {$directory} directory.");
+                foreach ($disk->allFiles($directory) as $file) {
+                    if (! $disk->delete($file)) {
+                        throw new RuntimeException("Failed to delete COS {$file}.");
+                    }
                 }
             }
         });
