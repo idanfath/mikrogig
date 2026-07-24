@@ -10,25 +10,25 @@ use Illuminate\Validation\Rule;
 
 class SelectRoleRequest extends FormRequest
 {
-  public function authorize(): bool
-  {
-    $user = $this->user();
+    public function authorize(): bool
+    {
+        $user = $this->user();
 
-    return $user !== null &&
-      $user->onboarding_step === OnboardingStep::PickRole &&
-      $user->role === null;
-  }
+        return $user !== null &&
+            $user->onboarding_step === OnboardingStep::PickRole &&
+            $user->role === null;
+    }
 
-  public function rules(): array
-  {
-    return [
-      'role' => ['required', Rule::enum(UserRole::class)->only(UserRole::selectable())],
-    ];
-  }
+    public function rules(): array
+    {
+        return [
+            'role' => ['required', Rule::enum(UserRole::class)->only(UserRole::selectable())],
+        ];
+    }
 
-  protected function failedValidation(Validator $validator)
-  {
-    session()->flash('error', 'Peran yang dipilih tidak valid.');
-    parent::failedValidation($validator);
-  }
+    protected function failedValidation(Validator $validator)
+    {
+        session()->flash('error', 'Peran yang dipilih tidak valid.');
+        parent::failedValidation($validator);
+    }
 }

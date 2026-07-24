@@ -14,6 +14,10 @@ class MailService
     {
         $html = view('emails.layout', $data)->render();
 
+        if (! config('services.resend.allow_send')) {
+            return true;
+        }
+
         // for debugging purposes uncomment this: (save the rendered HTML to a file and open it in the browser)
         // file_put_contents(storage_path('logs/mail_debug_' . time() . '.html'), $html);
         // if (app()->environment('local')) {
@@ -34,7 +38,7 @@ class MailService
             'automated' => $automated,
         ];
 
-        if (!empty($additionalBlocks)) {
+        if (! empty($additionalBlocks)) {
             $data['blocks'] = array_merge($data['blocks'], $additionalBlocks);
         }
 
@@ -57,7 +61,7 @@ class MailService
                         ($exception->response->status() === 429 || $exception->response->serverError()));
             }, throw: false)
             ->post('https://api.resend.com/emails', [
-                'from' => config('app.name') . ' <no-reply@' . config('services.resend.domain') . '>',
+                'from' => config('app.name').' <no-reply@'.config('services.resend.domain').'>',
                 'to' => is_array($to) ? $to : [$to],
                 'subject' => $subject,
                 'html' => $html,

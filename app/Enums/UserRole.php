@@ -2,27 +2,26 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasValues;
+
 enum UserRole: string
 {
-  case Freelancer = 'freelancer';
-  case Client = 'client';
-  case Admin = 'admin';
+    use HasValues;
 
-  public static function defaultValue(): string
-  {
-    return self::Freelancer->value;
-  }
+    case Freelancer = 'freelancer';
+    case Client = 'client';
+    case Admin = 'admin';
 
-  public static function values(): array
-  {
-    return array_column(self::cases(), 'value');
-  }
+    public static function defaultValue(): string
+    {
+        return self::Freelancer->value;
+    }
 
-  public static function selectable(): array
-  {
-    return [
-      self::Freelancer,
-      self::Client,
-    ];
-  }
+    public static function selectable(): array
+    {
+        return [
+            self::Freelancer,
+            self::Client,
+        ];
+    }
 }

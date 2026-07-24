@@ -10,10 +10,6 @@ use App\Models\NotificationRecipient;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-// known performance bottlenecks:
-// - we still brings ids to php, but we can optimize by doing insert with select in pure sql, but it will be more complex to handle email sending
-// - queue probably not optimized enough
-// probably will hold up for now as im not even sure we'll have more than 100 users.
 class NotificationService
 {
     public function __construct(
@@ -51,7 +47,6 @@ class NotificationService
                 'action_label' => $action_label,
             ]);
 
-            // Start query for recipients based on target type
             $query = $this->recipientQuery($targetType, $recipientIds, $role);
 
             $emailData = $this->mailService::buildEmailData(
@@ -96,10 +91,9 @@ class NotificationService
             ->where('notification_recipients.user_id', $userId);
 
         if ($search) {
-            $query->where(fn ($q) => $q
+            $query->where(fn($q) => $q
                 ->where('notifications.title', 'like', "%{$search}%")
-                ->orWhere('notifications.body', 'like', "%{$search}%")
-            );
+                ->orWhere('notifications.body', 'like', "%{$search}%"));
         }
 
         $notifications = $query
@@ -109,10 +103,10 @@ class NotificationService
                 'notification_recipients.read_at',
             ])
             ->orderBy('notifications.created_at', 'desc')
-            ->orderBy('notifications.id', 'desc')  // Fallback for identical timestamps
+            ->orderBy('notifications.id', 'desc')
             ->paginate($perPage);
 
-        $notifications->getCollection()->transform(fn ($n) => [
+        $notifications->getCollection()->transform(fn($n) => [
             'id' => $n->id,
             'title' => $n->title,
             'body' => $n->body,
@@ -128,30 +122,34 @@ class NotificationService
 
     public function markRead(int $userId, int $notificationId): void
     {
-        NotificationRecipient::where('notification_id', $notificationId)
-            ->where('user_id', $userId)
-            ->whereNull('read_at')
+        NotificationRecipient::query()
+            ->forUser($userId)
+            ->forNotification($notificationId)
+            ->unread()
             ->update(['read_at' => now()]);
     }
 
     public function markAllAsRead(int $userId): void
     {
-        NotificationRecipient::where('user_id', $userId)
-            ->whereNull('read_at')
+        NotificationRecipient::query()
+            ->forUser($userId)
+            ->unread()
             ->update(['read_at' => now()]);
     }
 
     public function delete(int $userId, int $notificationId): void
     {
-        NotificationRecipient::where('notification_id', $notificationId)
-            ->where('user_id', $userId)
+        NotificationRecipient::query()
+            ->forUser($userId)
+            ->forNotification($notificationId)
             ->delete();
     }
 
     public function unreadCount(int $userId): int
     {
-        return NotificationRecipient::where('user_id', $userId)
-            ->whereNull('read_at')
+        return NotificationRecipient::query()
+            ->forUser($userId)
+            ->unread()
             ->count();
     }
 

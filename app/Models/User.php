@@ -49,7 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * avatar_url is for direct access, avatar is for storage path,
      * avatar is not hidden since avatar_url might contain default avatar so we always have avatar to show in the app
      */
-    protected function AvatarUrl(): Attribute
+    protected function avatarUrl(): Attribute
     {
         return Attribute::make(
             get: fn() => Storage::disk('cos')->url($this->avatar ?? 'avatars/default_avatar.jpg')
@@ -97,14 +97,7 @@ class User extends Authenticatable implements MustVerifyEmail
         // find the most recent active ban for this user :o
         return $this
             ->hasOne(UserBan::class)
-            // row where not unbanned
-            ->whereNull('unbanned_at')
-            // and either banned_until is null or in the future
-            ->where(function ($q) {
-                $q
-                    ->whereNull('banned_until')
-                    ->orWhere('banned_until', '>', now());
-            })
+            ->active()
             ->latestOfMany();
     }
 

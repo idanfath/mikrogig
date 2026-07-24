@@ -149,8 +149,12 @@ class CreateEnum extends Command
             '',
             "namespace {$namespace};",
             '',
+            'use App\Enums\Concerns\HasValues;',
+            '',
             "enum {$className}: string",
             '{',
+            '  use HasValues;',
+            '',
         ];
 
         foreach ($cases as $case) {
@@ -165,11 +169,6 @@ class CreateEnum extends Command
             $lines[] = '  public static function defaultValue(): string';
             $lines[] = '  {';
             $lines[] = "    return self::{$defaultCaseName}->value;";
-            $lines[] = '  }';
-            $lines[] = '';
-            $lines[] = '  public static function values(): array';
-            $lines[] = '  {';
-            $lines[] = "    return array_column(self::cases(), 'value');";
             $lines[] = '  }';
         }
 

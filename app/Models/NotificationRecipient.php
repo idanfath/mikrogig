@@ -24,4 +24,19 @@ class NotificationRecipient extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function scopeForUser($query, int $userId)
+    {
+        $query->where('user_id', $userId);
+    }
+
+    public function scopeForNotification($query, int $notificationId)
+    {
+        $query->where('notification_id', $notificationId);
+    }
+
+    public function scopeUnread($query)
+    {
+        $query->whereNull('read_at');
+    }
 }
