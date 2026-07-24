@@ -81,9 +81,4 @@ class Gig extends Model
     {
         return $query->whereDate('work_date', '>=', today());
     }
-
-    public function scopeStatus(Builder $query, GigStatus $status): Builder
-    {
-        return $query->where('status', $status->value);
-    }
 }
