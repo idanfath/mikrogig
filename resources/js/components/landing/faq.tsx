@@ -2,8 +2,8 @@ import { ChevronDown, HelpCircle } from 'lucide-react';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
-import { Section } from './ui/section';
 import { cn } from '@/lib/utils';
+import { Section } from './ui/section';
 
 interface FAQItem {
   question: string;

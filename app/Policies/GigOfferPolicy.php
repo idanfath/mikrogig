@@ -9,7 +9,11 @@ use Illuminate\Auth\Access\Response;
 
 class GigOfferPolicy
 {
-    // can withdraw: freelancer, the freelancer of the gig offer
+    public function viewAny(User $user): bool
+    {
+        return $user->role === UserRole::Freelancer;
+    }
+
     public function withdraw(User $user, GigOffer $gigOffer): Response
     {
         return $user->role === UserRole::Freelancer && $user->id === $gigOffer->freelancer_id

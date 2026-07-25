@@ -6,8 +6,8 @@ import { FieldGroup } from '@/components/ui/field';
 import { FreelancerFields } from '@/features/profile/components/freelancer-fields';
 import { ProfileLocationFields } from '@/features/profile/components/profile-location-fields';
 import { useProfileEnhance } from '@/features/profile/hooks/use-profile-enhance';
-import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
 import { useDetectLocation } from '@/features/regions/hooks/use-detect-location';
+import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
 import onboarding from '@/routes/onboarding';
 import type { OnboardingProfilePageProps } from '../types';
 

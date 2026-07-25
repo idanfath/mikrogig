@@ -2,15 +2,15 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { ChevronRight, LogOut, Settings, UserRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import AppLayout from '@/layout/AppLayout';
 import { capitalize } from '@/lib/utils';
-import app from '@/routes/app';
-import type { Auth } from '@/types/auth';
-import { Badge } from '@/components/ui/badge';
-import { UserRoleFrontendLabel } from '@/types';
 import { logout } from '@/routes';
+import app from '@/routes/app';
+import { UserRoleFrontendLabel } from '@/types';
+import type { Auth } from '@/types/auth';
 
 const UserHubPage: InertiaPageWithLayout = () => {
   const { auth } = usePage<{ auth: Auth }>().props;
@@ -48,28 +48,42 @@ const UserHubPage: InertiaPageWithLayout = () => {
           </div>
         </AppPageCard>
         <div className="flex flex-col gap-2">
-          <Button asChild variant="outline" className="h-12 justify-between" mobileLarge>
+          <Button
+            asChild
+            variant="outline"
+            className="h-12 justify-between"
+            mobileLarge
+          >
             <Link href={app.profile()}>
               <span className="flex items-center gap-2">
                 <UserRound aria-hidden="true" />
                 Profil
-                <span className='text-muted-foreground'>
+                <span className="text-muted-foreground">
                   Lihat dan edit profil Anda
                 </span>
               </span>
-              <ChevronRight className="text-muted-foreground" aria-hidden="true" />
+              <ChevronRight
+                className="text-muted-foreground"
+                aria-hidden="true"
+              />
             </Link>
           </Button>
-          <Button asChild variant="outline" className="h-12 justify-between" mobileLarge>
+          <Button
+            asChild
+            variant="outline"
+            className="h-12 justify-between"
+            mobileLarge
+          >
             <Link href={app.account()}>
               <span className="flex items-center gap-2">
                 <Settings aria-hidden="true" />
                 Pengaturan
-                <span className='text-muted-foreground'>
-                  Kelola akun Anda
-                </span>
+                <span className="text-muted-foreground">Kelola akun Anda</span>
               </span>
-              <ChevronRight className="text-muted-foreground" aria-hidden="true" />
+              <ChevronRight
+                className="text-muted-foreground"
+                aria-hidden="true"
+              />
             </Link>
           </Button>
           <Button
@@ -78,19 +92,22 @@ const UserHubPage: InertiaPageWithLayout = () => {
             className="h-12 justify-between"
             mobileLarge
           >
-            <Link href={logout()} method="post" className='w-full'>
+            <Link href={logout()} method="post" className="w-full">
               <span className="flex items-center gap-2">
                 <LogOut aria-hidden="true" />
                 Keluar
-                <span className='text-destructive/60'>
+                <span className="text-destructive/60">
                   Keluar dari akun Anda
                 </span>
               </span>
-              <ChevronRight className="text-muted-foreground" aria-hidden="true" />
+              <ChevronRight
+                className="text-muted-foreground"
+                aria-hidden="true"
+              />
             </Link>
           </Button>
         </div>
-      </AppPage >
+      </AppPage>
     </>
   );
 };

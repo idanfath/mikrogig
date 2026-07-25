@@ -7,11 +7,11 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { FeatureCard } from './ui/feature-card';
 import { Section } from './ui/section';
 import { SectionHeader } from './ui/section-header';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 
 interface AIFeature {
   title: React.ReactNode;

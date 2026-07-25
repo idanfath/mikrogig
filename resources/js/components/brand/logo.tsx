@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { Link } from '@inertiajs/react';
+import * as React from 'react';
 import asset from '@/lib/assets';
 import { cn } from '@/lib/utils';
 import { home } from '@/routes';

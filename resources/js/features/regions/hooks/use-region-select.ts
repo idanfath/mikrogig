@@ -19,15 +19,10 @@ export function useRegionSelect({
   regencyId = '',
   enabled = true,
 }: UseRegionSelectOptions) {
-  const [provinces, setProvinces] = useState<Region[]>(
-    () => getCachedProvinces() ?? [],
-  );
-  const [regencies, setRegencies] = useState<Regency[]>(() =>
-    provinceId ? (getCachedRegencies(provinceId) ?? []) : [],
-  );
-  const [loadingProvinces, setLoadingProvinces] = useState(
-    () => enabled && getCachedProvinces() === null,
-  );
+  // do not remove: initial state defaults prevent SSR vs client hydration mismatch on disabled attributes
+  const [provinces, setProvinces] = useState<Region[]>([]);
+  const [regencies, setRegencies] = useState<Region[]>([]);
+  const [loadingProvinces, setLoadingProvinces] = useState(enabled);
   const [loadingRegencies, setLoadingRegencies] = useState(false);
   const latestProvinceRef = useRef(provinceId);
 

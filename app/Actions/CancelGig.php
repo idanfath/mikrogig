@@ -10,9 +10,9 @@ use App\Models\Gig;
 use App\Models\GigOffer;
 use App\Models\User;
 use App\Services\NotificationService;
+use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
-use DomainException;
 use Throwable;
 
 final class CancelGig
@@ -30,7 +30,7 @@ final class CancelGig
                 throw new AuthorizationException('Client does not own this gig.');
             }
 
-            if (!in_array($lockedGig->status, [GigStatus::Open, GigStatus::AgreementPreparation], true)) {
+            if (! in_array($lockedGig->status, [GigStatus::Open, GigStatus::AgreementPreparation], true)) {
                 throw new DomainException('Gig cannot be cancelled in its current status.');
             }
 
@@ -61,13 +61,13 @@ final class CancelGig
         }, attempts: 3);
 
         foreach ($freelancerIds as $freelancerId) {
-            $this->notify($client->id, $freelancerId);
+            $this->notify($client->id, $freelancerId, $gig->id);
         }
 
         return $cancelledGig;
     }
 
-    private function notify(int $clientId, int $freelancerId): void
+    private function notify(int $clientId, int $freelancerId, int $gigId): void
     {
         try {
             $this->notificationService->send(
@@ -76,6 +76,8 @@ final class CancelGig
                 createdBy: $clientId,
                 body: 'Gig yang Anda lamar telah dibatalkan oleh klien.',
                 recipientIds: [$freelancerId],
+                action_url: route('app.gigs.show', ['gig' => $gigId]),
+                action_label: 'Lihat Gig',
             );
         } catch (Throwable $exception) {
             report($exception);

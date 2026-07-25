@@ -2,6 +2,7 @@ import { usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default function Layout({ children }: PropsWithChildren) {
   const { flash } = usePage().props as any;
@@ -54,7 +55,7 @@ export default function Layout({ children }: PropsWithChildren) {
           },
         }}
       />
-      {children}
+      <TooltipProvider>{children}</TooltipProvider>
     </div>
   );
 }

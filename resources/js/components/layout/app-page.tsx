@@ -36,9 +36,7 @@ function AppPage({
 }
 
 function AppPageCard({ className, ...props }: ComponentProps<'section'>) {
-  return (
-    <section className={cn(appPageCardClassName, className)} {...props} />
-  );
+  return <section className={cn(appPageCardClassName, className)} {...props} />;
 }
 
 export { AppPage, AppPageCard, appPageClassName, appPageCardClassName };

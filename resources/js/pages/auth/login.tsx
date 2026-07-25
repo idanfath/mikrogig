@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
+import asset from '@/lib/assets';
+import { sentenceCase } from '@/lib/utils';
 import { register } from '@/routes';
 import login from '@/routes/login';
 import password from '@/routes/password';
-import asset from '@/lib/assets';
-import { sentenceCase } from '@/lib/utils';
 
 const Login = () => {
   return (

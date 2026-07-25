@@ -8,10 +8,10 @@ import {
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Section } from './ui/section';
 import { cn } from '@/lib/utils';
 import { login, register } from '@/routes';
 import { Badge } from '../ui/badge';
+import { Section } from './ui/section';
 
 interface CTAAction {
   label: string;

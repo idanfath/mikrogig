@@ -5,17 +5,16 @@ namespace App\Models;
 use App\Enums\GigCategory;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigStatus;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-// #[Guarded(['id'])]
-// im not sure if guarded by defautl guards deleted_at, so pake fillable ajah
 #[Fillable([
     'title',
     'description',
@@ -45,7 +44,6 @@ class Gig extends Model
             'work_date' => 'date',
             'posted_fee' => 'integer',
             'location_accuracy_meters' => 'integer',
-            //  decimal strings.
             'location_latitude' => 'decimal:7',
             'location_longitude' => 'decimal:7',
             'started_at' => 'datetime',
@@ -74,11 +72,32 @@ class Gig extends Model
     public function media(): HasMany
     {
         return $this
-            ->hasMany(GigMedia::class);
+            ->hasMany(GigMedia::class)
+            ->orderBy('id');
     }
 
-    public function scopeUpcoming(Builder $query): Builder
+    public function scopeOpen(Builder $query): Builder
     {
-        return $query->whereDate('work_date', '>=', today());
+        return $query->where('status', GigStatus::Open);
+    }
+
+    public function scopeFutureScheduled(Builder $query, ?CarbonInterface $now = null): Builder
+    {
+        $now ??= now(config('app.timezone'));
+
+        return $query->where(function (Builder $query) use ($now): void {
+            $query
+                ->whereDate('work_date', '>', $now->toDateString())
+                ->orWhere(function (Builder $query) use ($now): void {
+                    $query
+                        ->whereDate('work_date', $now->toDateString())
+                        ->where('start_time', '>', $now->format('H:i:s'));
+                });
+        });
+    }
+
+    public function scopeForClient(Builder $query, User $client): Builder
+    {
+        return $query->whereBelongsTo($client, 'client');
     }
 }

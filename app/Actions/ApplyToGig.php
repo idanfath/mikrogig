@@ -90,12 +90,12 @@ final class ApplyToGig
             return [$offer->refresh(), $lockedGig->client_id];
         }, attempts: 3);
 
-        $this->notify($freelancer->id, $clientId);
+        $this->notify($freelancer->id, $clientId, $gig->id);
 
         return $offer;
     }
 
-    private function notify(int $freelancerId, int $clientId): void
+    private function notify(int $freelancerId, int $clientId, int $gigId): void
     {
         try {
             $this->notificationService->send(
@@ -104,6 +104,8 @@ final class ApplyToGig
                 createdBy: $freelancerId,
                 body: 'Seorang freelancer telah melamar gig Anda.',
                 recipientIds: [$clientId],
+                action_url: route('app.client.gigs.applicants.index', ['gig' => $gigId]),
+                action_label: 'Lihat Pelamar',
             );
         } catch (Throwable $exception) {
             report($exception);

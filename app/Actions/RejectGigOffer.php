@@ -40,7 +40,7 @@ final class RejectGigOffer
             return [$lockedOffer->refresh(), $lockedOffer->freelancer_id];
         }, attempts: 3);
 
-        $this->notify($client->id, $freelancerId, 'Penawaran ditolak', 'Penawaran Anda ditolak oleh klien.');
+        $this->notify($client->id, $freelancerId, 'Penawaran ditolak', 'Penawaran Anda ditolak oleh klien.', $persistedOffer->gig_id);
 
         return $rejectedOffer;
     }
@@ -64,7 +64,7 @@ final class RejectGigOffer
         }
     }
 
-    private function notify(int $clientId, int $freelancerId, string $title, string $body): void
+    private function notify(int $clientId, int $freelancerId, string $title, string $body, int $gigId): void
     {
         try {
             $this->notificationService->send(
@@ -73,6 +73,8 @@ final class RejectGigOffer
                 createdBy: $clientId,
                 body: $body,
                 recipientIds: [$freelancerId],
+                action_url: route('app.gigs.show', ['gig' => $gigId]),
+                action_label: 'Lihat Gig',
             );
         } catch (Throwable $exception) {
             report($exception);

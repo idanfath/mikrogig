@@ -2,9 +2,9 @@ import { Link, usePage } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
 import * as React from 'react';
 
+import { Logo } from '@/components/brand/logo';
 import { Container } from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/brand/logo';
 import { cn } from '@/lib/utils';
 import { home, login, register } from '@/routes';
 import app from '@/routes/app';

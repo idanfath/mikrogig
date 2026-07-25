@@ -1,10 +1,10 @@
 import { FileWarning, Mic2, Scale } from 'lucide-react';
 import * as React from 'react';
 
+import { cn } from '@/lib/utils';
 import { Section } from './ui/section';
 import { SectionHeader } from './ui/section-header';
 import { TestimonialCard } from './ui/testimonial-card';
-import { cn } from '@/lib/utils';
 
 interface TestimonialItem {
   quote: string;

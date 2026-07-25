@@ -7,8 +7,8 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import password from '@/routes/password';
 import { sentenceCase } from '@/lib/utils';
+import password from '@/routes/password';
 
 interface ResetPasswordFormProps {
   token: string;
@@ -43,10 +43,7 @@ export function ResetPasswordForm({ token, email }: ResetPasswordFormProps) {
             <FieldError>{sentenceCase(errors.password)}</FieldError>
           </Field>
 
-          <Field
-            className="mb-4"
-            data-invalid={!!errors.password_confirmation}
-          >
+          <Field className="mb-4" data-invalid={!!errors.password_confirmation}>
             <FieldLabel htmlFor="password_confirmation">
               Konfirmasi Password Baru
             </FieldLabel>

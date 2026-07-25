@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layout/AuthLayout';
+import { sentenceCase } from '@/lib/utils';
 import { login } from '@/routes';
 import register from '@/routes/register';
-import { sentenceCase } from '@/lib/utils';
 
 const Register = () => {
   return (

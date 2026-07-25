@@ -71,6 +71,14 @@ Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])
             ->middleware('throttle:6,1')
             ->name('account.password');
 
+        Route::get('/gigs', [GigController::class, 'index'])->name('gigs.index');
+        Route::get('/gigs/create', [GigController::class, 'create'])->name('gigs.create');
+        Route::post('/gigs', [GigController::class, 'store'])->name('gigs.store');
+        Route::get('/gigs/{gig}', [GigController::class, 'show'])->name('gigs.show');
+        Route::get('/client/gigs', [GigController::class, 'owned'])->name('client.gigs.index');
+        Route::get('/client/gigs/{gig}/applicants', [GigController::class, 'applicants'])->name('client.gigs.applicants.index');
+        Route::get('/applications', [GigOfferController::class, 'index'])->name('applications.index');
+
         Route::post('/gigs/{gig}/offers', [GigOfferController::class, 'store'])->name('gigs.offers.store');
         Route::patch('/gig-offers/{gigOffer}/withdraw', [GigOfferController::class, 'withdraw'])->name('gig_offers.withdraw');
         Route::patch('/gig-offers/{gigOffer}/reject', [GigOfferController::class, 'reject'])->name('gig_offers.reject');

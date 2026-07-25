@@ -119,7 +119,12 @@ function ProfileLocationFields({
         <FieldLabel htmlFor="province_id">Provinsi</FieldLabel>
         <Select
           value={provinceId}
-          onValueChange={onProvinceChange}
+          onValueChange={(val) => {
+            if (!val && loadingProvinces) {
+              return;
+            }
+            onProvinceChange(val);
+          }}
           disabled={processing || loadingProvinces}
         >
           <SelectTrigger id="province_id" className="h-11 w-full">
@@ -141,7 +146,13 @@ function ProfileLocationFields({
         <FieldLabel htmlFor="regency_id">Kabupaten / Kota</FieldLabel>
         <Select
           value={regencyId}
-          onValueChange={onRegencyChange}
+          onValueChange={(val) => {
+            // do not remove: prevents radix ui from auto-clearing regency_id to empty string when options list is loading or updating
+            if (!val && (loadingRegencies || (regencyId !== '' && !regencies.some((r) => r.id === regencyId)))) {
+              return;
+            }
+            onRegencyChange(val);
+          }}
           disabled={processing || loadingRegencies || !provinceId}
         >
           <SelectTrigger id="regency_id" className="h-11 w-full">

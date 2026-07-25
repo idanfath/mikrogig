@@ -7,14 +7,32 @@ use App\Actions\ApplyToGig;
 use App\Actions\RejectGigOffer;
 use App\Actions\WithdrawGigOffer;
 use App\Http\Requests\ApplyToGigRequest;
+use App\Http\Resources\GigOfferResource;
 use App\Models\Gig;
 use App\Models\GigOffer;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class GigOfferController extends Controller
 {
+    public function index(Request $request): Response
+    {
+        $this->authorize('viewAny', GigOffer::class);
+
+        $offers = GigOffer::query()
+            ->forFreelancer($request->user()->id)
+            ->with(['gig.client', 'gig.media'])
+            ->latest('updated_at')
+            ->paginate(15);
+
+        return Inertia::render('app/applications/index', [
+            'offers' => GigOfferResource::collection($offers),
+        ]);
+    }
+
     public function store(ApplyToGigRequest $request, Gig $gig, ApplyToGig $applyToGig): RedirectResponse
     {
         $data = $request->validated();

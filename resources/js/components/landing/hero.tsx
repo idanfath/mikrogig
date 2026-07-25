@@ -14,11 +14,11 @@ import * as React from 'react';
 import { Container } from '@/components/layout/container';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from './ui/card';
-import { FloatingCard } from './ui/floating-card';
+import asset from '@/lib/assets';
 import { cn } from '@/lib/utils';
 import { register } from '@/routes';
-import asset from '@/lib/assets';
+import { Card } from './ui/card';
+import { FloatingCard } from './ui/floating-card';
 
 interface HeroProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
   badge?: React.ReactNode;

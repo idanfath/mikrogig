@@ -3,10 +3,10 @@ import type { ReactNode } from 'react';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
+    Field,
+    FieldDescription,
+    FieldError,
+    FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layout/AppLayout';
@@ -14,114 +14,112 @@ import { sentenceCase } from '@/lib/utils';
 import app from '@/routes/app';
 
 type Props = {
-  hasPassword: boolean;
+    hasPassword: boolean;
 };
 
 const AccountPage: InertiaPageWithLayout<Props> = ({ hasPassword }) => {
-  const title = hasPassword ? 'Ubah password' : 'Atur password';
+    const title = hasPassword ? 'Ubah password' : 'Atur password';
 
-  return (
-    <>
-      <Head title="Pengaturan Akun" />
-      <AppPage
-        title="Pengaturan Akun"
-        description="Kelola pengaturan akun Anda, termasuk mengubah password dan email."
-      >
-        <AppPageCard>
-          <Form
-            action={app.account.password.url()}
-            method="put"
-            className="flex flex-col"
-            options={{ preserveScroll: true }}
-            resetOnSuccess
-          >
-            {({ errors, processing, resetAndClearErrors }) => (
-              <>
-                <h2 className="mb-4 text-base font-medium">{title}</h2>
-                <div className="flex flex-col gap-4">
-                  {hasPassword ? (
-                    <Field data-invalid={!!errors.current_password}>
-                      <FieldLabel htmlFor="current_password">
-                        Password saat ini
-                      </FieldLabel>
-                      <Input
-                        id="current_password"
-                        name="current_password"
-                        type="password"
-                        autoComplete="current-password"
-                        placeholder='••••••••'
-                        required
-                        aria-invalid={!!errors.current_password}
-                      />
-                      <FieldError>
-                        {sentenceCase(errors.current_password)}
-                      </FieldError>
-                    </Field>
-                  ) : null}
-
-                  <Field data-invalid={!!errors.password}>
-                    <FieldLabel htmlFor="password">Password baru</FieldLabel>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder='••••••••'
-                      required
-                      aria-invalid={!!errors.password}
-                    />
-                    <FieldError>
-                      {sentenceCase(errors.password)}
-                    </FieldError>
-                  </Field>
-
-                  <Field data-invalid={!!errors.password_confirmation}>
-                    <FieldLabel htmlFor="password_confirmation">
-                      Konfirmasi password baru
-                    </FieldLabel>
-                    <Input
-                      id="password_confirmation"
-                      name="password_confirmation"
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder='••••••••'
-                      required
-                      aria-invalid={!!errors.password_confirmation}
-                    />
-                    <FieldError>
-                      {sentenceCase(errors.password_confirmation)}
-                    </FieldError>
-                  </Field>
-                  <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full sm:w-auto"
-                      disabled={processing}
-                      onClick={() => resetAndClearErrors()}
+    return (
+        <>
+            <Head title="Pengaturan Akun" />
+            <AppPage
+                title="Pengaturan Akun"
+                description="Kelola pengaturan akun Anda, termasuk mengubah password dan email."
+            >
+                <AppPageCard>
+                    <Form
+                        action={app.account.password.url()}
+                        method="put"
+                        className="flex flex-col"
+                        options={{ preserveScroll: true }}
+                        resetOnSuccess
                     >
-                      Batal
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="w-full sm:w-auto"
-                      disabled={processing}
-                    >
-                      {processing ? 'Menyimpan...' : 'Simpan'}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </Form>
-        </AppPageCard>
-      </AppPage >
-    </>
-  );
+                        {({ errors, processing, resetAndClearErrors }) => (
+                            <>
+                                <h2 className="mb-4 text-base font-medium">{title}</h2>
+                                <div className="flex flex-col gap-4">
+                                    {hasPassword ? (
+                                        <Field data-invalid={!!errors.current_password}>
+                                            <FieldLabel htmlFor="current_password">
+                                                Password saat ini
+                                            </FieldLabel>
+                                            <Input
+                                                id="current_password"
+                                                name="current_password"
+                                                type="password"
+                                                autoComplete="current-password"
+                                                placeholder="••••••••"
+                                                required
+                                                aria-invalid={!!errors.current_password}
+                                            />
+                                            <FieldError>
+                                                {sentenceCase(errors.current_password)}
+                                            </FieldError>
+                                        </Field>
+                                    ) : null}
+
+                                    <Field data-invalid={!!errors.password}>
+                                        <FieldLabel htmlFor="password">Password baru</FieldLabel>
+                                        <Input
+                                            id="password"
+                                            name="password"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            placeholder="••••••••"
+                                            required
+                                            aria-invalid={!!errors.password}
+                                        />
+                                        <FieldError>{sentenceCase(errors.password)}</FieldError>
+                                    </Field>
+
+                                    <Field data-invalid={!!errors.password_confirmation}>
+                                        <FieldLabel htmlFor="password_confirmation">
+                                            Konfirmasi password baru
+                                        </FieldLabel>
+                                        <Input
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            placeholder="••••••••"
+                                            required
+                                            aria-invalid={!!errors.password_confirmation}
+                                        />
+                                        <FieldError>
+                                            {sentenceCase(errors.password_confirmation)}
+                                        </FieldError>
+                                    </Field>
+                                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-full sm:w-auto"
+                                            disabled={processing}
+                                            onClick={() => resetAndClearErrors()}
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            className="w-full sm:w-auto"
+                                            disabled={processing}
+                                        >
+                                            {processing ? 'Menyimpan...' : 'Simpan'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </Form>
+                </AppPageCard>
+            </AppPage>
+        </>
+    );
 };
 
 AccountPage.layout = (page: ReactNode) => (
-  <AppLayout title="Akun">{page}</AppLayout>
+    <AppLayout title="Akun">{page}</AppLayout>
 );
 
 export default AccountPage;

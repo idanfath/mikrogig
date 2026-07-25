@@ -1,10 +1,10 @@
 import { BadgeCheck, FileSignature, Mic2, WalletCards } from 'lucide-react';
 import * as React from 'react';
 
+import { cn } from '@/lib/utils';
 import { Card } from './ui/card';
 import { Section } from './ui/section';
 import { SectionHeader } from './ui/section-header';
-import { cn } from '@/lib/utils';
 
 interface StepItem {
   number: string;

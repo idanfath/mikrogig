@@ -90,6 +90,7 @@ final class AcceptGigOffer
                     $lockedFreelancer->id,
                     $winnerAutoWithdrawn,
                     array_values(array_unique($sameGigAutoWithdrawnFreelancerIds)),
+                    $lockedGig->id,
                 ];
             },
             attempts: 3,
@@ -100,7 +101,9 @@ final class AcceptGigOffer
             $winnerBody .= ' Aplikasi tertunda lainnya ditarik otomatis karena Anda sekarang berkomitmen pada gig ini.';
         }
 
-        $this->notify($client->id, $winnerId, 'Penawaran diterima', $winnerBody);
+        $gigId = $persistedOffer->gig_id;
+
+        $this->notify($client->id, $winnerId, 'Penawaran diterima', $winnerBody, $gigId);
 
         foreach ($sameGigAutoWithdrawnFreelancerIds as $freelancerId) {
             $this->notify(
@@ -108,6 +111,7 @@ final class AcceptGigOffer
                 $freelancerId,
                 'Penawaran ditarik otomatis',
                 'Penawaran Anda ditarik otomatis karena klien memilih freelancer lain. Anda dapat melamar kembali jika gig ini kembali terbuka.',
+                $gigId,
             );
         }
 
@@ -133,7 +137,7 @@ final class AcceptGigOffer
         }
     }
 
-    private function notify(int $clientId, int $freelancerId, string $title, string $body): void
+    private function notify(int $clientId, int $freelancerId, string $title, string $body, int $gigId): void
     {
         try {
             $this->notificationService->send(
@@ -142,6 +146,8 @@ final class AcceptGigOffer
                 createdBy: $clientId,
                 body: $body,
                 recipientIds: [$freelancerId],
+                action_url: route('app.gigs.show', ['gig' => $gigId]),
+                action_label: 'Lihat Gig',
             );
         } catch (Throwable $exception) {
             report($exception);

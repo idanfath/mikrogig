@@ -9,9 +9,6 @@ import {
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
-import { Card } from './ui/card';
-import { Section } from './ui/section';
-import { SectionHeader } from './ui/section-header';
 import {
   Select,
   SelectContent,
@@ -21,6 +18,9 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import { Card } from './ui/card';
+import { Section } from './ui/section';
+import { SectionHeader } from './ui/section-header';
 
 const wageOptions = {
   cleaning: { label: 'Kebersihan', hourlyRate: 30000 },

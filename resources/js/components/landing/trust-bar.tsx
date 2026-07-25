@@ -1,8 +1,8 @@
 import { FileCheck2, Fingerprint, Scale, WalletCards } from 'lucide-react';
 import * as React from 'react';
 
-import { Section } from './ui/section';
 import { cn } from '@/lib/utils';
+import { Section } from './ui/section';
 
 interface TrustItem {
   title: string;

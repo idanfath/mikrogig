@@ -1,9 +1,20 @@
-import { House, Settings, UserRound } from 'lucide-react';
+import {
+  BriefcaseBusiness,
+  FileText,
+  House,
+  PlusCircle,
+  Search,
+  Settings,
+  UserRound,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import app from '@/routes/app';
-import type { RouteDefinition } from '@/wayfinder';
+import applications from '@/routes/app/applications';
+import clientGigs from '@/routes/app/client/gigs';
+import gigs from '@/routes/app/gigs';
 import { UserRole } from '@/types';
+import type { RouteDefinition } from '@/wayfinder';
 
 export type AppNavigationItem = {
   label: string;
@@ -29,6 +40,30 @@ export const appNavigation: AppNavigationCategory[] = [
         label: 'Beranda',
         icon: House,
         href: app.home(),
+      },
+      {
+        label: 'Cari Gig',
+        icon: Search,
+        href: gigs.index(),
+        allowedRoles: [UserRole.Freelancer],
+      },
+      {
+        label: 'Lamaran',
+        icon: FileText,
+        href: applications.index(),
+        allowedRoles: [UserRole.Freelancer],
+      },
+      {
+        label: 'Gig Saya',
+        icon: BriefcaseBusiness,
+        href: clientGigs.index(),
+        allowedRoles: [UserRole.Client],
+      },
+      {
+        label: 'Buat Gig',
+        icon: PlusCircle,
+        href: gigs.create(),
+        allowedRoles: [UserRole.Client],
       },
     ],
   },
@@ -58,6 +93,30 @@ export const mobileAppNavigation: AppNavigationCategory = {
       label: 'Beranda',
       icon: House,
       href: app.home(),
+    },
+    {
+      label: 'Cari Gig',
+      icon: Search,
+      href: gigs.index(),
+      allowedRoles: [UserRole.Freelancer],
+    },
+    {
+      label: 'Lamaran',
+      icon: FileText,
+      href: applications.index(),
+      allowedRoles: [UserRole.Freelancer],
+    },
+    {
+      label: 'Gig Saya',
+      icon: BriefcaseBusiness,
+      href: clientGigs.index(),
+      allowedRoles: [UserRole.Client],
+    },
+    {
+      label: 'Buat Gig',
+      icon: PlusCircle,
+      href: gigs.create(),
+      allowedRoles: [UserRole.Client],
     },
     {
       label: 'Akun',

@@ -2,8 +2,8 @@ import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, LogOut, Mail } from 'lucide-react';
 import * as React from 'react';
 
-import { Container } from '@/components/layout/container';
 import { Logo } from '@/components/brand/logo';
+import { Container } from '@/components/layout/container';
 import { cn } from '@/lib/utils';
 import { login, logout, register } from '@/routes';
 import app from '@/routes/app';
@@ -122,8 +122,7 @@ function Footer({
                   as="button"
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-white"
                 >
-                  Keluar{' '}
-                  <LogOut className="size-3.5" aria-hidden="true" />
+                  Keluar <LogOut className="size-3.5" aria-hidden="true" />
                 </Link>
                 <Link
                   href={app.home.url()}

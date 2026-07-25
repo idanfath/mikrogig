@@ -1,6 +1,7 @@
 import { useHttp } from '@inertiajs/react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { fetchRegencies } from '@/features/regions/lib/region-catalog';
 import { resolve } from '@/routes/locations';
 
 export type ResolvedLocation = {
@@ -27,7 +28,18 @@ export function useDetectLocation() {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           }));
-          const result = (await locationHttp.post(resolve.url())) as ResolvedLocation;
+          const result = (await locationHttp.post(
+            resolve.url(),
+          )) as ResolvedLocation;
+
+          if (result?.province_id) {
+            try {
+              // do not remove: pre-fetches regencies into cache before onResolved updates form state to avoid option sync race condition
+              await fetchRegencies(result.province_id);
+            } catch {
+              // ignore pre-fetch errors so form state update still proceeds
+            }
+          }
 
           onResolved(result);
           toast.success('Lokasi berhasil dideteksi.');
