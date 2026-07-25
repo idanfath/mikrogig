@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { withdraw } from '@/actions/App/Http/Controllers/GigOfferController';
 import { AppPage } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
+import { GigOfferStatus, getGigOfferStatusLabel } from '@/types/enum';
 import type { GigOffer, Paginated } from '../types';
 import { GigCard } from './gig-card';
 import { Pagination } from './pagination';
@@ -18,14 +19,14 @@ export function ApplicationList({ offers }: { offers: Paginated<GigOffer> }) {
               <GigCard key={offer.id} gig={offer.gig}>
                 <div className="text-sm">
                   Penawaran Anda: Rp{offer.offered_fee.toLocaleString('id-ID')}{' '}
-                  · {offer.status}
+                  · {getGigOfferStatusLabel(offer.status)}
                 </div>
                 {offer.note && (
                   <p className="w-full text-sm text-muted-foreground">
                     {offer.note}
                   </p>
                 )}
-                {offer.status === 'pending' && (
+                {offer.status === GigOfferStatus.PENDING && (
                   <Button
                     variant="destructive"
                     disabled={form.processing}

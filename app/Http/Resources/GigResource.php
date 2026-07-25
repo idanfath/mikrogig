@@ -14,6 +14,11 @@ class GigResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = $request->user();
+        $isOwner = $user && $user->id === $this->client_id;
+        $isAcceptedFreelancer = $user && $this->acceptedOffer && $this->acceptedOffer->freelancer_id === $user->id;
+        $canSeeExactLocation = $isOwner || $isAcceptedFreelancer;
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -24,12 +29,12 @@ class GigResource extends JsonResource
             'regency_id' => $this->regency_id,
             'province_name' => $this->province_name,
             'regency_name' => $this->regency_name,
-            'location_address' => $this->location_address,
-            'location_latitude' => $this->location_latitude,
-            'location_longitude' => $this->location_longitude,
-            'location_accuracy_meters' => $this->location_accuracy_meters,
+            'location_address' => $this->when($canSeeExactLocation, $this->location_address),
+            'location_latitude' => $this->when($canSeeExactLocation, $this->location_latitude),
+            'location_longitude' => $this->when($canSeeExactLocation, $this->location_longitude),
+            'location_accuracy_meters' => $this->when($canSeeExactLocation, $this->location_accuracy_meters),
             'work_date' => $this->work_date->toDateString(),
-            'start_time' => $this->start_time,
+            'start_time' => $this->start_time === null ? null : substr($this->start_time, 0, 5),
             'posted_fee' => $this->posted_fee,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

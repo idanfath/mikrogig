@@ -6,7 +6,7 @@ import { UserAvatar } from '@/components/ui/user-avatar';
 import { AvatarActions } from '@/features/profile/components/avatar-actions';
 import { useAvatarSelection } from '@/features/profile/hooks/use-avatar-selection';
 import onboarding from '@/routes/onboarding';
-import { UserRoleFrontendLabel } from '@/types/enum';
+import { getUserRoleLabel } from '@/types/enum';
 import type { OnboardingAvatarPageProps } from '../types';
 
 export function AvatarStep({ auth }: OnboardingAvatarPageProps) {
@@ -57,7 +57,7 @@ export function AvatarStep({ auth }: OnboardingAvatarPageProps) {
                 {auth.user.name}
               </p>
               <Badge variant="default" className="text-xs">
-                {UserRoleFrontendLabel[auth.user.role]}
+                {getUserRoleLabel(auth.user.role)}
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">{auth.user.email}</p>

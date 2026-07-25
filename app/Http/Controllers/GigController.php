@@ -76,15 +76,24 @@ class GigController extends Controller
 
         $gig->load(['client', 'media']);
         $gig->loadCount(['offers as pending_applicants_count' => fn (Builder $query) => $query->pending()]);
-        $myOffer = $request->user()->role === UserRole::Freelancer
-            ? GigOffer::query()->forGig($gig->id)->forFreelancer($request->user()->id)->first()
+        $user = $request->user();
+        $isFreelancer = $user->role === UserRole::Freelancer;
+
+        $myOffer = $isFreelancer
+            ? GigOffer::query()->forGig($gig->id)->forFreelancer($user->id)->first()
             : null;
+
+        $hasReachedPendingLimit = $isFreelancer && $user->hasReachedPendingOfferLimit();
+        $hasActiveAcceptedWork = $isFreelancer && $user->hasActiveAcceptedWork();
 
         return Inertia::render('app/gigs/show', [
             'gig' => GigResource::make($gig)->resolve($request),
             'my_offer' => $myOffer === null ? null : GigOfferResource::make($myOffer)->resolve($request),
-            'can_apply' => $request->user()->can('apply', $gig),
-            'is_owner' => $request->user()->id === $gig->client_id,
+            'can_apply' => $user->can('apply', $gig),
+            'is_owner' => $user->id === $gig->client_id,
+            'has_current_agreement' => $gig->currentAgreement()->exists(),
+            'has_reached_pending_limit' => $hasReachedPendingLimit,
+            'has_active_accepted_work' => $hasActiveAcceptedWork,
         ]);
     }
 

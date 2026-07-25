@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'offered_fee',
@@ -34,6 +36,16 @@ class GigOffer extends Model
     public function freelancer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'freelancer_id');
+    }
+
+    public function agreements(): HasMany
+    {
+        return $this->hasMany(GigAgreement::class);
+    }
+
+    public function currentAgreement(): HasOne
+    {
+        return $this->hasOne(GigAgreement::class)->ofMany('id', 'max')->whereNull('closed_at');
     }
 
     public function scopeForGig(Builder $query, int $gigId): void

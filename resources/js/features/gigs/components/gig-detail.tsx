@@ -1,12 +1,20 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { cancel } from '@/actions/App/Http/Controllers/GigController';
-import { store as apply } from '@/actions/App/Http/Controllers/GigOfferController';
+import { store as apply, withdraw } from '@/actions/App/Http/Controllers/GigOfferController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { index as applicants } from '@/routes/app/client/gigs/applicants';
+import { show as agreement } from '@/routes/app/gigs/agreement';
+import {
+  GigOfferStatus,
+  GigStatus,
+  getGigCategoryLabel,
+  getGigOfferStatusLabel,
+  getGigStatusLabel,
+} from '@/types/enum';
 import type { Gig, GigOffer } from '../types';
 
 type GigDetailProps = {
@@ -14,6 +22,9 @@ type GigDetailProps = {
   my_offer: GigOffer | null;
   can_apply: boolean;
   is_owner: boolean;
+  has_current_agreement: boolean;
+  has_reached_pending_limit?: boolean;
+  has_active_accepted_work?: boolean;
 };
 
 export function GigDetail({
@@ -21,6 +32,9 @@ export function GigDetail({
   my_offer: myOffer,
   can_apply: canApply,
   is_owner: isOwner,
+  has_current_agreement: hasCurrentAgreement,
+  has_reached_pending_limit: hasReachedPendingLimit = false,
+  has_active_accepted_work: hasActiveAcceptedWork = false,
 }: GigDetailProps) {
   const form = useForm({ offered_fee: '', note: '' });
   const submit = (event: FormEvent) => {
@@ -31,8 +45,13 @@ export function GigDetail({
 
   const isWithdrawn =
     myOffer !== null &&
-    ['withdrawn', 'auto_withdrawn'].includes(myOffer.status);
-  const showApplyForm = canApply && (myOffer === null || isWithdrawn);
+    (myOffer.status === GigOfferStatus.WITHDRAWN ||
+      myOffer.status === GigOfferStatus.AUTO_WITHDRAWN);
+  const showApplyForm =
+    canApply &&
+    !hasReachedPendingLimit &&
+    !hasActiveAcceptedWork &&
+    (myOffer === null || isWithdrawn);
 
   return (
     <AppPage title={gig.title}>
@@ -51,14 +70,14 @@ export function GigDetail({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl font-semibold">{gig.title}</h2>
             <span className="rounded-full bg-muted px-2 py-1 text-xs">
-              {gig.status}
+              {getGigStatusLabel(gig.status)}
             </span>
           </div>
           <p className="whitespace-pre-wrap">{gig.description}</p>
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">Kategori</dt>
-              <dd>{gig.category}</dd>
+              <dd>{getGigCategoryLabel(gig.category)}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Biaya</dt>
@@ -73,7 +92,9 @@ export function GigDetail({
             <div>
               <dt className="text-muted-foreground">Lokasi</dt>
               <dd>
-                {gig.location_address}, {gig.regency_name}, {gig.province_name}
+                {gig.location_address
+                  ? `${gig.location_address}, ${gig.regency_name}, ${gig.province_name}`
+                  : `${gig.regency_name}, ${gig.province_name}`}
               </dd>
             </div>
             {gig.location_latitude && (
@@ -100,14 +121,34 @@ export function GigDetail({
               <Button asChild variant="outline">
                 <Link href={applicants(gig)}>Lihat pelamar</Link>
               </Button>
-              {['open', 'agreement_preparation'].includes(gig.status) && (
+              {(gig.status === GigStatus.Open ||
+                gig.status === GigStatus.AgreementPreparation) && (
                 <Button variant="destructive" onClick={cancelGig}>
                   Batalkan gig
+                </Button>
+              )}
+              {hasCurrentAgreement && (
+                <Button asChild variant="outline">
+                  <Link href={agreement(gig)}>Lihat persetujuan</Link>
                 </Button>
               )}
             </div>
           )}
         </AppPageCard>
+        {canApply && hasReachedPendingLimit && (myOffer === null || isWithdrawn) && (
+          <AppPageCard>
+            <p className="text-sm text-muted-foreground">
+              Anda telah mencapai batas maksimal 3 penawaran aktif (pending). Tarik salah satu lamaran Anda untuk melamar gig ini.
+            </p>
+          </AppPageCard>
+        )}
+        {canApply && hasActiveAcceptedWork && (myOffer === null || isWithdrawn) && (
+          <AppPageCard>
+            <p className="text-sm text-muted-foreground">
+              Anda memiliki pekerjaan aktif yang sedang berjalan dan tidak dapat melamar gig lain sampai pekerjaan tersebut selesai.
+            </p>
+          </AppPageCard>
+        )}
         {showApplyForm && (
           <AppPageCard>
             <form onSubmit={submit} className="flex flex-col gap-3">
@@ -116,7 +157,7 @@ export function GigDetail({
               </h2>
               {isWithdrawn && (
                 <p className="text-xs text-muted-foreground">
-                  Penawaran sebelumnya ({myOffer?.status}) telah dibatalkan.
+                  Penawaran sebelumnya ({getGigOfferStatusLabel(myOffer?.status)}) telah dibatalkan.
                   Anda dapat mengajukan penawaran baru.
                 </p>
               )}
@@ -147,15 +188,30 @@ export function GigDetail({
           </AppPageCard>
         )}
         {myOffer && !isWithdrawn && (
-          <AppPageCard>
+          <AppPageCard className="flex flex-col items-start gap-2">
             <p>
-              Penawaran Anda: <strong>{myOffer.status}</strong>, Rp
+              Penawaran Anda: <strong>{getGigOfferStatusLabel(myOffer.status)}</strong>, Rp
               {myOffer.offered_fee.toLocaleString('id-ID')}
             </p>
             {myOffer.note && (
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {myOffer.note}
               </p>
+            )}
+            {myOffer.status === GigOfferStatus.PENDING && (
+              <Button
+                variant="destructive"
+                className="mt-2"
+                disabled={form.processing}
+                onClick={() => form.patch(withdraw.url(myOffer))}
+              >
+                Tarik lamaran
+              </Button>
+            )}
+            {hasCurrentAgreement && myOffer.status === GigOfferStatus.ACCEPTED && (
+              <Button asChild className="mt-2">
+                <Link href={agreement(gig)}>Lihat persetujuan</Link>
+              </Button>
             )}
           </AppPageCard>
         )}

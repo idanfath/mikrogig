@@ -5,6 +5,7 @@ import {
 } from '@/actions/App/Http/Controllers/GigOfferController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
+import { GigOfferStatus, getGigOfferStatusLabel } from '@/types/enum';
 import type { Gig, GigOffer, Paginated } from '../types';
 import { Pagination } from './pagination';
 
@@ -35,7 +36,7 @@ export function ApplicantList({
                 </p>
               </div>
             </div>
-            <p>Status: {offer.status}</p>
+            <p>Status: {getGigOfferStatusLabel(offer.status)}</p>
             <p>Penawaran: Rp{offer.offered_fee.toLocaleString('id-ID')}</p>
             <p>Catatan: {offer.note ?? 'Tidak ada'}</p>
             <p className="text-sm text-muted-foreground">
@@ -54,7 +55,7 @@ export function ApplicantList({
                   'Belum diisi'}
               </p>
             </div>
-            {offer.status === 'pending' && (
+            {offer.status === GigOfferStatus.PENDING && (
               <div className="flex gap-2">
                 <Button
                   disabled={form.processing}

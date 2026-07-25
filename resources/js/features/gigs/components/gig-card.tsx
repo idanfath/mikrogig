@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { show } from '@/routes/app/gigs';
+import { getGigCategoryLabel, getGigStatusLabel } from '@/types/enum';
 import type { Gig } from '../types';
 
 type GigCardProps = {
@@ -23,9 +24,12 @@ export function GigCard({ gig, children }: GigCardProps) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold">{gig.title}</h2>
           <span className="rounded-full bg-muted px-2 py-1 text-xs">
-            {gig.status}
+            {getGigStatusLabel(gig.status)}
           </span>
         </div>
+        <p className="text-xs text-muted-foreground font-medium">
+          {getGigCategoryLabel(gig.category)}
+        </p>
         <p className="text-sm text-muted-foreground">
           {gig.regency_name}, {gig.province_name}
         </p>

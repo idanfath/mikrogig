@@ -7,6 +7,7 @@ use App\Enums\GigStatus;
 use App\Enums\NotificationTargetType;
 use App\Enums\UserRole;
 use App\Models\Gig;
+use App\Models\GigAgreement;
 use App\Models\GigOffer;
 use App\Models\User;
 use App\Services\NotificationService;
@@ -85,6 +86,20 @@ final class AcceptGigOffer
                 $lockedGig->status = GigStatus::AgreementPreparation;
                 $lockedGig->save();
 
+                $agreement = new GigAgreement([
+                    'gig_id' => $lockedGig->id,
+                    'gig_offer_id' => $selectedOffer->id,
+                    'accepted_fee' => $selectedOffer->offered_fee,
+                    'final_scope' => $lockedGig->description,
+                    'work_date' => $lockedGig->work_date,
+                    'start_time' => $lockedGig->start_time,
+                    'location_arrangement' => $lockedGig->location_address,
+                    'final_total_price' => $selectedOffer->offered_fee,
+                ]);
+                $agreement->gig()->associate($lockedGig);
+                $agreement->acceptedOffer()->associate($selectedOffer);
+                $agreement->save();
+
                 return [
                     $selectedOffer->refresh(),
                     $lockedFreelancer->id,
@@ -146,8 +161,8 @@ final class AcceptGigOffer
                 createdBy: $clientId,
                 body: $body,
                 recipientIds: [$freelancerId],
-                action_url: route('app.gigs.show', ['gig' => $gigId]),
-                action_label: 'Lihat Gig',
+                action_url: route('app.gigs.agreement.show', ['gig' => $gigId]),
+                action_label: 'Lihat Persetujuan',
             );
         } catch (Throwable $exception) {
             report($exception);

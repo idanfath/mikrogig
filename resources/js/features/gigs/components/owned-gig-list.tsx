@@ -3,6 +3,7 @@ import { cancel } from '@/actions/App/Http/Controllers/GigController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { create } from '@/routes/app/gigs';
+import { GigStatus } from '@/types/enum';
 import type { Gig, Paginated } from '../types';
 import { GigCard } from './gig-card';
 import { Pagination } from './pagination';
@@ -18,7 +19,8 @@ export function OwnedGigList({ gigs }: { gigs: Paginated<Gig> }) {
         </Button>
         {gigs.data.map((gig) => (
           <GigCard key={gig.id} gig={gig}>
-            {['open', 'agreement_preparation'].includes(gig.status) && (
+            {(gig.status === GigStatus.Open ||
+              gig.status === GigStatus.AgreementPreparation) && (
               <Button
                 variant="destructive"
                 disabled={form.processing}

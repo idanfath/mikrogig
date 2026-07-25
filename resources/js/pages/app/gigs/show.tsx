@@ -8,6 +8,7 @@ const Page: InertiaPageWithLayout<{
   my_offer: GigOffer | null;
   can_apply: boolean;
   is_owner: boolean;
+  has_current_agreement: boolean;
 }> = (props) => <GigDetail {...props} />;
 Page.layout = (page: ReactNode) => (
   <AppLayout title="Detail Gig">{page}</AppLayout>

@@ -123,6 +123,7 @@ function ProfileLocationFields({
             if (!val && loadingProvinces) {
               return;
             }
+
             onProvinceChange(val);
           }}
           disabled={processing || loadingProvinces}
@@ -151,6 +152,7 @@ function ProfileLocationFields({
             if (!val && (loadingRegencies || (regencyId !== '' && !regencies.some((r) => r.id === regencyId)))) {
               return;
             }
+
             onRegencyChange(val);
           }}
           disabled={processing || loadingRegencies || !provinceId}

@@ -1,11 +1,14 @@
 import { useForm } from '@inertiajs/react';
+import { Loader2, MapPin } from 'lucide-react';
 import { useEffect, useState  } from 'react';
+import { getGigCategoryLabel } from '@/types/enum';
 import type {FormEvent} from 'react';
 import { store } from '@/actions/App/Http/Controllers/GigController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useDetectLocation } from '@/features/regions/hooks/use-detect-location';
 import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
 
 type CreateGigFormProps = { categories: string[]; today: string };
@@ -27,6 +30,7 @@ export function CreateGigForm({ categories, today }: CreateGigFormProps) {
     photos: [] as File[],
   });
   const [previews, setPreviews] = useState<string[]>([]);
+  const { detecting, detectLocation } = useDetectLocation();
   const { provinces, regencies } = useRegionSelect({
     provinceId: form.data.province_id,
     regencyId: form.data.regency_id,
@@ -80,7 +84,7 @@ export function CreateGigForm({ categories, today }: CreateGigFormProps) {
             <option value="">Kategori</option>
             {categories.map((category) => (
               <option key={category} value={category}>
-                {category}
+                {getGigCategoryLabel(category)}
               </option>
             ))}
           </select>
@@ -123,6 +127,38 @@ export function CreateGigForm({ categories, today }: CreateGigFormProps) {
             onChange={(e) => form.setData('location_address', e.target.value)}
           />
           {error('location_address')}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              detectLocation((location) => {
+                form.setData((data) => ({
+                  ...data,
+                  province_id: location.province_id,
+                  regency_id: location.regency_id,
+                  location_latitude:
+                    location.latitude?.toString() ?? data.location_latitude,
+                  location_longitude:
+                    location.longitude?.toString() ?? data.location_longitude,
+                  location_accuracy_meters:
+                    location.accuracy?.toString() ??
+                    data.location_accuracy_meters,
+                }));
+              })
+            }
+            disabled={detecting}
+            className="w-full"
+          >
+            {detecting ? (
+              <Loader2
+                className="animate-spin text-primary"
+                data-icon="inline-start"
+              />
+            ) : (
+              <MapPin className="text-primary" data-icon="inline-start" />
+            )}
+            {detecting ? 'Mendeteksi Lokasi...' : 'Gunakan Lokasi Saat Ini (GPS)'}
+          </Button>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
               type="number"

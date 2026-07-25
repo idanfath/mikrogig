@@ -58,6 +58,22 @@ export type GigOffer = {
   freelancer?: Freelancer;
 };
 
+export type GigAgreement = {
+  id: number;
+  accepted_fee: number;
+  final_scope: string | null;
+  work_date: string | null;
+  start_time: string | null;
+  location_arrangement: string | null;
+  delivery_expectations: string | null;
+  final_total_price: number | null;
+  terms_version: number;
+  submitted_at: string | null;
+  change_requested_at: string | null;
+  freelancer_confirmed_at: string | null;
+  latest_change_request_note: string | null;
+};
+
 export type Paginated<T> = {
   data: T[];
   links: Array<{ url: string | null; label: string; active: boolean }>;

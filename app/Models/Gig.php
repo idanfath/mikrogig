@@ -69,6 +69,16 @@ class Gig extends Model
             ->where('status', GigOfferStatus::ACCEPTED->value);
     }
 
+    public function agreements(): HasMany
+    {
+        return $this->hasMany(GigAgreement::class);
+    }
+
+    public function currentAgreement(): HasOne
+    {
+        return $this->hasOne(GigAgreement::class)->ofMany('id', 'max')->whereNull('closed_at');
+    }
+
     public function media(): HasMany
     {
         return $this

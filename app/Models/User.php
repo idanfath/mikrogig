@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory;
+
     use MustVerifyEmailTrait;
     use Notifiable;
 
@@ -52,7 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function avatarUrl(): Attribute
     {
         return Attribute::make(
-            get: fn() => Storage::disk('cos')->url($this->avatar ?? 'avatars/default_avatar.jpg')
+            get: fn () => Storage::disk('cos')->url($this->avatar ?? 'avatars/default_avatar.jpg')
         );
     }
 
@@ -61,7 +62,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function IsBanned(): Attribute
     {
         return Attribute::make(
-            get: fn() => (bool) ($this->active_ban_exists ?? $this->activeBan()->exists())
+            get: fn () => (bool) ($this->active_ban_exists ?? $this->activeBan()->exists())
         );
     }
 
@@ -87,7 +88,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected function location(): Attribute
     {
-        return Attribute::get(fn() => $this->regency_name && $this->province_name
+        return Attribute::get(fn () => $this->regency_name && $this->province_name
             ? "{$this->regency_name}, {$this->province_name}"
             : null);
     }
@@ -109,5 +110,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token): void
     {
         app(AuthMailService::class)->sendPasswordReset($this, $token);
+    }
+
+    public function hasReachedPendingOfferLimit(): bool
+    {
+        return GigOffer::query()->forFreelancer($this->id)->pending()->count() >= 3;
+    }
+
+    public function hasActiveAcceptedWork(): bool
+    {
+        return GigOffer::query()->forFreelancer($this->id)->activeAccepted()->exists();
     }
 }

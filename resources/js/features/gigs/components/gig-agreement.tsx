@@ -1,0 +1,224 @@
+import { useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
+import {
+  accept,
+  decline,
+  leave,
+  reject,
+  requestChanges,
+  submit,
+} from '@/actions/App/Http/Controllers/GigAgreementController';
+import { AppPage, AppPageCard } from '@/components/layout/app-page';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import type { Gig, GigAgreement } from '../types';
+
+type GigAgreementProps = {
+  gig: Gig;
+  agreement: GigAgreement;
+  is_client: boolean;
+  is_selected_freelancer: boolean;
+};
+
+export function GigAgreementPage({
+  gig,
+  agreement,
+  is_client: isClient,
+  is_selected_freelancer: isSelectedFreelancer,
+}: GigAgreementProps) {
+  const terms = useForm({
+    final_scope: agreement.final_scope ?? '',
+    work_date: agreement.work_date ?? gig.work_date,
+    start_time: (agreement.start_time ?? gig.start_time)?.slice(0, 5) ?? '',
+    location_arrangement:
+      agreement.location_arrangement ?? gig.location_address,
+    delivery_expectations: agreement.delivery_expectations ?? '',
+    final_total_price: agreement.final_total_price?.toString() ?? '',
+  });
+  const changes = useForm({ note: '' });
+  const termsSubmitted = agreement.submitted_at !== null;
+  const canEditTerms = isClient && gig.status === 'agreement_preparation';
+  const isWaitingFreelancerResponse = gig.status === 'lock_pending';
+  const isNegotiating = gig.status === 'agreement_preparation';
+
+  const submitTerms = (event: FormEvent) => {
+    event.preventDefault();
+    terms.patch(submit.url(gig));
+  };
+
+  return (
+    <AppPage title={`Persetujuan: ${gig.title}`}>
+      <div className="flex flex-col gap-6">
+        <AppPageCard className="flex flex-col gap-3">
+          <p className="text-sm text-muted-foreground">
+            Biaya penawaran diterima: Rp
+            {agreement.accepted_fee.toLocaleString('id-ID')} · Versi{' '}
+            {agreement.terms_version}
+          </p>
+          {agreement.latest_change_request_note && (
+            <div className="rounded-md bg-muted p-3 text-sm">
+              <strong>Permintaan perubahan terbaru</strong>
+              <p className="mt-1 whitespace-pre-wrap">
+                {agreement.latest_change_request_note}
+              </p>
+            </div>
+          )}
+        </AppPageCard>
+
+        {canEditTerms && (
+          <AppPageCard>
+            <form onSubmit={submitTerms} className="flex flex-col gap-3">
+              <h2 className="font-semibold">Syarat final</h2>
+              <Textarea
+                value={terms.data.final_scope}
+                onChange={(event) =>
+                  terms.setData('final_scope', event.target.value)
+                }
+                placeholder="Lingkup pekerjaan"
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  type="date"
+                  value={terms.data.work_date}
+                  onChange={(event) =>
+                    terms.setData('work_date', event.target.value)
+                  }
+                />
+                <Input
+                  type="time"
+                  value={terms.data.start_time}
+                  onChange={(event) =>
+                    terms.setData('start_time', event.target.value)
+                  }
+                />
+              </div>
+              <Textarea
+                value={terms.data.location_arrangement}
+                onChange={(event) =>
+                  terms.setData('location_arrangement', event.target.value)
+                }
+                placeholder="Pengaturan lokasi"
+              />
+              <Textarea
+                value={terms.data.delivery_expectations}
+                onChange={(event) =>
+                  terms.setData('delivery_expectations', event.target.value)
+                }
+                placeholder="Ekspektasi penyelesaian"
+              />
+              <Input
+                type="number"
+                min="1000"
+                value={terms.data.final_total_price}
+                onChange={(event) =>
+                  terms.setData('final_total_price', event.target.value)
+                }
+                placeholder="Total harga final"
+              />
+              {Object.values(terms.errors).map((error) => (
+                <p key={error} className="text-sm text-destructive">
+                  {error}
+                </p>
+              ))}
+              <Button type="submit" disabled={terms.processing}>
+                Kirim syarat final
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => terms.patch(reject.url(gig))}
+              >
+                Tolak freelancer
+              </Button>
+            </form>
+          </AppPageCard>
+        )}
+
+        {termsSubmitted && !canEditTerms && (
+          <AppPageCard className="flex flex-col gap-3">
+            <h2 className="font-semibold">Syarat final</h2>
+            <p className="whitespace-pre-wrap">{agreement.final_scope}</p>
+            <p>
+              {agreement.work_date} · {agreement.start_time}
+            </p>
+            <p className="whitespace-pre-wrap">
+              {agreement.location_arrangement}
+            </p>
+            <p className="whitespace-pre-wrap">
+              {agreement.delivery_expectations}
+            </p>
+            <p>
+              Total final: Rp
+              {agreement.final_total_price?.toLocaleString('id-ID')}
+            </p>
+            {isClient && !agreement.freelancer_confirmed_at && (
+              <Button
+                variant="destructive"
+                onClick={() => terms.patch(reject.url(gig))}
+              >
+                Tolak freelancer
+              </Button>
+            )}
+          </AppPageCard>
+        )}
+
+        {isSelectedFreelancer && isNegotiating && (
+          <AppPageCard>
+            <Button
+              variant="destructive"
+              onClick={() => changes.patch(leave.url(gig))}
+            >
+              Tinggalkan persiapan
+            </Button>
+          </AppPageCard>
+        )}
+
+        {isSelectedFreelancer &&
+          isWaitingFreelancerResponse &&
+          !agreement.freelancer_confirmed_at && (
+            <AppPageCard className="flex flex-col gap-3">
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => changes.patch(accept.url(gig))}>
+                  Setujui syarat
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => changes.patch(decline.url(gig))}
+                >
+                  Tolak syarat
+                </Button>
+              </div>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  changes.patch(requestChanges.url(gig));
+                }}
+                className="flex flex-col gap-2"
+              >
+                <Textarea
+                  value={changes.data.note}
+                  onChange={(event) =>
+                    changes.setData('note', event.target.value)
+                  }
+                  placeholder="Catatan perubahan yang diminta"
+                />
+                {changes.errors.note && (
+                  <p className="text-sm text-destructive">
+                    {changes.errors.note}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={changes.processing}
+                >
+                  Minta perubahan
+                </Button>
+              </form>
+            </AppPageCard>
+          )}
+      </div>
+    </AppPage>
+  );
+}

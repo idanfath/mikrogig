@@ -9,6 +9,7 @@ import { index } from '@/routes/app/gigs';
 import type { Gig, Paginated } from '../types';
 import { GigCard } from './gig-card';
 import { Pagination } from './pagination';
+import { getGigCategoryLabel } from '@/types/enum';
 
 type Filters = {
   province_id?: string;
@@ -85,7 +86,7 @@ export function GigDiscovery({
               <option value="">Semua kategori</option>
               {categories.map((category) => (
                 <option key={category} value={category}>
-                  {category}
+                  {getGigCategoryLabel(category)}
                 </option>
               ))}
             </select>

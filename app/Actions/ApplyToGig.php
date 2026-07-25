@@ -43,12 +43,7 @@ final class ApplyToGig
                 throw new AuthorizationException('Clients may not apply to their own gigs.');
             }
 
-            $hasActiveAcceptedGig = GigOffer::query()
-                ->forFreelancer($lockedFreelancer->id)
-                ->activeAccepted()
-                ->exists();
-
-            if ($hasActiveAcceptedGig) {
+            if ($lockedFreelancer->hasActiveAcceptedWork()) {
                 throw new DomainException('Freelancer already has active accepted work.');
             }
 
@@ -72,10 +67,7 @@ final class ApplyToGig
                 throw new DomainException('Existing offer cannot be reused.');
             }
 
-            if (GigOffer::query()
-                ->forFreelancer($lockedFreelancer->id)
-                ->pending()
-                ->count() >= 3) {
+            if ($lockedFreelancer->hasReachedPendingOfferLimit()) {
                 throw new DomainException('Freelancer may have at most three pending offers.');
             }
 

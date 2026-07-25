@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\GigAgreementController;
 use App\Http\Controllers\GigController;
 use App\Http\Controllers\GigOfferController;
 use App\Http\Controllers\LocationController;
@@ -75,6 +76,13 @@ Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])
         Route::get('/gigs/create', [GigController::class, 'create'])->name('gigs.create');
         Route::post('/gigs', [GigController::class, 'store'])->name('gigs.store');
         Route::get('/gigs/{gig}', [GigController::class, 'show'])->name('gigs.show');
+        Route::get('/gigs/{gig}/agreement', [GigAgreementController::class, 'show'])->name('gigs.agreement.show');
+        Route::patch('/gigs/{gig}/agreement/terms', [GigAgreementController::class, 'submit'])->name('gigs.agreement.terms.update');
+        Route::patch('/gigs/{gig}/agreement/accept', [GigAgreementController::class, 'accept'])->name('gigs.agreement.accept');
+        Route::patch('/gigs/{gig}/agreement/request-changes', [GigAgreementController::class, 'requestChanges'])->name('gigs.agreement.request-changes');
+        Route::patch('/gigs/{gig}/agreement/decline', [GigAgreementController::class, 'decline'])->name('gigs.agreement.decline');
+        Route::patch('/gigs/{gig}/agreement/leave', [GigAgreementController::class, 'leave'])->name('gigs.agreement.leave');
+        Route::patch('/gigs/{gig}/agreement/reject', [GigAgreementController::class, 'reject'])->name('gigs.agreement.reject');
         Route::get('/client/gigs', [GigController::class, 'owned'])->name('client.gigs.index');
         Route::get('/client/gigs/{gig}/applicants', [GigController::class, 'applicants'])->name('client.gigs.applicants.index');
         Route::get('/applications', [GigOfferController::class, 'index'])->name('applications.index');

@@ -7,6 +7,9 @@ import { resolve } from '@/routes/locations';
 export type ResolvedLocation = {
   province_id: string;
   regency_id: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
 };
 
 export function useDetectLocation() {
@@ -41,7 +44,12 @@ export function useDetectLocation() {
             }
           }
 
-          onResolved(result);
+          onResolved({
+            ...result,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: Math.round(position.coords.accuracy),
+          });
           toast.success('Lokasi berhasil dideteksi.');
         } catch (error: any) {
           toast.error(error.message || 'Gagal mendeteksi lokasi.');
