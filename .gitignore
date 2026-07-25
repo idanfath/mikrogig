@@ -40,3 +40,4 @@ GEMINI.md
 /tests/Feature/Auth/*
 /tests/Unit/*
 /tests/Feature/*
+database/seeders/RealAccountSeeder.php

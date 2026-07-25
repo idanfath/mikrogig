@@ -149,7 +149,12 @@ function ProfileLocationFields({
           value={regencyId}
           onValueChange={(val) => {
             // do not remove: prevents radix ui from auto-clearing regency_id to empty string when options list is loading or updating
-            if (!val && (loadingRegencies || (regencyId !== '' && !regencies.some((r) => r.id === regencyId)))) {
+            if (
+              !val &&
+              (loadingRegencies ||
+                (regencyId !== '' &&
+                  !regencies.some((r) => r.id === regencyId)))
+            ) {
               return;
             }
 

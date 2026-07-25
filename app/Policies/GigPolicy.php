@@ -56,4 +56,17 @@ class GigPolicy
             ? Response::allow()
             : Response::denyAsNotFound();
     }
+
+    public function workflow(User $user, Gig $gig): Response
+    {
+        if ($user->role === UserRole::Client && $gig->client_id === $user->id) {
+            return Response::allow();
+        }
+
+        if ($user->role === UserRole::Freelancer && $gig->agreements()->whereHas('acceptedOffer', fn ($query) => $query->where('freelancer_id', $user->id))->exists()) {
+            return Response::allow();
+        }
+
+        return Response::denyAsNotFound();
+    }
 }

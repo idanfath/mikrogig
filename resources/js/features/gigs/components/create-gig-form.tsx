@@ -1,8 +1,8 @@
 import { useForm } from '@inertiajs/react';
 import { Loader2, MapPin } from 'lucide-react';
-import { useEffect, useState  } from 'react';
+import { useEffect, useState } from 'react';
 import { getGigCategoryLabel } from '@/types/enum';
-import type {FormEvent} from 'react';
+import type { FormEvent } from 'react';
 import { store } from '@/actions/App/Http/Controllers/GigController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
@@ -157,7 +157,9 @@ export function CreateGigForm({ categories, today }: CreateGigFormProps) {
             ) : (
               <MapPin className="text-primary" data-icon="inline-start" />
             )}
-            {detecting ? 'Mendeteksi Lokasi...' : 'Gunakan Lokasi Saat Ini (GPS)'}
+            {detecting
+              ? 'Mendeteksi Lokasi...'
+              : 'Gunakan Lokasi Saat Ini (GPS)'}
           </Button>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input

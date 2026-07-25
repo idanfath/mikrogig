@@ -4,13 +4,13 @@ import { ReactElement } from 'react';
 import AppLayout from '@/layout/AppLayout';
 
 const Home: InertiaPageWithLayout = () => {
-    const auth = usePage().props.auth;
+  const auth = usePage().props.auth;
 
-    return <></>;
+  return <></>;
 };
 
 Home.layout = (page: ReactNode) => (
-    <AppLayout title="Beranda">{page}</AppLayout>
+  <AppLayout title="Beranda">{page}</AppLayout>
 );
 
 export default Home;

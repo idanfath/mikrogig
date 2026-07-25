@@ -13,6 +13,7 @@ import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { show as workflow } from '@/routes/app/gigs/workflow';
 import { GigStatus } from '@/types/enum';
 import type { Gig, GigAgreement, GigAgreementCapabilities } from '../types';
 
@@ -23,6 +24,13 @@ type GigAgreementProps = {
   is_selected_freelancer: boolean;
   capabilities: GigAgreementCapabilities;
 };
+
+const workflowStatuses: string[] = [
+  GigStatus.Locked,
+  GigStatus.InProgress,
+  GigStatus.Disputed,
+  GigStatus.DisputeResolved,
+];
 
 export function GigAgreementPage({
   gig,
@@ -66,6 +74,11 @@ export function GigAgreementPage({
             gig.status === GigStatus.Locked) && (
             <Button asChild className="self-start">
               <Link href={showPayment(gig)}>Lihat pembayaran</Link>
+            </Button>
+          )}
+          {workflowStatuses.includes(gig.status) && (
+            <Button asChild variant="outline" className="self-start">
+              <Link href={workflow(gig)}>Lihat workflow</Link>
             </Button>
           )}
         </AppPageCard>

@@ -27,7 +27,7 @@ export function GigCard({ gig, children }: GigCardProps) {
             {getGigStatusLabel(gig.status)}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground font-medium">
+        <p className="text-xs font-medium text-muted-foreground">
           {getGigCategoryLabel(gig.category)}
         </p>
         <p className="text-sm text-muted-foreground">

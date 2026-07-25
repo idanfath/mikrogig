@@ -89,6 +89,26 @@ class Gig extends Model
         return $this->hasOne(GigPayment::class)->latestOfMany();
     }
 
+    public function exitRequests(): HasMany
+    {
+        return $this->hasMany(GigExitRequest::class);
+    }
+
+    public function dispute(): HasOne
+    {
+        return $this->hasOne(GigDispute::class);
+    }
+
+    public function settlement(): HasOne
+    {
+        return $this->hasOne(GigSettlement::class);
+    }
+
+    public function offenses(): HasMany
+    {
+        return $this->hasMany(GigOffense::class);
+    }
+
     public function media(): HasMany
     {
         return $this

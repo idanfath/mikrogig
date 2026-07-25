@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'amount',
@@ -56,6 +57,16 @@ class GigPayment extends Model
     public function agreement(): BelongsTo
     {
         return $this->belongsTo(GigAgreement::class, 'gig_agreement_id');
+    }
+
+    public function dispute(): HasOne
+    {
+        return $this->hasOne(GigDispute::class);
+    }
+
+    public function settlement(): HasOne
+    {
+        return $this->hasOne(GigSettlement::class);
     }
 
     public function scopePending(Builder $query): Builder

@@ -5,11 +5,13 @@ import {
   PlusCircle,
   Search,
   Settings,
+  ShieldAlert,
   UserRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import app from '@/routes/app';
+import adminGigDisputes from '@/routes/app/admin/gig_disputes';
 import applications from '@/routes/app/applications';
 import clientGigs from '@/routes/app/client/gigs';
 import gigs from '@/routes/app/gigs';
@@ -65,6 +67,12 @@ export const appNavigation: AppNavigationCategory[] = [
         href: gigs.create(),
         allowedRoles: [UserRole.Client],
       },
+      {
+        label: 'Sengketa Gig',
+        icon: ShieldAlert,
+        href: adminGigDisputes.index(),
+        allowedRoles: [UserRole.Admin],
+      },
     ],
   },
   {
@@ -117,6 +125,12 @@ export const mobileAppNavigation: AppNavigationCategory = {
       icon: PlusCircle,
       href: gigs.create(),
       allowedRoles: [UserRole.Client],
+    },
+    {
+      label: 'Sengketa Gig',
+      icon: ShieldAlert,
+      href: adminGigDisputes.index(),
+      allowedRoles: [UserRole.Admin],
     },
     {
       label: 'Akun',

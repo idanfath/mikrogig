@@ -3,29 +3,40 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Guarded(['id'])]
 class UserBan extends Model
 {
-    public function user()
+    protected function casts(): array
+    {
+        return [
+            'banned_at' => 'datetime',
+            'banned_until' => 'datetime',
+            'unbanned_at' => 'datetime',
+        ];
+    }
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function bannedBy()
+    public function bannedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'banned_by');
     }
 
-    public function unbannedBy()
+    public function unbannedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'unbanned_by');
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
-        $query
+        return $query
             ->whereNull('unbanned_at')
             ->where(function ($q) {
                 $q
@@ -36,16 +47,13 @@ class UserBan extends Model
 
     public function isActive(): bool
     {
-        // if unbanned_at is set, the ban is no longer active
         if ($this->unbanned_at) {
             return false;
         }
-        // if banned_until is null, it's a permanent ban, so yes it's active
         if (is_null($this->banned_until)) {
             return true;
         }
 
-        // if banned_until is in the future, the ban is still active
         return now()->lessThan($this->banned_until);
     }
 }

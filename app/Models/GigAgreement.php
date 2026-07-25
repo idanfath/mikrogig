@@ -62,6 +62,11 @@ class GigAgreement extends Model
         return $this->hasOne(GigPayment::class);
     }
 
+    public function dispute(): HasOne
+    {
+        return $this->hasOne(GigDispute::class);
+    }
+
     public function scopeForGig(Builder $query, Gig|int $gig): Builder
     {
         return $query->where('gig_id', $gig instanceof Gig ? $gig->id : $gig);

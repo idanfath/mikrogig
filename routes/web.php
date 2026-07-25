@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdminGigDisputeController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\GigAgreementController;
 use App\Http\Controllers\GigController;
+use App\Http\Controllers\GigDisputeController;
 use App\Http\Controllers\GigOfferController;
 use App\Http\Controllers\GigPaymentController;
+use App\Http\Controllers\GigWorkflowController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
@@ -88,6 +91,19 @@ Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])
         Route::post('/gigs/{gig}/payment/checkout', [GigPaymentController::class, 'retryCheckout'])->name('gigs.payment.checkout.retry');
         Route::get('/gigs/{gig}/payment/mock', [GigPaymentController::class, 'mockCheckout'])->name('gigs.payment.mock.show');
         Route::post('/gigs/{gig}/payment/mock/complete', [GigPaymentController::class, 'completeMock'])->name('gigs.payment.mock.complete');
+        Route::get('/gigs/{gig}/workflow', [GigWorkflowController::class, 'show'])->name('gigs.workflow.show');
+        Route::post('/gigs/{gig}/start', [GigWorkflowController::class, 'start'])->name('gigs.start');
+        Route::post('/gigs/{gig}/exit-requests', [GigWorkflowController::class, 'storeExit'])->name('gigs.exit-requests.store');
+        Route::patch('/gig-exit-requests/{gigExitRequest}/response', [GigWorkflowController::class, 'respond'])->name('gig-exit-requests.response');
+        Route::patch('/gig-exit-requests/{gigExitRequest}/withdraw', [GigWorkflowController::class, 'withdraw'])->name('gig-exit-requests.withdraw');
+        Route::post('/gig-exit-requests/{gigExitRequest}/proceed', [GigWorkflowController::class, 'proceed'])->name('gig-exit-requests.proceed');
+        Route::post('/gigs/{gig}/disputes', [GigWorkflowController::class, 'dispute'])->name('gigs.disputes.store');
+        Route::get('/gig-disputes/{dispute}', [GigDisputeController::class, 'show'])->name('gig_disputes.show');
+        Route::post('/gig-disputes/{dispute}/counterproof', [GigDisputeController::class, 'counterproof'])->name('gig_disputes.counterproof.store');
+        Route::get('/gig-dispute-media/{media}', [GigDisputeController::class, 'media'])->name('gig_dispute_media.show');
+        Route::get('/admin/gig-disputes', [AdminGigDisputeController::class, 'index'])->name('admin.gig_disputes.index');
+        Route::get('/admin/gig-disputes/{dispute}', [AdminGigDisputeController::class, 'show'])->name('admin.gig_disputes.show');
+        Route::patch('/admin/gig-disputes/{dispute}/resolve', [AdminGigDisputeController::class, 'resolve'])->name('admin.gig_disputes.resolve');
         Route::get('/client/gigs', [GigController::class, 'owned'])->name('client.gigs.index');
         Route::get('/client/gigs/{gig}/applicants', [GigController::class, 'applicants'])->name('client.gigs.applicants.index');
         Route::get('/applications', [GigOfferController::class, 'index'])->name('applications.index');

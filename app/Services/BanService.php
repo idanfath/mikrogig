@@ -18,7 +18,7 @@ class BanService
 
     public function ban(User $target, ?User $admin = null, ?string $reason = null, ?CarbonInterface $until = null): UserBan
     {
-        if ($target->id === $admin->id) {
+        if ($admin !== null && $target->id === $admin->id) {
             throw new \Exception('You cannot ban yourself.');
         }
 
@@ -38,7 +38,7 @@ class BanService
             createdBy: $admin ? $admin->id : null,
             title: 'You have been banned',
             targetType: NotificationTargetType::User,
-            body: "You have been banned for the following reason: {$reason}" . ($until ? " Ban will be lifted at {$until}." : ''),
+            body: "You have been banned for the following reason: {$reason}".($until ? " Ban will be lifted at {$until}." : ''),
             recipientIds: [$target->id],
             sendEmail: $this->sendEmail
         );
@@ -46,11 +46,31 @@ class BanService
         return $ban;
     }
 
+    public function recordAutomated(User $target, string $reason, int $durationDays): ?UserBan
+    {
+        $activeBan = $target->activeBan()->lockForUpdate()->first();
+        if ($activeBan !== null && $activeBan->banned_until === null) {
+            return null;
+        }
+
+        $startsAt = $activeBan?->banned_until !== null && $activeBan->banned_until->isFuture()
+            ? $activeBan->banned_until
+            : now();
+
+        return UserBan::query()->create([
+            'user_id' => $target->id,
+            'banned_by' => null,
+            'reason' => $reason,
+            'banned_at' => now(),
+            'banned_until' => $startsAt->copy()->addDays($durationDays),
+        ]);
+    }
+
     public function unban(User $target, ?User $admin = null): bool
     {
         $ban = $target->activeBan;
 
-        if (!$ban) {
+        if (! $ban) {
             return false;
         }
 
@@ -75,7 +95,7 @@ class BanService
     {
         $ban = $target->activeBan;
 
-        if (!$ban) {
+        if (! $ban) {
             throw new \Exception('User has no active ban to extend.');
         }
 

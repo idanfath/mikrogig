@@ -6,6 +6,7 @@ import {
 } from '@/actions/App/Http/Controllers/GigPaymentController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
+import { show as workflow } from '@/routes/app/gigs/workflow';
 import { GigPaymentStatus, getGigPaymentStatusLabel } from '@/types/enum';
 import type { GigPayment, GigPaymentSummary } from '../types';
 
@@ -48,6 +49,11 @@ export function GigPaymentPage({ gig, payment, is_client: isClient }: Props) {
 
         {payment.status === GigPaymentStatus.Paid && (
           <p>Pembayaran demo terkonfirmasi. Gig telah dikunci.</p>
+        )}
+        {payment.status === GigPaymentStatus.Paid && (
+          <Button asChild variant="outline">
+            <Link href={workflow(gig)}>Lihat workflow</Link>
+          </Button>
         )}
 
         {payment.status === GigPaymentStatus.Cancelled && (

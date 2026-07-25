@@ -1,128 +1,203 @@
 export const GigAgreementClosureReason = {
-  FreelancerDeclined: "freelancer_declined",
-  FreelancerLeft: "freelancer_left",
-  ClientRejected: "client_rejected",
-  GigCancelled: "gig_cancelled",
+  FreelancerDeclined: 'freelancer_declined',
+  FreelancerLeft: 'freelancer_left',
+  ClientRejected: 'client_rejected',
+  GigCancelled: 'gig_cancelled',
 } as const;
-export type GigAgreementClosureReason = typeof GigAgreementClosureReason[keyof typeof GigAgreementClosureReason]
+export type GigAgreementClosureReason =
+  (typeof GigAgreementClosureReason)[keyof typeof GigAgreementClosureReason];
 
 export const GigCategory = {
-  Labor: "labor",
-  Cleaning: "cleaning",
-  Moving: "moving",
-  Construction: "construction",
-  Security: "security",
+  Labor: 'labor',
+  Cleaning: 'cleaning',
+  Moving: 'moving',
+  Construction: 'construction',
+  Security: 'security',
 } as const;
-export type GigCategory = typeof GigCategory[keyof typeof GigCategory]
+export type GigCategory = (typeof GigCategory)[keyof typeof GigCategory];
 
 export const GigCategoryFrontendLabel = {
-  labor: "Tenaga Kerja",
-  cleaning: "Pembersihan",
-  moving: "Pindahan",
-  construction: "Konstruksi",
-  security: "Keamanan",
+  labor: 'Tenaga Kerja',
+  cleaning: 'Pembersihan',
+  moving: 'Pindahan',
+  construction: 'Konstruksi',
+  security: 'Keamanan',
 } as const;
-export type GigCategoryFrontendLabel = typeof GigCategoryFrontendLabel[keyof typeof GigCategoryFrontendLabel]
+export type GigCategoryFrontendLabel =
+  (typeof GigCategoryFrontendLabel)[keyof typeof GigCategoryFrontendLabel];
 
 export const GigOfferStatus = {
-  PENDING: "pending",
-  ACCEPTED: "accepted",
-  REJECTED: "rejected",
-  WITHDRAWN: "withdrawn",
-  AUTO_WITHDRAWN: "auto_withdrawn",
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+  WITHDRAWN: 'withdrawn',
+  AUTO_WITHDRAWN: 'auto_withdrawn',
 } as const;
-export type GigOfferStatus = typeof GigOfferStatus[keyof typeof GigOfferStatus]
+export type GigOfferStatus =
+  (typeof GigOfferStatus)[keyof typeof GigOfferStatus];
 
 export const GigOfferStatusFrontendLabel = {
-  pending: "Menunggu Tanggapan",
-  accepted: "Diterima",
-  rejected: "Ditolak",
-  withdrawn: "Ditarik",
-  auto_withdrawn: "Ditarik Otomatis",
+  pending: 'Menunggu Tanggapan',
+  accepted: 'Diterima',
+  rejected: 'Ditolak',
+  withdrawn: 'Ditarik',
+  auto_withdrawn: 'Ditarik Otomatis',
 } as const;
-export type GigOfferStatusFrontendLabel = typeof GigOfferStatusFrontendLabel[keyof typeof GigOfferStatusFrontendLabel]
+export type GigOfferStatusFrontendLabel =
+  (typeof GigOfferStatusFrontendLabel)[keyof typeof GigOfferStatusFrontendLabel];
 
 export const GigPaymentStatus = {
-  Pending: "pending",
-  Paid: "paid",
-  Cancelled: "cancelled",
-  Expired: "expired",
+  Pending: 'pending',
+  Paid: 'paid',
+  Cancelled: 'cancelled',
+  Expired: 'expired',
 } as const;
-export type GigPaymentStatus = typeof GigPaymentStatus[keyof typeof GigPaymentStatus]
+export type GigPaymentStatus =
+  (typeof GigPaymentStatus)[keyof typeof GigPaymentStatus];
+
+export const GigExitType = {
+  ClientCancellation: 'client_cancellation',
+  FreelancerAbandonment: 'freelancer_abandonment',
+} as const;
+export type GigExitType = (typeof GigExitType)[keyof typeof GigExitType];
+
+export const GigExitStatus = {
+  Pending: 'pending',
+  Refused: 'refused',
+  Withdrawn: 'withdrawn',
+  Executed: 'executed',
+} as const;
+export type GigExitStatus = (typeof GigExitStatus)[keyof typeof GigExitStatus];
+
+export const GigExitDecision = { Agree: 'agree', Refuse: 'refuse' } as const;
+export type GigExitDecision =
+  (typeof GigExitDecision)[keyof typeof GigExitDecision];
+
+export const GigExitExecutionMode = {
+  Agreed: 'agreed',
+  Unilateral: 'unilateral',
+} as const;
+export type GigExitExecutionMode =
+  (typeof GigExitExecutionMode)[keyof typeof GigExitExecutionMode];
+
+export const GigDisputeType = {
+  NoShow: 'no_show',
+  StartBlocked: 'start_blocked',
+} as const;
+export type GigDisputeType =
+  (typeof GigDisputeType)[keyof typeof GigDisputeType];
+
+export const GigDisputeStatus = {
+  AwaitingCounterproof: 'awaiting_counterproof',
+  AwaitingAdmin: 'awaiting_admin',
+  Resolved: 'resolved',
+} as const;
+export type GigDisputeStatus =
+  (typeof GigDisputeStatus)[keyof typeof GigDisputeStatus];
+
+export const GigDisputeSubmissionType = {
+  Report: 'report',
+  Counterproof: 'counterproof',
+} as const;
+export type GigDisputeSubmissionType =
+  (typeof GigDisputeSubmissionType)[keyof typeof GigDisputeSubmissionType];
+
+export const GigDisputeFinding = {
+  ClientAtFault: 'client_at_fault',
+  FreelancerAtFault: 'freelancer_at_fault',
+  Inconclusive: 'inconclusive',
+} as const;
+export type GigDisputeFinding =
+  (typeof GigDisputeFinding)[keyof typeof GigDisputeFinding];
+
+export const GigSettlementOutcome = {
+  FullClientRefund: 'full_client_refund',
+  ThirtySeventy: 'thirty_seventy',
+  FullFreelancerPayout: 'full_freelancer_payout',
+} as const;
+export type GigSettlementOutcome =
+  (typeof GigSettlementOutcome)[keyof typeof GigSettlementOutcome];
 
 export const GigPaymentStatusFrontendLabel = {
-  pending: "Menunggu Pembayaran",
-  paid: "Dibayar",
-  cancelled: "Dibatalkan",
-  expired: "Kedaluwarsa",
+  pending: 'Menunggu Pembayaran',
+  paid: 'Dibayar',
+  cancelled: 'Dibatalkan',
+  expired: 'Kedaluwarsa',
 } as const;
-export type GigPaymentStatusFrontendLabel = typeof GigPaymentStatusFrontendLabel[keyof typeof GigPaymentStatusFrontendLabel]
+export type GigPaymentStatusFrontendLabel =
+  (typeof GigPaymentStatusFrontendLabel)[keyof typeof GigPaymentStatusFrontendLabel];
 
 export const GigStatus = {
-  Open: "open",
-  AgreementPreparation: "agreement_preparation",
-  LockPending: "lock_pending",
-  PaymentPending: "payment_pending",
-  Locked: "locked",
-  InProgress: "in_progress",
-  Review: "review",
-  Completed: "completed",
-  Cancelled: "cancelled",
-  Disputed: "disputed",
-  DisputeResolved: "dispute_resolved",
+  Open: 'open',
+  AgreementPreparation: 'agreement_preparation',
+  LockPending: 'lock_pending',
+  PaymentPending: 'payment_pending',
+  Locked: 'locked',
+  InProgress: 'in_progress',
+  Review: 'review',
+  Completed: 'completed',
+  Cancelled: 'cancelled',
+  Disputed: 'disputed',
+  DisputeResolved: 'dispute_resolved',
 } as const;
-export type GigStatus = typeof GigStatus[keyof typeof GigStatus]
+export type GigStatus = (typeof GigStatus)[keyof typeof GigStatus];
 
 export const GigStatusFrontendLabel = {
-  open: "Terbuka",
-  agreement_preparation: "Persiapan Persetujuan",
-  lock_pending: "Menunggu Kunci",
-  payment_pending: "Menunggu Pembayaran",
-  locked: "Terkunci",
-  in_progress: "Dalam Pengerjaan",
-  review: "Ditinjau",
-  completed: "Selesai",
-  cancelled: "Dibatalkan",
-  disputed: "Sengketa",
-  dispute_resolved: "Sengketa Selesai",
+  open: 'Terbuka',
+  agreement_preparation: 'Persiapan Persetujuan',
+  lock_pending: 'Menunggu Kunci',
+  payment_pending: 'Menunggu Pembayaran',
+  locked: 'Terkunci',
+  in_progress: 'Dalam Pengerjaan',
+  review: 'Ditinjau',
+  completed: 'Selesai',
+  cancelled: 'Dibatalkan',
+  disputed: 'Sengketa',
+  dispute_resolved: 'Sengketa Selesai',
 } as const;
-export type GigStatusFrontendLabel = typeof GigStatusFrontendLabel[keyof typeof GigStatusFrontendLabel]
+export type GigStatusFrontendLabel =
+  (typeof GigStatusFrontendLabel)[keyof typeof GigStatusFrontendLabel];
 
 export const NotificationTargetType = {
-  Everyone: "everyone",
-  Role: "role",
-  Users: "users",
-  User: "user",
+  Everyone: 'everyone',
+  Role: 'role',
+  Users: 'users',
+  User: 'user',
 } as const;
-export type NotificationTargetType = typeof NotificationTargetType[keyof typeof NotificationTargetType]
+export type NotificationTargetType =
+  (typeof NotificationTargetType)[keyof typeof NotificationTargetType];
 
 export const OnboardingStep = {
-  PickRole: "pick_role",
-  SetupAvatar: "setup_avatar",
-  Profile: "profile",
+  PickRole: 'pick_role',
+  SetupAvatar: 'setup_avatar',
+  Profile: 'profile',
 } as const;
-export type OnboardingStep = typeof OnboardingStep[keyof typeof OnboardingStep]
+export type OnboardingStep =
+  (typeof OnboardingStep)[keyof typeof OnboardingStep];
 
 export const UserRole = {
-  Freelancer: "freelancer",
-  Client: "client",
-  Admin: "admin",
+  Freelancer: 'freelancer',
+  Client: 'client',
+  Admin: 'admin',
 } as const;
-export type UserRole = typeof UserRole[keyof typeof UserRole]
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export const UserRoleFrontendLabel = {
-  freelancer: "Pekerja",
-  client: "Pemberi Kerja",
-  admin: "Admin",
+  freelancer: 'Pekerja',
+  client: 'Pemberi Kerja',
+  admin: 'Admin',
 } as const;
-export type UserRoleFrontendLabel = typeof UserRoleFrontendLabel[keyof typeof UserRoleFrontendLabel]
+export type UserRoleFrontendLabel =
+  (typeof UserRoleFrontendLabel)[keyof typeof UserRoleFrontendLabel];
 
 export function getUserRoleLabel(role?: string | null): string {
   if (!role) {
     return '';
   }
 
-  return UserRoleFrontendLabel[role as keyof typeof UserRoleFrontendLabel] ?? role;
+  return (
+    UserRoleFrontendLabel[role as keyof typeof UserRoleFrontendLabel] ?? role
+  );
 }
 
 export function getGigCategoryLabel(category?: string | null): string {
@@ -130,7 +205,11 @@ export function getGigCategoryLabel(category?: string | null): string {
     return '';
   }
 
-  return GigCategoryFrontendLabel[category as keyof typeof GigCategoryFrontendLabel] ?? category;
+  return (
+    GigCategoryFrontendLabel[
+      category as keyof typeof GigCategoryFrontendLabel
+    ] ?? category
+  );
 }
 
 export function getGigStatusLabel(status?: string | null): string {
@@ -138,7 +217,10 @@ export function getGigStatusLabel(status?: string | null): string {
     return '';
   }
 
-  return GigStatusFrontendLabel[status as keyof typeof GigStatusFrontendLabel] ?? status;
+  return (
+    GigStatusFrontendLabel[status as keyof typeof GigStatusFrontendLabel] ??
+    status
+  );
 }
 
 export function getGigOfferStatusLabel(status?: string | null): string {
@@ -146,7 +228,11 @@ export function getGigOfferStatusLabel(status?: string | null): string {
     return '';
   }
 
-  return GigOfferStatusFrontendLabel[status as keyof typeof GigOfferStatusFrontendLabel] ?? status;
+  return (
+    GigOfferStatusFrontendLabel[
+      status as keyof typeof GigOfferStatusFrontendLabel
+    ] ?? status
+  );
 }
 
 export function getGigPaymentStatusLabel(status?: string | null): string {
@@ -154,5 +240,128 @@ export function getGigPaymentStatusLabel(status?: string | null): string {
     return '';
   }
 
-  return GigPaymentStatusFrontendLabel[status as keyof typeof GigPaymentStatusFrontendLabel] ?? status;
+  return (
+    GigPaymentStatusFrontendLabel[
+      status as keyof typeof GigPaymentStatusFrontendLabel
+    ] ?? status
+  );
+}
+
+export function getGigExitStatusLabel(status?: string | null): string {
+  return (
+    (
+      {
+        pending: 'Menunggu respons',
+        refused: 'Ditolak',
+        withdrawn: 'Ditarik',
+        executed: 'Dieksekusi',
+      } as Record<string, string>
+    )[status ?? ''] ??
+    status ??
+    ''
+  );
+}
+
+export function getGigExitTypeLabel(type?: string | null): string {
+  return (
+    (
+      {
+        client_cancellation: 'Pembatalan klien',
+        freelancer_abandonment: 'Pengunduran diri pekerja',
+      } as Record<string, string>
+    )[type ?? ''] ??
+    type ??
+    ''
+  );
+}
+
+export function getGigExitDecisionLabel(decision?: string | null): string {
+  return (
+    ({ agree: 'Setuju', refuse: 'Tolak' } as Record<string, string>)[
+      decision ?? ''
+    ] ??
+    decision ??
+    ''
+  );
+}
+
+export function getGigExitExecutionModeLabel(mode?: string | null): string {
+  return (
+    (
+      { agreed: 'Disetujui bersama', unilateral: 'Sepihak' } as Record<
+        string,
+        string
+      >
+    )[mode ?? ''] ??
+    mode ??
+    ''
+  );
+}
+
+export function getGigDisputeStatusLabel(status?: string | null): string {
+  return (
+    (
+      {
+        awaiting_counterproof: 'Menunggu counterproof',
+        awaiting_admin: 'Menunggu admin',
+        resolved: 'Selesai',
+      } as Record<string, string>
+    )[status ?? ''] ??
+    status ??
+    ''
+  );
+}
+
+export function getGigDisputeTypeLabel(type?: string | null): string {
+  return (
+    (
+      {
+        no_show: 'Tidak hadir',
+        start_blocked: 'Mulai kerja terhalang',
+      } as Record<string, string>
+    )[type ?? ''] ??
+    type ??
+    ''
+  );
+}
+
+export function getGigDisputeSubmissionTypeLabel(type?: string | null): string {
+  return (
+    (
+      { report: 'Laporan', counterproof: 'Counterproof' } as Record<
+        string,
+        string
+      >
+    )[type ?? ''] ??
+    type ??
+    ''
+  );
+}
+
+export function getGigDisputeFindingLabel(finding?: string | null): string {
+  return (
+    (
+      {
+        client_at_fault: 'Klien bersalah',
+        freelancer_at_fault: 'Pekerja bersalah',
+        inconclusive: 'Tidak meyakinkan',
+      } as Record<string, string>
+    )[finding ?? ''] ??
+    finding ??
+    ''
+  );
+}
+
+export function getGigSettlementOutcomeLabel(outcome?: string | null): string {
+  return (
+    (
+      {
+        full_client_refund: 'Refund penuh untuk klien',
+        thirty_seventy: '30% pekerja, 70% klien',
+        full_freelancer_payout: 'Payout penuh untuk pekerja',
+      } as Record<string, string>
+    )[outcome ?? ''] ??
+    outcome ??
+    ''
+  );
 }
