@@ -6,14 +6,14 @@ use App\Models\User;
 
 final class RegisterUserAction
 {
-  public function execute(array $data): User
-  {
-    $user = User::create($data);
+    public function execute(array $data): User
+    {
+        $user = User::create($data);
 
-    $user->sendEmailVerificationNotification();
+        $user->sendEmailVerificationNotification();
 
-    app(SendUserOnboardingNotifications::class)->execute($user);
+        app(SendUserOnboardingNotifications::class)->execute($user);
 
-    return $user;
-  }
+        return $user;
+    }
 }

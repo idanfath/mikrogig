@@ -42,8 +42,8 @@ final class LeaveGigAgreementPreparation
                 throw new AuthorizationException('Freelancer does not own this agreement.');
             }
 
-            if ($lockedGig->status !== GigStatus::AgreementPreparation || $offer->status !== GigOfferStatus::ACCEPTED || $agreement->submitted_at !== null) {
-                throw new DomainException('Agreement preparation cannot be left after terms are submitted.');
+            if ($lockedGig->status !== GigStatus::AgreementPreparation || $offer->status !== GigOfferStatus::ACCEPTED) {
+                throw new DomainException('Agreement preparation cannot be left in the current state.');
             }
 
             if ($agreement->gig_id !== $lockedGig->id || $agreement->gig_offer_id !== $offer->id) {

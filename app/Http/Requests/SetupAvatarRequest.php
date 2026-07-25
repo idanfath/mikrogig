@@ -8,17 +8,17 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class SetupAvatarRequest extends FormRequest
 {
-  use ValidatesAvatar;
+    use ValidatesAvatar;
 
-  public function authorize(): bool
-  {
-    return $this->user()?->onboarding_step === OnboardingStep::SetupAvatar;
-  }
+    public function authorize(): bool
+    {
+        return $this->user()?->onboarding_step === OnboardingStep::SetupAvatar;
+    }
 
-  public function rules(): array
-  {
-    return [
-      'avatar' => $this->avatarFileRules(required: true),
-    ];
-  }
+    public function rules(): array
+    {
+        return [
+            'avatar' => $this->avatarFileRules(required: true),
+        ];
+    }
 }

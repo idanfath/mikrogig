@@ -28,7 +28,7 @@ class StoreGigRequest extends FormRequest
             'location_address' => ['required', 'string', 'max:1000'],
             'location_latitude' => ['nullable', 'numeric', 'required_with:location_longitude', 'between:-90,90'],
             'location_longitude' => ['nullable', 'numeric', 'required_with:location_latitude', 'between:-180,180'],
-            'location_accuracy_meters' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'location_accuracy_meters' => ['nullable', 'integer', 'min:0', 'max:20000000'],
             'work_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
             'posted_fee' => ['required', 'integer', 'between:1000,1000000000'],

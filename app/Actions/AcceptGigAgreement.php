@@ -3,22 +3,28 @@
 namespace App\Actions;
 
 use App\Enums\GigOfferStatus;
+use App\Enums\GigPaymentStatus;
 use App\Enums\GigStatus;
 use App\Enums\NotificationTargetType;
 use App\Enums\UserRole;
 use App\Models\Gig;
 use App\Models\GigAgreement;
 use App\Models\GigOffer;
+use App\Models\GigPayment;
 use App\Models\User;
 use App\Services\NotificationService;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 final class AcceptGigAgreement
 {
-    public function __construct(private NotificationService $notificationService) {}
+    public function __construct(
+        private NotificationService $notificationService,
+        private PrepareGigPaymentCheckout $prepareCheckout,
+    ) {}
 
     public function execute(User $freelancer, Gig $gig): GigAgreement
     {
@@ -31,7 +37,7 @@ final class AcceptGigAgreement
             throw new DomainException('Selected offer no longer exists.');
         }
 
-        [$agreement, $clientId] = DB::transaction(function () use ($persistedAgreement, $freelancerId, $freelancer, $gig): array {
+        [$agreement, $payment, $clientId] = DB::transaction(function () use ($persistedAgreement, $freelancerId, $freelancer, $gig): array {
             $lockedFreelancer = User::query()->lockForUpdate()->findOrFail($freelancerId);
             $lockedGig = Gig::query()->lockForUpdate()->findOrFail($gig->id);
             $agreement = GigAgreement::query()->lockForUpdate()->findOrFail($persistedAgreement->id);
@@ -49,15 +55,38 @@ final class AcceptGigAgreement
                 throw new DomainException('Agreement associations changed during processing.');
             }
 
+            if ($agreement->final_total_price === null) {
+                throw new DomainException('Agreement final total is required before acceptance.');
+            }
+
             $agreement->freelancer_confirmed_at = now();
             $agreement->save();
+
+            $payment = new GigPayment([
+                'amount' => $agreement->final_total_price,
+                'currency' => 'IDR',
+                'local_reference' => (string) Str::ulid(),
+                'provider' => (string) config('payments.default'),
+                'expires_at' => now()->addHours((int) config('payments.window_hours', 3)),
+            ]);
+            $payment->gig()->associate($lockedGig);
+            $payment->agreement()->associate($agreement);
+            $payment->status = GigPaymentStatus::Pending;
+            $payment->save();
+
             $lockedGig->status = GigStatus::PaymentPending;
             $lockedGig->save();
 
-            return [$agreement->refresh(), $lockedGig->client_id];
+            return [$agreement->refresh(), $payment->refresh(), $lockedGig->client_id];
         }, attempts: 3);
 
-        $this->notify($freelancer->id, $clientId, $gig->id, 'Freelancer menyetujui syarat', 'Freelancer telah menyetujui syarat final gig.');
+        try {
+            $this->prepareCheckout->execute($payment);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        $this->notify($freelancer->id, $clientId, $gig->id, 'Freelancer menyetujui syarat', 'Freelancer telah menyetujui syarat final gig. Pembayaran demo siap dilanjutkan.');
 
         return $agreement;
     }
@@ -71,8 +100,8 @@ final class AcceptGigAgreement
                 createdBy: $freelancerId,
                 body: $body,
                 recipientIds: [$clientId],
-                action_url: route('app.gigs.agreement.show', ['gig' => $gigId]),
-                action_label: 'Lihat Persetujuan',
+                action_url: route('app.gigs.payment.show', ['gig' => $gigId]),
+                action_label: 'Lihat Pembayaran',
             );
         } catch (Throwable $exception) {
             report($exception);

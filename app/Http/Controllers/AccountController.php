@@ -10,21 +10,21 @@ use Inertia\Response;
 
 class AccountController extends Controller
 {
-  public function index(Request $request): Response
-  {
-    $user = $request->user();
+    public function index(Request $request): Response
+    {
+        $user = $request->user();
 
-    return Inertia::render('app/user/account', [
-      'hasPassword' => filled($user->password),
-    ]);
-  }
+        return Inertia::render('app/user/account', [
+            'hasPassword' => filled($user->password),
+        ]);
+    }
 
-  public function updatePassword(UpdateAccountPasswordRequest $request): RedirectResponse
-  {
-    $user = $request->user();
-    $user->password = $request->validated('password');
-    $user->save();
+    public function updatePassword(UpdateAccountPasswordRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        $user->password = $request->validated('password');
+        $user->save();
 
-    return back()->with('success', 'Password berhasil disimpan.');
-  }
+        return back()->with('success', 'Password berhasil disimpan.');
+    }
 }

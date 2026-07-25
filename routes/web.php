@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\GigAgreementController;
 use App\Http\Controllers\GigController;
 use App\Http\Controllers\GigOfferController;
+use App\Http\Controllers\GigPaymentController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
@@ -83,6 +84,10 @@ Route::middleware(['auth', 'no_banned_user', 'verified', 'must_onboard'])
         Route::patch('/gigs/{gig}/agreement/decline', [GigAgreementController::class, 'decline'])->name('gigs.agreement.decline');
         Route::patch('/gigs/{gig}/agreement/leave', [GigAgreementController::class, 'leave'])->name('gigs.agreement.leave');
         Route::patch('/gigs/{gig}/agreement/reject', [GigAgreementController::class, 'reject'])->name('gigs.agreement.reject');
+        Route::get('/gigs/{gig}/payment', [GigPaymentController::class, 'show'])->name('gigs.payment.show');
+        Route::post('/gigs/{gig}/payment/checkout', [GigPaymentController::class, 'retryCheckout'])->name('gigs.payment.checkout.retry');
+        Route::get('/gigs/{gig}/payment/mock', [GigPaymentController::class, 'mockCheckout'])->name('gigs.payment.mock.show');
+        Route::post('/gigs/{gig}/payment/mock/complete', [GigPaymentController::class, 'completeMock'])->name('gigs.payment.mock.complete');
         Route::get('/client/gigs', [GigController::class, 'owned'])->name('client.gigs.index');
         Route::get('/client/gigs/{gig}/applicants', [GigController::class, 'applicants'])->name('client.gigs.applicants.index');
         Route::get('/applications', [GigOfferController::class, 'index'])->name('applications.index');

@@ -91,7 +91,7 @@ class NotificationService
             ->where('notification_recipients.user_id', $userId);
 
         if ($search) {
-            $query->where(fn($q) => $q
+            $query->where(fn ($q) => $q
                 ->where('notifications.title', 'like', "%{$search}%")
                 ->orWhere('notifications.body', 'like', "%{$search}%"));
         }
@@ -106,7 +106,7 @@ class NotificationService
             ->orderBy('notifications.id', 'desc')
             ->paginate($perPage);
 
-        $notifications->getCollection()->transform(fn($n) => [
+        $notifications->getCollection()->transform(fn ($n) => [
             'id' => $n->id,
             'title' => $n->title,
             'body' => $n->body,

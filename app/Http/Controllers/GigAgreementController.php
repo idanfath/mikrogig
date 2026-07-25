@@ -8,6 +8,7 @@ use App\Actions\LeaveGigAgreementPreparation;
 use App\Actions\RejectSelectedFreelancer;
 use App\Actions\RequestGigAgreementChanges;
 use App\Actions\SubmitGigAgreementTerms;
+use App\Enums\GigStatus;
 use App\Http\Requests\RequestGigAgreementChangesRequest;
 use App\Http\Requests\SubmitGigAgreementTermsRequest;
 use App\Http\Resources\GigAgreementResource;
@@ -26,12 +27,29 @@ class GigAgreementController extends Controller
     {
         $agreement = $this->currentAgreement($gig);
         $this->authorize('view', $agreement);
+        $isClient = $request->user()->id === $gig->client_id;
+        $isSelectedFreelancer = $request->user()->id === $agreement->acceptedOffer->freelancer_id;
+        $canRespond = $isSelectedFreelancer
+            && $gig->status === GigStatus::LockPending
+            && $agreement->submitted_at !== null
+            && $agreement->freelancer_confirmed_at === null;
 
         return Inertia::render('app/gigs/agreement', [
             'gig' => GigResource::make($gig->load(['client', 'media']))->resolve($request),
             'agreement' => GigAgreementResource::make($agreement)->resolve($request),
-            'is_client' => $request->user()->id === $gig->client_id,
-            'is_selected_freelancer' => $request->user()->id === $agreement->acceptedOffer->freelancer_id,
+            'is_client' => $isClient,
+            'is_selected_freelancer' => $isSelectedFreelancer,
+            'capabilities' => [
+                'can_submit_terms' => $isClient && $gig->status === GigStatus::AgreementPreparation,
+                'can_accept' => $canRespond,
+                'can_request_changes' => $canRespond,
+                'can_decline' => $canRespond,
+                'can_leave' => $isSelectedFreelancer && $gig->status === GigStatus::AgreementPreparation,
+                'can_reject' => $isClient && in_array($gig->status, [
+                    GigStatus::AgreementPreparation,
+                    GigStatus::LockPending,
+                ], true),
+            ],
         ]);
     }
 

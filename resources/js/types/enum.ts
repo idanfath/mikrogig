@@ -42,6 +42,22 @@ export const GigOfferStatusFrontendLabel = {
 } as const;
 export type GigOfferStatusFrontendLabel = typeof GigOfferStatusFrontendLabel[keyof typeof GigOfferStatusFrontendLabel]
 
+export const GigPaymentStatus = {
+  Pending: "pending",
+  Paid: "paid",
+  Cancelled: "cancelled",
+  Expired: "expired",
+} as const;
+export type GigPaymentStatus = typeof GigPaymentStatus[keyof typeof GigPaymentStatus]
+
+export const GigPaymentStatusFrontendLabel = {
+  pending: "Menunggu Pembayaran",
+  paid: "Dibayar",
+  cancelled: "Dibatalkan",
+  expired: "Kedaluwarsa",
+} as const;
+export type GigPaymentStatusFrontendLabel = typeof GigPaymentStatusFrontendLabel[keyof typeof GigPaymentStatusFrontendLabel]
+
 export const GigStatus = {
   Open: "open",
   AgreementPreparation: "agreement_preparation",
@@ -102,21 +118,41 @@ export const UserRoleFrontendLabel = {
 export type UserRoleFrontendLabel = typeof UserRoleFrontendLabel[keyof typeof UserRoleFrontendLabel]
 
 export function getUserRoleLabel(role?: string | null): string {
-  if (!role) return '';
+  if (!role) {
+    return '';
+  }
+
   return UserRoleFrontendLabel[role as keyof typeof UserRoleFrontendLabel] ?? role;
 }
 
 export function getGigCategoryLabel(category?: string | null): string {
-  if (!category) return '';
+  if (!category) {
+    return '';
+  }
+
   return GigCategoryFrontendLabel[category as keyof typeof GigCategoryFrontendLabel] ?? category;
 }
 
 export function getGigStatusLabel(status?: string | null): string {
-  if (!status) return '';
+  if (!status) {
+    return '';
+  }
+
   return GigStatusFrontendLabel[status as keyof typeof GigStatusFrontendLabel] ?? status;
 }
 
 export function getGigOfferStatusLabel(status?: string | null): string {
-  if (!status) return '';
+  if (!status) {
+    return '';
+  }
+
   return GigOfferStatusFrontendLabel[status as keyof typeof GigOfferStatusFrontendLabel] ?? status;
+}
+
+export function getGigPaymentStatusLabel(status?: string | null): string {
+  if (!status) {
+    return '';
+  }
+
+  return GigPaymentStatusFrontendLabel[status as keyof typeof GigPaymentStatusFrontendLabel] ?? status;
 }

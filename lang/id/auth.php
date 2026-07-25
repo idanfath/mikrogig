@@ -1,7 +1,7 @@
 <?php
 
 return [
-  /*
+    /*
    * |--------------------------------------------------------------------------
    * | Authentication Language Lines
    * |--------------------------------------------------------------------------
@@ -11,7 +11,7 @@ return [
    * | these language lines according to your application's requirements.
    * |
    */
-  'failed' => 'Email atau password salah.',
-  'password' => 'Password yang kamu masukkan salah.',
-  'throttle' => 'Terlalu banyak percobaan login. Coba lagi dalam :seconds detik.',
+    'failed' => 'Email atau password salah.',
+    'password' => 'Password yang kamu masukkan salah.',
+    'throttle' => 'Terlalu banyak percobaan login. Coba lagi dalam :seconds detik.',
 ];

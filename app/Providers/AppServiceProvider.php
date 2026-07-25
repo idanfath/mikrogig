@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Payments\PaymentGateway;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Date;
@@ -12,6 +13,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Inertia\ExceptionResponse;
 use Inertia\Inertia;
+use LogicException;
 use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,7 +23,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PaymentGateway::class, function ($app): PaymentGateway {
+            $gateway = config('payments.drivers.'.config('payments.default').'.gateway');
+
+            if (! is_string($gateway) || ! is_a($gateway, PaymentGateway::class, true)) {
+                throw new LogicException('Configured payment gateway is invalid.');
+            }
+
+            return $app->make($gateway);
+        });
     }
 
     /**

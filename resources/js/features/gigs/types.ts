@@ -15,7 +15,7 @@ export type Gig = {
   title: string;
   description: string;
   category: string;
-  status: string;
+  status: GigStatus;
   province_id: string;
   regency_id: string;
   province_name: string;
@@ -74,8 +74,49 @@ export type GigAgreement = {
   latest_change_request_note: string | null;
 };
 
+export type GigAgreementCapabilities = {
+  can_submit_terms: boolean;
+  can_accept: boolean;
+  can_request_changes: boolean;
+  can_decline: boolean;
+  can_leave: boolean;
+  can_reject: boolean;
+};
+
+export type GigPaymentCapabilities = {
+  can_open_checkout: boolean;
+  can_retry_checkout: boolean;
+  can_complete_mock_payment: boolean;
+  can_cancel: boolean;
+};
+
+export type GigPayment = {
+  id: number;
+  amount: number;
+  currency: 'IDR';
+  local_reference: string;
+  provider: string;
+  provider_reference: string | null;
+  checkout_url: string | null;
+  status: GigPaymentStatus;
+  expires_at: string;
+  checkout_prepared_at: string | null;
+  provider_paid_at: string | null;
+  paid_at: string | null;
+  cancelled_at: string | null;
+  expired_at: string | null;
+  capabilities: GigPaymentCapabilities;
+};
+
+export type GigPaymentSummary = {
+  id: number;
+  title: string;
+  status: GigStatus;
+};
+
 export type Paginated<T> = {
   data: T[];
   links: Array<{ url: string | null; label: string; active: boolean }>;
   meta?: { current_page: number; last_page: number };
 };
+import type { GigPaymentStatus, GigStatus } from '@/types/enum';

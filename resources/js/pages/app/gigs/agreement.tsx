@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { GigAgreementPage } from '@/features/gigs/components/gig-agreement';
-import type { Gig, GigAgreement } from '@/features/gigs/types';
+import type {
+  Gig,
+  GigAgreement,
+  GigAgreementCapabilities,
+} from '@/features/gigs/types';
 import AppLayout from '@/layout/AppLayout';
 
 type Props = {
@@ -8,9 +12,14 @@ type Props = {
   agreement: GigAgreement;
   is_client: boolean;
   is_selected_freelancer: boolean;
+  capabilities: GigAgreementCapabilities;
 };
 
-const Page: InertiaPageWithLayout<Props> = (props) => <GigAgreementPage {...props} />;
-Page.layout = (page: ReactNode) => <AppLayout title="Persetujuan Gig">{page}</AppLayout>;
+const Page: InertiaPageWithLayout<Props> = (props) => (
+  <GigAgreementPage {...props} />
+);
+Page.layout = (page: ReactNode) => (
+  <AppLayout title="Persetujuan Gig">{page}</AppLayout>
+);
 
 export default Page;

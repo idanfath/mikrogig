@@ -79,6 +79,16 @@ class Gig extends Model
         return $this->hasOne(GigAgreement::class)->ofMany('id', 'max')->whereNull('closed_at');
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(GigPayment::class);
+    }
+
+    public function currentPayment(): HasOne
+    {
+        return $this->hasOne(GigPayment::class)->latestOfMany();
+    }
+
     public function media(): HasMany
     {
         return $this

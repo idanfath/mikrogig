@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import {
   accept,
@@ -8,24 +8,26 @@ import {
   requestChanges,
   submit,
 } from '@/actions/App/Http/Controllers/GigAgreementController';
+import { show as showPayment } from '@/actions/App/Http/Controllers/GigPaymentController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { Gig, GigAgreement } from '../types';
+import { GigStatus } from '@/types/enum';
+import type { Gig, GigAgreement, GigAgreementCapabilities } from '../types';
 
 type GigAgreementProps = {
   gig: Gig;
   agreement: GigAgreement;
   is_client: boolean;
   is_selected_freelancer: boolean;
+  capabilities: GigAgreementCapabilities;
 };
 
 export function GigAgreementPage({
   gig,
   agreement,
-  is_client: isClient,
-  is_selected_freelancer: isSelectedFreelancer,
+  capabilities,
 }: GigAgreementProps) {
   const terms = useForm({
     final_scope: agreement.final_scope ?? '',
@@ -38,10 +40,6 @@ export function GigAgreementPage({
   });
   const changes = useForm({ note: '' });
   const termsSubmitted = agreement.submitted_at !== null;
-  const canEditTerms = isClient && gig.status === 'agreement_preparation';
-  const isWaitingFreelancerResponse = gig.status === 'lock_pending';
-  const isNegotiating = gig.status === 'agreement_preparation';
-
   const submitTerms = (event: FormEvent) => {
     event.preventDefault();
     terms.patch(submit.url(gig));
@@ -64,9 +62,15 @@ export function GigAgreementPage({
               </p>
             </div>
           )}
+          {(gig.status === GigStatus.PaymentPending ||
+            gig.status === GigStatus.Locked) && (
+            <Button asChild className="self-start">
+              <Link href={showPayment(gig)}>Lihat pembayaran</Link>
+            </Button>
+          )}
         </AppPageCard>
 
-        {canEditTerms && (
+        {capabilities.can_submit_terms && (
           <AppPageCard>
             <form onSubmit={submitTerms} className="flex flex-col gap-3">
               <h2 className="font-semibold">Syarat final</h2>
@@ -124,18 +128,20 @@ export function GigAgreementPage({
               <Button type="submit" disabled={terms.processing}>
                 Kirim syarat final
               </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => terms.patch(reject.url(gig))}
-              >
-                Tolak freelancer
-              </Button>
+              {capabilities.can_reject && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => terms.patch(reject.url(gig))}
+                >
+                  Tolak freelancer
+                </Button>
+              )}
             </form>
           </AppPageCard>
         )}
 
-        {termsSubmitted && !canEditTerms && (
+        {termsSubmitted && !capabilities.can_submit_terms && (
           <AppPageCard className="flex flex-col gap-3">
             <h2 className="font-semibold">Syarat final</h2>
             <p className="whitespace-pre-wrap">{agreement.final_scope}</p>
@@ -152,7 +158,7 @@ export function GigAgreementPage({
               Total final: Rp
               {agreement.final_total_price?.toLocaleString('id-ID')}
             </p>
-            {isClient && !agreement.freelancer_confirmed_at && (
+            {capabilities.can_reject && (
               <Button
                 variant="destructive"
                 onClick={() => terms.patch(reject.url(gig))}
@@ -163,7 +169,7 @@ export function GigAgreementPage({
           </AppPageCard>
         )}
 
-        {isSelectedFreelancer && isNegotiating && (
+        {capabilities.can_leave && (
           <AppPageCard>
             <Button
               variant="destructive"
@@ -174,21 +180,26 @@ export function GigAgreementPage({
           </AppPageCard>
         )}
 
-        {isSelectedFreelancer &&
-          isWaitingFreelancerResponse &&
-          !agreement.freelancer_confirmed_at && (
-            <AppPageCard className="flex flex-col gap-3">
-              <div className="flex flex-wrap gap-2">
+        {(capabilities.can_accept ||
+          capabilities.can_decline ||
+          capabilities.can_request_changes) && (
+          <AppPageCard className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-2">
+              {capabilities.can_accept && (
                 <Button onClick={() => changes.patch(accept.url(gig))}>
                   Setujui syarat
                 </Button>
+              )}
+              {capabilities.can_decline && (
                 <Button
                   variant="destructive"
                   onClick={() => changes.patch(decline.url(gig))}
                 >
                   Tolak syarat
                 </Button>
-              </div>
+              )}
+            </div>
+            {capabilities.can_request_changes && (
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -216,8 +227,9 @@ export function GigAgreementPage({
                   Minta perubahan
                 </Button>
               </form>
-            </AppPageCard>
-          )}
+            )}
+          </AppPageCard>
+        )}
       </div>
     </AppPage>
   );
