@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\GigStatus;
 use App\Enums\UserRole;
 use App\Models\GigFinishRequest;
 use App\Models\User;
@@ -15,6 +16,16 @@ class GigFinishRequestPolicy
             $finishRequest->freelancer_id,
             $finishRequest->gig()->value('client_id'),
         ], true);
+
+        if ($user->activeBan()->exists()) {
+            return $isParticipant && $finishRequest->gig()->whereIn('status', [
+                GigStatus::Completed,
+                GigStatus::Cancelled,
+                GigStatus::DisputeResolved,
+            ])->exists()
+                ? Response::allow()
+                : Response::denyAsNotFound();
+        }
 
         return $user->role === UserRole::Admin || $isParticipant
             ? Response::allow()

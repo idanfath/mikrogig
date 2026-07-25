@@ -1,6 +1,7 @@
 import {
   BriefcaseBusiness,
   FileText,
+  History,
   House,
   PlusCircle,
   Search,
@@ -15,6 +16,7 @@ import adminGigDisputes from '@/routes/app/admin/gig_disputes';
 import applications from '@/routes/app/applications';
 import clientGigs from '@/routes/app/client/gigs';
 import gigs from '@/routes/app/gigs';
+import history from '@/routes/app/history';
 import { UserRole } from '@/types';
 import type { RouteDefinition } from '@/wayfinder';
 
@@ -66,6 +68,12 @@ export const appNavigation: AppNavigationCategory[] = [
         icon: PlusCircle,
         href: gigs.create(),
         allowedRoles: [UserRole.Client],
+      },
+      {
+        label: 'Riwayat',
+        icon: History,
+        href: history.index(),
+        allowedRoles: [UserRole.Client, UserRole.Freelancer],
       },
       {
         label: 'Sengketa Gig',
@@ -125,6 +133,12 @@ export const mobileAppNavigation: AppNavigationCategory = {
       icon: PlusCircle,
       href: gigs.create(),
       allowedRoles: [UserRole.Client],
+    },
+    {
+      label: 'Riwayat',
+      icon: History,
+      href: history.index(),
+      allowedRoles: [UserRole.Client, UserRole.Freelancer],
     },
     {
       label: 'Sengketa Gig',

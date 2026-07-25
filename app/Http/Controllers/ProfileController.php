@@ -98,7 +98,18 @@ class ProfileController extends Controller
 
     private function renderProfile(User $profile, User $viewer)
     {
-        $profile->load('freelancerProfile');
+        $profile->load('freelancerProfile')
+            ->loadCount('ratingsReceived')
+            ->loadAvg('ratingsReceived', 'score')
+            ->load([
+                'ratingsReceived' => fn ($query) => $query
+                    ->with([
+                        'rater:id,name,avatar',
+                        'gig:id,title',
+                    ])
+                    ->latest('id')
+                    ->limit(5),
+            ]);
         $isOwner = $profile->is($viewer);
 
         $profileData = [
@@ -107,6 +118,27 @@ class ProfileController extends Controller
             'avatar_url' => $profile->avatar_url,
             'role' => $profile->role?->value,
             'location' => $profile->location,
+            'rating_summary' => [
+                'average' => $profile->ratings_received_avg_score === null
+                    ? null
+                    : round((float) $profile->ratings_received_avg_score, 1),
+                'count' => $profile->ratings_received_count,
+                'latest' => $profile->ratingsReceived->map(fn ($rating): array => [
+                    'id' => $rating->id,
+                    'score' => $rating->score,
+                    'comment' => $rating->comment,
+                    'created_at' => $rating->created_at->toISOString(),
+                    'author' => [
+                        'id' => $rating->rater->id,
+                        'name' => $rating->rater->name,
+                        'avatar_url' => $rating->rater->avatar_url,
+                    ],
+                    'gig' => [
+                        'id' => $rating->gig->id,
+                        'title' => $rating->gig->title,
+                    ],
+                ])->values(),
+            ],
         ];
 
         if ($profile->role === UserRole::Freelancer) {

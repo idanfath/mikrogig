@@ -38,7 +38,9 @@ class GigResource extends JsonResource
             'posted_fee' => $this->posted_fee,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+            'started_at' => $this->started_at?->toISOString(),
             'cancelled_at' => $this->cancelled_at?->toISOString(),
+            'completed_at' => $this->completed_at?->toISOString(),
             'media' => $this->whenLoaded('media', fn () => $this->media->map(fn ($media): array => [
                 'id' => $media->id,
                 'url' => $media->url,

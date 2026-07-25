@@ -29,7 +29,9 @@ export type Gig = {
   posted_fee: number;
   created_at: string | null;
   updated_at: string | null;
+  started_at: string | null;
   cancelled_at: string | null;
+  completed_at: string | null;
   media: GigMedia[];
   client: GigClient;
   pending_applicants_count?: number;

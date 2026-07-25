@@ -82,6 +82,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(GigFinishRequest::class, 'freelancer_id');
     }
 
+    public function ratingsGiven(): HasMany
+    {
+        return $this->hasMany(GigRating::class, 'rater_id');
+    }
+
+    public function ratingsReceived(): HasMany
+    {
+        return $this->hasMany(GigRating::class, 'recipient_id');
+    }
+
     public function notifications()
     {
         return $this->hasMany(Notification::class);

@@ -77,4 +77,25 @@ class GigPolicy
                 ? Response::allow()
                 : Response::denyAsNotFound();
     }
+
+    public function viewHistory(User $user, Gig $gig): Response
+    {
+        if (! $gig->status->isTerminal()) {
+            return Response::deny();
+        }
+
+        if ($user->role === UserRole::Client && $gig->client_id === $user->id) {
+            return Response::allow();
+        }
+
+        return $user->role === UserRole::Freelancer
+            && $gig->acceptedOffer()->where('freelancer_id', $user->id)->exists()
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    public function rate(User $user, Gig $gig): Response
+    {
+        return $this->viewHistory($user, $gig);
+    }
 }

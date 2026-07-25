@@ -17,6 +17,25 @@ export type Profile = {
   date_of_birth?: string | null;
   province_id?: string | null;
   regency_id?: string | null;
+  rating_summary: {
+    average: number | null;
+    count: number;
+    latest: Array<{
+      id: number;
+      score: number;
+      comment: string | null;
+      created_at: string;
+      author: {
+        id: number;
+        name: string;
+        avatar_url: string;
+      };
+      gig: {
+        id: number;
+        title: string;
+      };
+    }>;
+  };
 };
 
 export type ProfileForm = {

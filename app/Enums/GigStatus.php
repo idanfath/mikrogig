@@ -24,4 +24,13 @@ enum GigStatus: string
     {
         return self::Open->value;
     }
+
+    public function isTerminal(): bool
+    {
+        return in_array($this, [
+            self::Completed,
+            self::Cancelled,
+            self::DisputeResolved,
+        ], true);
+    }
 }

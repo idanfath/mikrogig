@@ -16,6 +16,7 @@ import { BasicFields } from './basic-fields';
 import { FreelancerFields } from './freelancer-fields';
 import { ProfileDetails } from './profile-details';
 import { ProfileHeader } from './profile-header';
+import { ProfileRatings } from './profile-ratings';
 
 export function ProfilePage({
   profile,
@@ -212,6 +213,8 @@ export function ProfilePage({
               />
             )}
           </AppPageCard>
+
+          <ProfileRatings ratingSummary={profile.rating_summary} />
 
           {editing && isFreelancer && (
             <AppPageCard>

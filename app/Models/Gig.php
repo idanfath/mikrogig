@@ -109,6 +109,11 @@ class Gig extends Model
         return $this->hasMany(GigOffense::class);
     }
 
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(GigRating::class)->orderBy('id');
+    }
+
     public function finishRequests(): HasMany
     {
         return $this->hasMany(GigFinishRequest::class);
@@ -149,5 +154,14 @@ class Gig extends Model
     public function scopeForClient(Builder $query, User $client): Builder
     {
         return $query->whereBelongsTo($client, 'client');
+    }
+
+    public function scopeTerminal(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            GigStatus::Completed,
+            GigStatus::Cancelled,
+            GigStatus::DisputeResolved,
+        ]);
     }
 }

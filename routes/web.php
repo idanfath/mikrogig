@@ -8,8 +8,10 @@ use App\Http\Controllers\GigAgreementController;
 use App\Http\Controllers\GigController;
 use App\Http\Controllers\GigDisputeController;
 use App\Http\Controllers\GigFinishRequestController;
+use App\Http\Controllers\GigHistoryController;
 use App\Http\Controllers\GigOfferController;
 use App\Http\Controllers\GigPaymentController;
+use App\Http\Controllers\GigRatingController;
 use App\Http\Controllers\GigWorkflowController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
@@ -78,6 +80,11 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
             ->middleware('throttle:6,1')
             ->name('account.password');
 
+        Route::get('/history', [GigHistoryController::class, 'index'])->name('history.index');
+        Route::get('/history/{gig}', [GigHistoryController::class, 'show'])->name('history.show');
+        Route::get('/gig-finish-request-media/{media}', [GigFinishRequestController::class, 'media'])->name('gig_finish_request_media.show');
+        Route::get('/gig-dispute-media/{media}', [GigDisputeController::class, 'media'])->name('gig_dispute_media.show');
+
         Route::middleware('no_banned_user')->group(function () {
             Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 
@@ -106,10 +113,8 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
             Route::post('/gigs/{gig}/finish-requests', [GigFinishRequestController::class, 'store'])->name('gigs.finish_requests.store');
             Route::patch('/gig-finish-requests/{finishRequest}/accept', [GigFinishRequestController::class, 'accept'])->name('gig_finish_requests.accept');
             Route::patch('/gig-finish-requests/{finishRequest}/reject', [GigFinishRequestController::class, 'reject'])->name('gig_finish_requests.reject');
-            Route::get('/gig-finish-request-media/{media}', [GigFinishRequestController::class, 'media'])->name('gig_finish_request_media.show');
             Route::get('/gig-disputes/{dispute}', [GigDisputeController::class, 'show'])->name('gig_disputes.show');
             Route::post('/gig-disputes/{dispute}/counterproof', [GigDisputeController::class, 'counterproof'])->name('gig_disputes.counterproof.store');
-            Route::get('/gig-dispute-media/{media}', [GigDisputeController::class, 'media'])->name('gig_dispute_media.show');
             Route::get('/admin/gig-disputes', [AdminGigDisputeController::class, 'index'])->name('admin.gig_disputes.index');
             Route::get('/admin/gig-disputes/{dispute}', [AdminGigDisputeController::class, 'show'])->name('admin.gig_disputes.show');
             Route::patch('/admin/gig-disputes/{dispute}/resolve', [AdminGigDisputeController::class, 'resolve'])->name('admin.gig_disputes.resolve');
@@ -122,5 +127,6 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
             Route::patch('/gig-offers/{gigOffer}/reject', [GigOfferController::class, 'reject'])->name('gig_offers.reject');
             Route::patch('/gig-offers/{gigOffer}/accept', [GigOfferController::class, 'accept'])->name('gig_offers.accept');
             Route::patch('/gigs/{gig}/cancel', [GigController::class, 'cancel'])->name('gigs.cancel');
+            Route::post('/history/{gig}/ratings', [GigRatingController::class, 'store'])->name('history.ratings.store');
         });
     });
