@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\OpenLockedGigDispute;
+use App\Actions\OpenGigDispute;
 use App\Actions\ProceedWithLockedGigExit;
 use App\Actions\RequestLockedGigExit;
 use App\Actions\RespondToLockedGigExit;
@@ -12,12 +12,14 @@ use App\Enums\GigDisputeType;
 use App\Enums\GigExitDecision;
 use App\Enums\GigExitStatus;
 use App\Enums\GigExitType;
+use App\Enums\GigFinishRequestStatus;
 use App\Enums\GigPaymentStatus;
 use App\Enums\GigStatus;
 use App\Http\Requests\RespondGigExitRequest;
 use App\Http\Requests\StoreGigDisputeRequest;
 use App\Http\Requests\StoreGigExitRequest;
 use App\Http\Resources\GigExitRequestResource;
+use App\Http\Resources\GigFinishRequestResource;
 use App\Http\Resources\GigPaymentResource;
 use App\Http\Resources\GigResource;
 use App\Http\Resources\GigSettlementResource;
@@ -42,9 +44,14 @@ class GigWorkflowController extends Controller
         $isClient = $user->id === $gig->client_id;
         $isFreelancer = $user->id === $payment->agreement->acceptedOffer->freelancer_id;
         $activeExit = $gig->exitRequests()->active()->latest()->first();
+        $latestFinishRequest = $gig->finishRequests()->with('media')->latest('id')->first();
         $isLocked = $gig->status === GigStatus::Locked;
+        $isInProgress = $gig->status === GigStatus::InProgress;
+        $isReview = $gig->status === GigStatus::Review;
         $hasNoActiveWorkflow = $activeExit === null && ! $gig->dispute()->exists() && ! $gig->settlement()->exists();
         $isPaidAndConfirmed = $payment->status === GigPaymentStatus::Paid && $payment->agreement->freelancer_confirmed_at !== null;
+        $finishReviewOpen = $latestFinishRequest?->status === GigFinishRequestStatus::Pending
+            && $latestFinishRequest->review_due_at->isFuture();
         $scheduledAt = CarbonImmutable::parse($payment->agreement->work_date->toDateString().' '.$payment->agreement->start_time, config('app.timezone'));
         $reportsAvailable = now(config('app.timezone'))->greaterThanOrEqualTo($scheduledAt);
 
@@ -72,6 +79,7 @@ class GigWorkflowController extends Controller
                 ],
             ],
             'exit_request' => $activeExit === null ? null : GigExitRequestResource::make($activeExit)->resolve($request),
+            'finish_request' => $latestFinishRequest === null ? null : GigFinishRequestResource::make($latestFinishRequest)->resolve($request),
             'settlement' => $gig->settlement ? GigSettlementResource::make($gig->settlement)->resolve($request) : null,
             'server_now' => now()->toISOString(),
             'capabilities' => [
@@ -83,6 +91,18 @@ class GigWorkflowController extends Controller
                 'canProceedUnilaterally' => $activeExit !== null && $activeExit->requester_id === $user->id,
                 'canReportNoShow' => $isClient && $isLocked && $isPaidAndConfirmed && $hasNoActiveWorkflow && $reportsAvailable,
                 'canReportStartBlocked' => $isFreelancer && $isLocked && $isPaidAndConfirmed && $hasNoActiveWorkflow && $reportsAvailable,
+                'canSubmitFinishRequest' => $isFreelancer && $isInProgress && $isPaidAndConfirmed && $hasNoActiveWorkflow,
+                'canAcceptFinishRequest' => $isClient && $isReview && $finishReviewOpen && $hasNoActiveWorkflow,
+                'canRejectFinishRequest' => $isClient && $isReview && $finishReviewOpen && $hasNoActiveWorkflow,
+                'canReportWorkObstruction' => $isFreelancer && $isInProgress && $isPaidAndConfirmed && $hasNoActiveWorkflow,
+                'canDisputeFinishRejection' => $isFreelancer
+                    && $isInProgress
+                    && $isPaidAndConfirmed
+                    && $hasNoActiveWorkflow
+                    && $latestFinishRequest?->status === GigFinishRequestStatus::Rejected,
+                'finishReviewExpired' => $isReview
+                    && $latestFinishRequest?->status === GigFinishRequestStatus::Pending
+                    && ! $latestFinishRequest->review_due_at->isFuture(),
             ],
         ]);
     }
@@ -147,11 +167,11 @@ class GigWorkflowController extends Controller
         return back()->with('success', 'Exit gig dieksekusi.');
     }
 
-    public function dispute(StoreGigDisputeRequest $request, Gig $gig, OpenLockedGigDispute $action): RedirectResponse
+    public function dispute(StoreGigDisputeRequest $request, Gig $gig, OpenGigDispute $action): RedirectResponse
     {
         $d = $request->validated();
         try {
-            $action->execute($request->user(), $gig, GigDisputeType::from($d['type']), $d['statement'], $d['photos']);
+            $action->execute($request->user(), $gig, GigDisputeType::from($d['type']), $d['statement'], $d['photos'] ?? []);
         } catch (DomainException $e) {
             return back()->with('error', $e->getMessage());
         }

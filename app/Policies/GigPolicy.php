@@ -69,4 +69,12 @@ class GigPolicy
 
         return Response::denyAsNotFound();
     }
+
+    public function submitFinish(User $user, Gig $gig): Response
+    {
+        return $user->role === UserRole::Freelancer
+            && $gig->agreements()->whereHas('acceptedOffer', fn ($query) => $query->where('freelancer_id', $user->id))->exists()
+                ? Response::allow()
+                : Response::denyAsNotFound();
+    }
 }

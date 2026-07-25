@@ -6,6 +6,8 @@ use App\Enums\NotificationTargetType;
 use App\Models\User;
 use App\Models\UserBan;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 // possible future features:
 // - move notification to ban models observe (but find a way not to send emails when banning from seeder)
@@ -34,14 +36,7 @@ class BanService
             'banned_until' => $until,
         ]);
 
-        $this->notifications->send(
-            createdBy: $admin ? $admin->id : null,
-            title: 'You have been banned',
-            targetType: NotificationTargetType::User,
-            body: "You have been banned for the following reason: {$reason}".($until ? " Ban will be lifted at {$until}." : ''),
-            recipientIds: [$target->id],
-            sendEmail: $this->sendEmail
-        );
+        $this->notifySafely($ban, $admin?->id);
 
         return $ban;
     }
@@ -57,13 +52,23 @@ class BanService
             ? $activeBan->banned_until
             : now();
 
-        return UserBan::query()->create([
+        $ban = UserBan::query()->create([
             'user_id' => $target->id,
             'banned_by' => null,
             'reason' => $reason,
             'banned_at' => now(),
             'banned_until' => $startsAt->copy()->addDays($durationDays),
         ]);
+
+        $notify = fn () => $this->notifySafely($ban);
+
+        if (DB::transactionLevel() > 0) {
+            DB::afterCommit($notify);
+        } else {
+            $notify();
+        }
+
+        return $ban;
     }
 
     public function unban(User $target, ?User $admin = null): bool
@@ -111,5 +116,30 @@ class BanService
         );
 
         return true;
+    }
+
+    private function notifySafely(UserBan $ban, ?int $createdBy = null): void
+    {
+        try {
+            $reason = $ban->reason ?: 'Tidak ada alasan yang dicantumkan';
+            $status = $ban->banned_until === null
+                ? 'Penangguhan berlaku permanen.'
+                : 'Penangguhan berakhir pada '.$ban->banned_until
+                    ->timezone(config('app.timezone'))
+                    ->toIso8601String().'.';
+
+            $this->notifications->send(
+                title: 'Akun ditangguhkan',
+                targetType: NotificationTargetType::User,
+                createdBy: $createdBy,
+                body: "Alasan: {$reason}. {$status}",
+                recipientIds: [$ban->user_id],
+                action_url: route('app.suspension'),
+                action_label: 'Lihat Penangguhan',
+                sendEmail: $this->sendEmail,
+            );
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }

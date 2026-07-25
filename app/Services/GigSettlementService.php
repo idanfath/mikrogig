@@ -6,14 +6,21 @@ use App\Enums\GigSettlementOutcome;
 use App\Models\Gig;
 use App\Models\GigDispute;
 use App\Models\GigExitRequest;
+use App\Models\GigFinishRequest;
 use App\Models\GigPayment;
 use App\Models\GigSettlement;
 use DomainException;
 
 final class GigSettlementService
 {
-    public function record(Gig $gig, GigPayment $payment, GigSettlementOutcome $outcome, ?GigExitRequest $exitRequest = null, ?GigDispute $dispute = null): GigSettlement
-    {
+    public function record(
+        Gig $gig,
+        GigPayment $payment,
+        GigSettlementOutcome $outcome,
+        ?GigExitRequest $exitRequest = null,
+        ?GigDispute $dispute = null,
+        ?GigFinishRequest $finishRequest = null,
+    ): GigSettlement {
         if ($gig->settlement()->exists()) {
             throw new DomainException('Gig already has a settlement.');
         }
@@ -44,6 +51,9 @@ final class GigSettlementService
         }
         if ($dispute !== null) {
             $settlement->dispute()->associate($dispute);
+        }
+        if ($finishRequest !== null) {
+            $settlement->finishRequest()->associate($finishRequest);
         }
         $settlement->save();
 

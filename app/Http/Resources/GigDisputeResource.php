@@ -28,6 +28,7 @@ class GigDisputeResource extends JsonResource
             'finding' => $this->finding?->value,
             'resolution_note' => $this->resolution_note,
             'resolved_at' => $this->resolved_at?->toISOString(),
+            'finish_request' => $this->whenLoaded('finishRequest', fn () => GigFinishRequestResource::make($this->finishRequest)->resolve($request)),
             'submissions' => $this->whenLoaded('submissions', fn () => $this->submissions->map(fn ($submission) => [
                 'id' => $submission->id,
                 'type' => $submission->type->value,

@@ -15,7 +15,9 @@ class MustOnboard
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && $request->user()->onboarding_step !== null) {
+        if ($request->user()
+            && $request->user()->onboarding_step !== null
+            && ! $request->routeIs('app.suspension')) {
             return redirect()->route('onboarding');
         }
 

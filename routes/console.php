@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('gig-payments:expire')->everyMinute()->withoutOverlapping();
 Schedule::command('gig-disputes:expire-counterproofs')->everyMinute()->withoutOverlapping();
+Schedule::command('gig-finish-requests:auto-accept')->everyMinute()->withoutOverlapping();
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

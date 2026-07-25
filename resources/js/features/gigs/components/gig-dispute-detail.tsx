@@ -6,7 +6,7 @@ import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { getServerCountdown } from '@/features/gigs/lib/server-time';
+import { getServerCountdown } from '@/lib/server-time';
 import {
   GigDisputeStatus,
   getGigDisputeFindingLabel,
@@ -24,6 +24,12 @@ type Dispute = {
   counterproof_due_at: string;
   finding: string | null;
   resolution_note: string | null;
+  finish_request: {
+    id: number;
+    completion_note: string;
+    rejection_reason: string | null;
+    media: Array<{ id: number; url: string }>;
+  } | null;
   submissions: Array<{
     id: number;
     type: string;
@@ -85,6 +91,28 @@ export function GigDisputeDetailPage({
           </p>
         )}
       </AppPageCard>
+      {dispute.finish_request && (
+        <AppPageCard>
+          <p className="font-medium">
+            Bukti penyelesaian #{dispute.finish_request.id}
+          </p>
+          <p>{dispute.finish_request.completion_note}</p>
+          {dispute.finish_request.rejection_reason && (
+            <p className="text-sm text-destructive">
+              Alasan penolakan: {dispute.finish_request.rejection_reason}
+            </p>
+          )}
+          {dispute.finish_request.media.map((media, index) => (
+            <a
+              key={media.id}
+              href={media.url}
+              className="block text-sm text-primary underline"
+            >
+              Buka bukti penyelesaian {index + 1}
+            </a>
+          ))}
+        </AppPageCard>
+      )}
       {dispute.submissions.map((submission) => (
         <AppPageCard key={submission.id}>
           <p>{getGigDisputeSubmissionTypeLabel(submission.type)}</p>
@@ -105,7 +133,7 @@ export function GigDisputeDetailPage({
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              form.post(counterproof.url(dispute));
+              form.post(counterproof.url(dispute), { forceFormData: true });
             }}
             className="flex flex-col gap-2"
           >
@@ -124,6 +152,11 @@ export function GigDisputeDetailPage({
                 form.setData('photos', Array.from(event.target.files ?? []))
               }
             />
+            {form.progress && (
+              <p className="text-sm text-muted-foreground">
+                Mengunggah {form.progress.percentage}%
+              </p>
+            )}
             <Button type="submit" disabled={form.processing}>
               Kirim counterproof
             </Button>

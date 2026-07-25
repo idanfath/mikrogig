@@ -109,6 +109,16 @@ class Gig extends Model
         return $this->hasMany(GigOffense::class);
     }
 
+    public function finishRequests(): HasMany
+    {
+        return $this->hasMany(GigFinishRequest::class);
+    }
+
+    public function latestFinishRequest(): HasOne
+    {
+        return $this->hasOne(GigFinishRequest::class)->latestOfMany();
+    }
+
     public function media(): HasMany
     {
         return $this

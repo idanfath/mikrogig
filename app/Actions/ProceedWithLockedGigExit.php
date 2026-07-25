@@ -29,7 +29,7 @@ final class ProceedWithLockedGigExit
 
     public function execute(User $actor, GigExitRequest $request): GigExitRequest
     {
-        [$result, $recipientId, $offenderId] = DB::transaction(function () use ($actor, $request): array {
+        [$result, $recipientId] = DB::transaction(function () use ($actor, $request): array {
             $persisted = GigExitRequest::query()->findOrFail($request->id);
             $agreementId = $persisted->gig->currentPayment()->value('gig_agreement_id');
             $agreement = GigAgreement::query()->findOrFail($agreementId, ['id', 'gig_offer_id']);
@@ -66,20 +66,13 @@ final class ProceedWithLockedGigExit
             $gig->cancelled_at = now();
             $gig->save();
 
-            return [$locked->refresh(), $locked->responder_id, $locked->type === GigExitType::FreelancerAbandonment ? $freelancer->id : null];
+            return [$locked->refresh(), $locked->responder_id];
         }, attempts: 3);
 
         try {
             $this->notifications->send('Permintaan keluar gig dieksekusi', NotificationTargetType::User, $actor->id, 'Permintaan keluar gig telah dieksekusi.', [$recipientId], action_url: route('app.gigs.workflow.show', $result->gig_id), action_label: 'Lihat Workflow');
         } catch (Throwable $exception) {
             report($exception);
-        }
-        if ($offenderId !== null) {
-            try {
-                $this->notifications->send('Pelanggaran gig tercatat', NotificationTargetType::User, $actor->id, 'Pelanggaran gig telah tercatat pada akun Anda.', [$offenderId], action_url: route('app.gigs.workflow.show', $result->gig_id), action_label: 'Lihat Workflow');
-            } catch (Throwable $exception) {
-                report($exception);
-            }
         }
 
         return $result;

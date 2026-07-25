@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Guarded(['id'])]
 class UserBan extends Model
@@ -32,6 +33,11 @@ class UserBan extends Model
     public function unbannedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'unbanned_by');
+    }
+
+    public function gigOffense(): HasOne
+    {
+        return $this->hasOne(GigOffense::class, 'user_ban_id');
     }
 
     public function scopeActive(Builder $query): Builder

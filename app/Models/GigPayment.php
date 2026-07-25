@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
@@ -67,6 +68,11 @@ class GigPayment extends Model
     public function settlement(): HasOne
     {
         return $this->hasOne(GigSettlement::class);
+    }
+
+    public function finishRequests(): HasMany
+    {
+        return $this->hasMany(GigFinishRequest::class);
     }
 
     public function scopePending(Builder $query): Builder

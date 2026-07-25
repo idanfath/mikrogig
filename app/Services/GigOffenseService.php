@@ -36,7 +36,7 @@ final class GigOffenseService
         }
         $offense->save();
 
-        $ban = $this->bans->recordAutomated($user, "Automated gig offense #{$sequence}", $duration);
+        $ban = $this->bans->recordAutomated($user, "Pelanggaran gig otomatis #{$sequence}", $duration);
         if ($ban === null) {
             return $offense->refresh();
         }

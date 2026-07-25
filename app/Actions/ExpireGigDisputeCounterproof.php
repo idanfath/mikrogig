@@ -40,7 +40,7 @@ final class ExpireGigDisputeCounterproof
             throw new DomainException('Gig participants no longer exist.');
         }
 
-        [$resolved, $participantIds, $offenderId, $changed] = DB::transaction(function () use ($source, $agreement, $freelancerId, $clientId): array {
+        [$resolved, $participantIds, $changed] = DB::transaction(function () use ($source, $agreement, $freelancerId, $clientId): array {
             $freelancer = User::query()->lockForUpdate()->findOrFail($freelancerId);
             $client = User::query()->lockForUpdate()->findOrFail($clientId);
             $gig = $source->gig()->lockForUpdate()->firstOrFail();
@@ -50,7 +50,7 @@ final class ExpireGigDisputeCounterproof
             $locked = GigDispute::query()->lockForUpdate()->findOrFail($source->id);
 
             if ($locked->status === GigDisputeStatus::Resolved) {
-                return [$locked, [], null, false];
+                return [$locked, [], false];
             }
             if ($locked->status !== GigDisputeStatus::AwaitingCounterproof || $locked->counterproof_due_at->isFuture()) {
                 throw new DomainException('Dispute counterproof has not expired.');
@@ -59,20 +59,25 @@ final class ExpireGigDisputeCounterproof
                 throw new DomainException('Dispute associations are no longer valid.');
             }
 
-            $isNoShow = $locked->type === GigDisputeType::NoShow;
-            $outcome = $isNoShow ? GigSettlementOutcome::FullClientRefund : GigSettlementOutcome::ThirtySeventy;
-            $offender = $isNoShow ? $freelancer : $client;
+            $isFreelancerFault = $locked->type === GigDisputeType::NoShow;
+            $outcome = match ($locked->type) {
+                GigDisputeType::NoShow => GigSettlementOutcome::FullClientRefund,
+                GigDisputeType::StartBlocked => GigSettlementOutcome::ThirtySeventy,
+                GigDisputeType::WorkObstruction,
+                GigDisputeType::FinishRejected => GigSettlementOutcome::FullFreelancerPayout,
+            };
+            $offender = $isFreelancerFault ? $freelancer : $client;
             $this->settlements->record($gig, $payment, $outcome, dispute: $locked);
             $this->offenses->record($offender, $gig, dispute: $locked);
             $locked->status = GigDisputeStatus::Resolved;
-            $locked->finding = $isNoShow ? GigDisputeFinding::FreelancerAtFault : GigDisputeFinding::ClientAtFault;
+            $locked->finding = $isFreelancerFault ? GigDisputeFinding::FreelancerAtFault : GigDisputeFinding::ClientAtFault;
             $locked->resolved_at = now();
             $locked->resolution_note = 'Counterproof deadline expired.';
             $locked->save();
             $gig->status = GigStatus::DisputeResolved;
             $gig->save();
 
-            return [$locked->refresh(), [$client->id, $freelancer->id], $offender->id, true];
+            return [$locked->refresh(), [$client->id, $freelancer->id], true];
         }, attempts: 3);
 
         if ($changed) {
@@ -83,20 +88,6 @@ final class ExpireGigDisputeCounterproof
                     null,
                     'Batas waktu counterproof berakhir dan sengketa telah diselesaikan.',
                     $participantIds,
-                    action_url: route('app.gig_disputes.show', $resolved),
-                    action_label: 'Lihat Sengketa',
-                );
-            } catch (Throwable $exception) {
-                report($exception);
-            }
-
-            try {
-                $this->notifications->send(
-                    'Pelanggaran gig tercatat',
-                    NotificationTargetType::User,
-                    null,
-                    'Pelanggaran gig telah tercatat pada akun Anda.',
-                    [$offenderId],
                     action_url: route('app.gig_disputes.show', $resolved),
                     action_label: 'Lihat Sengketa',
                 );

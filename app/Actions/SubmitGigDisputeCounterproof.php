@@ -12,7 +12,7 @@ use App\Models\GigDisputeSubmission;
 use App\Models\GigOffer;
 use App\Models\GigPayment;
 use App\Models\User;
-use App\Services\GigDisputeEvidenceService;
+use App\Services\GigWorkflowEvidenceService;
 use App\Services\NotificationService;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -22,7 +22,7 @@ use Throwable;
 
 final class SubmitGigDisputeCounterproof
 {
-    public function __construct(private GigDisputeEvidenceService $evidence, private NotificationService $notifications) {}
+    public function __construct(private GigWorkflowEvidenceService $evidence, private NotificationService $notifications) {}
 
     /** @param array<int, UploadedFile> $photos */
     public function execute(User $respondent, GigDispute $dispute, string $statement, array $photos): GigDispute

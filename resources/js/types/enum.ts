@@ -83,6 +83,8 @@ export type GigExitExecutionMode =
 export const GigDisputeType = {
   NoShow: 'no_show',
   StartBlocked: 'start_blocked',
+  WorkObstruction: 'work_obstruction',
+  FinishRejected: 'finish_rejected',
 } as const;
 export type GigDisputeType =
   (typeof GigDisputeType)[keyof typeof GigDisputeType];
@@ -109,6 +111,15 @@ export const GigDisputeFinding = {
 } as const;
 export type GigDisputeFinding =
   (typeof GigDisputeFinding)[keyof typeof GigDisputeFinding];
+
+export const GigFinishRequestStatus = {
+  Pending: 'pending',
+  Accepted: 'accepted',
+  Rejected: 'rejected',
+  AutoAccepted: 'auto_accepted',
+} as const;
+export type GigFinishRequestStatus =
+  (typeof GigFinishRequestStatus)[keyof typeof GigFinishRequestStatus];
 
 export const GigSettlementOutcome = {
   FullClientRefund: 'full_client_refund',
@@ -318,9 +329,28 @@ export function getGigDisputeTypeLabel(type?: string | null): string {
       {
         no_show: 'Tidak hadir',
         start_blocked: 'Mulai kerja terhalang',
+        work_obstruction: 'Penyelesaian kerja dihalangi',
+        finish_rejected: 'Penyelesaian ditolak',
       } as Record<string, string>
     )[type ?? ''] ??
     type ??
+    ''
+  );
+}
+
+export function getGigFinishRequestStatusLabel(
+  status?: string | null,
+): string {
+  return (
+    (
+      {
+        pending: 'Menunggu tinjauan',
+        accepted: 'Diterima',
+        rejected: 'Ditolak',
+        auto_accepted: 'Diterima otomatis',
+      } as Record<string, string>
+    )[status ?? ''] ??
+    status ??
     ''
   );
 }

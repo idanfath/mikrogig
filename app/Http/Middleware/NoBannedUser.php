@@ -17,8 +17,12 @@ class NoBannedUser
     {
         $user = $request->user();
 
-        if ($user && $user->is_banned) {
-            abort(403, 'Akun Anda telah diblokir.');
+        if ($user?->activeBan()->exists()) {
+            if ($request->isMethod('GET') || $request->isMethod('HEAD')) {
+                return redirect()->route('app.suspension');
+            }
+
+            abort(403, 'Akun Anda sedang ditangguhkan.');
         }
 
         return $next($request);

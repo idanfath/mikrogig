@@ -40,7 +40,7 @@ class AdminGigDisputeController extends Controller
     {
         $this->authorize('resolve', $dispute);
 
-        $dispute->load(['gig', 'reporter', 'respondent', 'submissions.media', 'settlement']);
+        $dispute->load(['gig', 'reporter', 'respondent', 'submissions.media', 'finishRequest.media', 'settlement']);
 
         return Inertia::render('app/admin/gig-disputes/show', [
             'dispute' => GigDisputeResource::make($dispute)->resolve($r),

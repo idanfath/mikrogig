@@ -22,7 +22,7 @@ class GigDisputeController extends Controller
         $this->authorize('view', $dispute);
 
         return Inertia::render('app/gigs/dispute', [
-            'dispute' => GigDisputeResource::make($dispute->load(['submissions.media', 'reporter', 'respondent', 'gig']))->resolve($request),
+            'dispute' => GigDisputeResource::make($dispute->load(['submissions.media', 'finishRequest.media', 'reporter', 'respondent', 'gig']))->resolve($request),
             'server_now' => now()->toISOString(),
             'capabilities' => [
                 'canSubmitCounterproof' => $dispute->respondent_id === $request->user()->id

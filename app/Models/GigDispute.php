@@ -63,6 +63,11 @@ class GigDispute extends Model
         return $this->hasOne(GigSettlement::class);
     }
 
+    public function finishRequest(): BelongsTo
+    {
+        return $this->belongsTo(GigFinishRequest::class, 'gig_finish_request_id');
+    }
+
     public function scopeAwaitingCounterproof(Builder $query): Builder
     {
         return $query->where('status', GigDisputeStatus::AwaitingCounterproof);

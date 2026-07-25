@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Enums\GigDisputeFinding;
 use App\Enums\GigDisputeStatus;
+use App\Enums\GigDisputeType;
 use App\Enums\GigPaymentStatus;
 use App\Enums\GigSettlementOutcome;
 use App\Enums\GigStatus;
@@ -41,7 +42,7 @@ final class ResolveGigDispute
             throw new DomainException('Gig participants no longer exist.');
         }
 
-        [$resolved, $participantIds, $offenderId] = DB::transaction(function () use ($admin, $source, $agreement, $freelancerId, $clientId, $finding, $inconclusiveOutcome, $resolutionNote): array {
+        [$resolved, $participantIds] = DB::transaction(function () use ($admin, $source, $agreement, $freelancerId, $clientId, $finding, $inconclusiveOutcome, $resolutionNote): array {
             $freelancer = User::query()->lockForUpdate()->findOrFail($freelancerId);
             $client = User::query()->lockForUpdate()->findOrFail($clientId);
             $gig = $source->gig()->lockForUpdate()->firstOrFail();
@@ -65,7 +66,9 @@ final class ResolveGigDispute
 
             $outcome = match ($finding) {
                 GigDisputeFinding::FreelancerAtFault => GigSettlementOutcome::FullClientRefund,
-                GigDisputeFinding::ClientAtFault => GigSettlementOutcome::ThirtySeventy,
+                GigDisputeFinding::ClientAtFault => in_array($locked->type, [GigDisputeType::WorkObstruction, GigDisputeType::FinishRejected], true)
+                    ? GigSettlementOutcome::FullFreelancerPayout
+                    : GigSettlementOutcome::ThirtySeventy,
                 GigDisputeFinding::Inconclusive => $inconclusiveOutcome ?? throw new DomainException('Inconclusive finding requires a settlement outcome.'),
             };
             if ($finding !== GigDisputeFinding::Inconclusive && $inconclusiveOutcome !== null) {
@@ -87,7 +90,7 @@ final class ResolveGigDispute
             $gig->status = GigStatus::DisputeResolved;
             $gig->save();
 
-            return [$locked->refresh(), [$client->id, $freelancer->id], $offender?->id];
+            return [$locked->refresh(), [$client->id, $freelancer->id]];
         }, attempts: 3);
 
         try {
@@ -102,22 +105,6 @@ final class ResolveGigDispute
             );
         } catch (Throwable $exception) {
             report($exception);
-        }
-
-        if ($offenderId !== null) {
-            try {
-                $this->notifications->send(
-                    'Pelanggaran gig tercatat',
-                    NotificationTargetType::User,
-                    $admin->id,
-                    'Pelanggaran gig telah tercatat pada akun Anda.',
-                    [$offenderId],
-                    action_url: route('app.gig_disputes.show', $resolved),
-                    action_label: 'Lihat Sengketa',
-                );
-            } catch (Throwable $exception) {
-                report($exception);
-            }
         }
 
         return $resolved;

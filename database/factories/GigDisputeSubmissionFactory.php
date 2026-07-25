@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Enums\GigDisputeSubmissionType;
 use App\Models\GigDispute;
 use App\Models\GigDisputeSubmission;
-use App\Models\GigDisputeSubmission;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

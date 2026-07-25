@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Enums\GigSettlementOutcome;
 use App\Models\GigPayment;
 use App\Models\GigSettlement;
-use App\Models\GigSettlement;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

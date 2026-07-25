@@ -90,6 +90,12 @@ export function AdminGigDisputeQueue({
               <option value={GigDisputeType.StartBlocked}>
                 Mulai kerja terhalang
               </option>
+              <option value={GigDisputeType.WorkObstruction}>
+                Penyelesaian dihalangi
+              </option>
+              <option value={GigDisputeType.FinishRejected}>
+                Penyelesaian ditolak
+              </option>
             </select>
           </label>
         </div>
@@ -123,6 +129,12 @@ export function AdminGigDisputeDetail({
   dispute: QueueDispute & {
     finding: string | null;
     resolution_note: string | null;
+    finish_request: {
+      id: number;
+      completion_note: string;
+      rejection_reason: string | null;
+      media: Array<{ id: number; url: string }>;
+    } | null;
     submissions: Array<{
       id: number;
       type: string;
@@ -154,6 +166,28 @@ export function AdminGigDisputeDetail({
           {getGigDisputeTypeLabel(dispute.type)} ·{' '}
           {getGigDisputeStatusLabel(dispute.status)}
         </p>
+        {dispute.finish_request && (
+          <div className="mt-3">
+            <p className="font-medium">
+              Bukti penyelesaian #{dispute.finish_request.id}
+            </p>
+            <p>{dispute.finish_request.completion_note}</p>
+            {dispute.finish_request.rejection_reason && (
+              <p className="text-sm text-destructive">
+                Alasan penolakan: {dispute.finish_request.rejection_reason}
+              </p>
+            )}
+            {dispute.finish_request.media.map((media, index) => (
+              <a
+                key={media.id}
+                href={media.url}
+                className="block text-sm text-primary underline"
+              >
+                Buka bukti penyelesaian {index + 1}
+              </a>
+            ))}
+          </div>
+        )}
         {dispute.submissions.map((submission) => (
           <div key={submission.id} className="mt-3">
             <p>{submission.statement}</p>

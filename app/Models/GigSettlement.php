@@ -37,4 +37,9 @@ class GigSettlement extends Model
     {
         return $this->belongsTo(GigDispute::class, 'gig_dispute_id');
     }
+
+    public function finishRequest(): BelongsTo
+    {
+        return $this->belongsTo(GigFinishRequest::class, 'gig_finish_request_id');
+    }
 }
