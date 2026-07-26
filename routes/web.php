@@ -6,6 +6,7 @@ use App\Http\Controllers\AppController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\GigAgreementController;
 use App\Http\Controllers\GigController;
+use App\Http\Controllers\GigConversationController;
 use App\Http\Controllers\GigDisputeController;
 use App\Http\Controllers\GigFinishRequestController;
 use App\Http\Controllers\GigHistoryController;
@@ -84,6 +85,8 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
         Route::get('/history/{gig}', [GigHistoryController::class, 'show'])->name('history.show');
         Route::get('/gig-finish-request-media/{media}', [GigFinishRequestController::class, 'media'])->name('gig_finish_request_media.show');
         Route::get('/gig-dispute-media/{media}', [GigDisputeController::class, 'media'])->name('gig_dispute_media.show');
+        Route::get('/gig-agreements/{agreement}/conversation', [GigConversationController::class, 'destination'])->name('gig_conversations.destination');
+        Route::get('/gig-message-media/{media}', [GigConversationController::class, 'media'])->name('gig_message_media.show');
 
         Route::middleware('no_banned_user')->group(function () {
             Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
@@ -93,6 +96,8 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
             Route::post('/gigs', [GigController::class, 'store'])->name('gigs.store');
             Route::get('/gigs/{gig}', [GigController::class, 'show'])->name('gigs.show');
             Route::get('/gigs/{gig}/agreement', [GigAgreementController::class, 'show'])->name('gigs.agreement.show');
+            Route::post('/gig-agreements/{agreement}/messages', [GigConversationController::class, 'store'])->name('gig_conversations.messages.store');
+            Route::post('/gig-agreements/{agreement}/messages/read', [GigConversationController::class, 'markRead'])->name('gig_conversations.messages.read');
             Route::patch('/gigs/{gig}/agreement/terms', [GigAgreementController::class, 'submit'])->name('gigs.agreement.terms.update');
             Route::patch('/gigs/{gig}/agreement/accept', [GigAgreementController::class, 'accept'])->name('gigs.agreement.accept');
             Route::patch('/gigs/{gig}/agreement/request-changes', [GigAgreementController::class, 'requestChanges'])->name('gigs.agreement.request-changes');

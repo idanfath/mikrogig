@@ -15,6 +15,7 @@ use App\Http\Resources\GigAgreementResource;
 use App\Http\Resources\GigResource;
 use App\Models\Gig;
 use App\Models\GigAgreement;
+use App\Services\GigConversationService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ use Inertia\Response;
 
 class GigAgreementController extends Controller
 {
-    public function show(Request $request, Gig $gig): Response
+    public function show(Request $request, Gig $gig, GigConversationService $conversations): Response
     {
         $agreement = $this->currentAgreement($gig);
         $this->authorize('view', $agreement);
@@ -39,6 +40,7 @@ class GigAgreementController extends Controller
             'agreement' => GigAgreementResource::make($agreement)->resolve($request),
             'is_client' => $isClient,
             'is_selected_freelancer' => $isSelectedFreelancer,
+            'conversation' => $conversations->present($request, $agreement),
             'capabilities' => [
                 'can_submit_terms' => $isClient && $gig->status === GigStatus::AgreementPreparation,
                 'can_accept' => $canRespond,

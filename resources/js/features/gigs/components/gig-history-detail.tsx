@@ -19,6 +19,7 @@ import {
   getGigStatusLabel,
 } from '@/types/enum';
 import type { HistoryShowProps } from '../history-types';
+import { GigConversation } from './gig-conversation';
 
 const money = (value: number | null | undefined) =>
   value === null || value === undefined
@@ -45,6 +46,7 @@ export function GigHistoryDetail({
   ratings,
   terminal_at: terminalAt,
   capabilities,
+  conversation,
 }: HistoryShowProps) {
   const ratingForm = useForm({ score: 5, comment: '' });
 
@@ -289,6 +291,7 @@ export function GigHistoryDetail({
           </form>
         )}
       </AppPageCard>
+      <GigConversation conversation={conversation} />
     </AppPage>
   );
 }

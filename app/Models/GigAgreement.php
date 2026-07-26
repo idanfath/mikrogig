@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
@@ -65,6 +66,11 @@ class GigAgreement extends Model
     public function dispute(): HasOne
     {
         return $this->hasOne(GigDispute::class);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(GigMessage::class)->orderBy('id');
     }
 
     public function scopeForGig(Builder $query, Gig|int $gig): Builder

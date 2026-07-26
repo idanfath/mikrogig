@@ -31,6 +31,8 @@ import {
   getGigSettlementOutcomeLabel,
   getGigStatusLabel,
 } from '@/types/enum';
+import type { GigConversation as GigConversationData } from '../conversation-types';
+import { GigConversation } from './gig-conversation';
 
 type FinishRequest = {
   id: number;
@@ -81,6 +83,7 @@ type GigWorkflowPageProps = {
     canDisputeFinishRejection: boolean;
     finishReviewExpired: boolean;
   };
+  conversation: GigConversationData;
 };
 
 export function GigWorkflowPage({
@@ -93,6 +96,7 @@ export function GigWorkflowPage({
   settlement,
   server_now: serverNow,
   capabilities,
+  conversation,
 }: GigWorkflowPageProps) {
   const startForm = useForm({});
   const exitType = capabilities.canRequestClientCancellation
@@ -516,6 +520,7 @@ export function GigWorkflowPage({
           </p>
         </AppPageCard>
       )}
+      <GigConversation conversation={conversation} />
     </AppPage>
   );
 }

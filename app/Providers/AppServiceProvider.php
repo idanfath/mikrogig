@@ -2,6 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Gig;
+use App\Models\GigAgreement;
+use App\Models\GigDispute;
+use App\Models\GigExitRequest;
+use App\Models\GigFinishRequest;
+use App\Models\GigPayment;
+use App\Observers\GigConversationObserver;
 use App\Services\Payments\PaymentGateway;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Events\CommandStarting;
@@ -41,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureFreshMigrationStorageCleanup();
+        $this->configureGigConversationTimeline();
 
         Inertia::handleExceptionsUsing(function (ExceptionResponse $response) {
             if ($response->statusCode() === 429) {
@@ -104,5 +112,19 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         });
+    }
+
+    protected function configureGigConversationTimeline(): void
+    {
+        foreach ([
+            Gig::class,
+            GigAgreement::class,
+            GigPayment::class,
+            GigExitRequest::class,
+            GigFinishRequest::class,
+            GigDispute::class,
+        ] as $model) {
+            $model::observe(GigConversationObserver::class);
+        }
     }
 }

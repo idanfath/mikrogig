@@ -12,6 +12,7 @@ use App\Http\Resources\GigSettlementResource;
 use App\Models\Gig;
 use App\Models\GigAgreement;
 use App\Models\GigPayment;
+use App\Services\GigConversationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -67,7 +68,7 @@ class GigHistoryController extends Controller
         ]);
     }
 
-    public function show(Request $request, Gig $gig): Response
+    public function show(Request $request, Gig $gig, GigConversationService $conversations): Response
     {
         $this->authorize('viewHistory', $gig);
 
@@ -93,6 +94,7 @@ class GigHistoryController extends Controller
         $user = $request->user();
         $acceptedFreelancerId = $gig->acceptedOffer?->freelancer_id;
         $hasRated = $gig->ratings->contains('rater_id', $user->id);
+        $conversationAgreement = $gig->agreements->sortByDesc('id')->first();
 
         return Inertia::render('app/history/show', [
             'gig' => GigResource::make($gig)->resolve($request),
@@ -147,6 +149,9 @@ class GigHistoryController extends Controller
                 'recipient_id' => $rating->recipient_id,
             ])->values(),
             'terminal_at' => $this->terminalAt($gig),
+            'conversation' => $conversationAgreement === null
+                ? null
+                : $conversations->present($request, $conversationAgreement),
             'capabilities' => [
                 'canRate' => $acceptedFreelancerId !== null
                     && in_array($user->id, [$gig->client_id, $acceptedFreelancerId], true)

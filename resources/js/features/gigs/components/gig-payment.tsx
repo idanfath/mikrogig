@@ -8,15 +8,23 @@ import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { show as workflow } from '@/routes/app/gigs/workflow';
 import { GigPaymentStatus, getGigPaymentStatusLabel } from '@/types/enum';
+import type { GigConversation as GigConversationData } from '../conversation-types';
 import type { GigPayment, GigPaymentSummary } from '../types';
+import { GigConversation } from './gig-conversation';
 
 type Props = {
   gig: GigPaymentSummary;
   payment: GigPayment;
   is_client: boolean;
+  conversation: GigConversationData;
 };
 
-export function GigPaymentPage({ gig, payment, is_client: isClient }: Props) {
+export function GigPaymentPage({
+  gig,
+  payment,
+  is_client: isClient,
+  conversation,
+}: Props) {
   const retry = useForm({});
   const cancellation = useForm({});
 
@@ -91,6 +99,7 @@ export function GigPaymentPage({ gig, payment, is_client: isClient }: Props) {
           )}
         </div>
       </AppPageCard>
+      <GigConversation conversation={conversation} />
     </AppPage>
   );
 }

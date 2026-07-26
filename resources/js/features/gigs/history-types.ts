@@ -5,6 +5,7 @@ import type {
   GigPaymentStatus,
   GigStatus,
 } from '@/types/enum';
+import type { GigConversation } from './conversation-types';
 import type { Gig, Paginated } from './types';
 
 export type HistoryPerson = {
@@ -128,4 +129,5 @@ export type HistoryShowProps = {
   ratings: HistoryRating[];
   terminal_at: string | null;
   capabilities: { canRate: boolean };
+  conversation: GigConversation | null;
 };

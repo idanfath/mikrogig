@@ -22,6 +22,8 @@ import type {
   GigDisputeFinding as GigDisputeFindingValue,
   GigSettlementOutcome as GigSettlementOutcomeValue,
 } from '@/types/enum';
+import type { GigConversation as GigConversationData } from '../conversation-types';
+import { GigConversation } from './gig-conversation';
 
 type QueueDispute = {
   id: number;
@@ -125,6 +127,7 @@ export function AdminGigDisputeDetail({
   dispute,
   settlement,
   capabilities,
+  conversation,
 }: {
   dispute: QueueDispute & {
     finding: string | null;
@@ -148,6 +151,7 @@ export function AdminGigDisputeDetail({
     client_refund: number;
   } | null;
   capabilities: { canResolveDispute: boolean };
+  conversation: GigConversationData;
 }) {
   const form = useForm<{
     finding: GigDisputeFindingValue;
@@ -282,6 +286,7 @@ export function AdminGigDisputeDetail({
           </p>
         </AppPageCard>
       )}
+      <GigConversation conversation={conversation} />
     </AppPage>
   );
 }

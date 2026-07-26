@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { GigPaymentPage } from '@/features/gigs/components/gig-payment';
+import type { GigConversation } from '@/features/gigs/conversation-types';
 import type { GigPayment, GigPaymentSummary } from '@/features/gigs/types';
 import AppLayout from '@/layout/AppLayout';
 
@@ -7,6 +8,7 @@ type Props = {
   gig: GigPaymentSummary;
   payment: GigPayment;
   is_client: boolean;
+  conversation: GigConversation;
 };
 
 const Page: InertiaPageWithLayout<Props> = (props) => (

@@ -15,7 +15,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { show as workflow } from '@/routes/app/gigs/workflow';
 import { GigStatus } from '@/types/enum';
+import type { GigConversation as GigConversationData } from '../conversation-types';
 import type { Gig, GigAgreement, GigAgreementCapabilities } from '../types';
+import { GigConversation } from './gig-conversation';
 
 type GigAgreementProps = {
   gig: Gig;
@@ -23,6 +25,7 @@ type GigAgreementProps = {
   is_client: boolean;
   is_selected_freelancer: boolean;
   capabilities: GigAgreementCapabilities;
+  conversation: GigConversationData;
 };
 
 const workflowStatuses: string[] = [
@@ -36,6 +39,7 @@ export function GigAgreementPage({
   gig,
   agreement,
   capabilities,
+  conversation,
 }: GigAgreementProps) {
   const terms = useForm({
     final_scope: agreement.final_scope ?? '',
@@ -243,6 +247,7 @@ export function GigAgreementPage({
             )}
           </AppPageCard>
         )}
+        <GigConversation conversation={conversation} />
       </div>
     </AppPage>
   );

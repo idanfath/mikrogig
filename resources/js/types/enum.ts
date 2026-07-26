@@ -121,6 +121,42 @@ export const GigFinishRequestStatus = {
 export type GigFinishRequestStatus =
   (typeof GigFinishRequestStatus)[keyof typeof GigFinishRequestStatus];
 
+export const GigMessageKind = {
+  User: 'user',
+  System: 'system',
+} as const;
+export type GigMessageKind =
+  (typeof GigMessageKind)[keyof typeof GigMessageKind];
+
+export const GigWorkflowEvent = {
+  FreelancerSelected: 'freelancer_selected',
+  AgreementTermsSubmitted: 'agreement_terms_submitted',
+  AgreementChangesRequested: 'agreement_changes_requested',
+  AgreementAccepted: 'agreement_accepted',
+  AgreementDeclined: 'agreement_declined',
+  FreelancerLeft: 'freelancer_left',
+  SelectedFreelancerRejected: 'selected_freelancer_rejected',
+  PaymentPending: 'payment_pending',
+  PaymentConfirmed: 'payment_confirmed',
+  PaymentCancelled: 'payment_cancelled',
+  PaymentExpired: 'payment_expired',
+  WorkStarted: 'work_started',
+  ExitRequested: 'exit_requested',
+  ExitAccepted: 'exit_accepted',
+  ExitRefused: 'exit_refused',
+  ExitWithdrawn: 'exit_withdrawn',
+  ExitProceeded: 'exit_proceeded',
+  FinishSubmitted: 'finish_submitted',
+  FinishRejected: 'finish_rejected',
+  GigCompleted: 'gig_completed',
+  DisputeOpened: 'dispute_opened',
+  CounterproofSubmitted: 'counterproof_submitted',
+  DisputeResolved: 'dispute_resolved',
+  GigCancelled: 'gig_cancelled',
+} as const;
+export type GigWorkflowEvent =
+  (typeof GigWorkflowEvent)[keyof typeof GigWorkflowEvent];
+
 export const GigSettlementOutcome = {
   FullClientRefund: 'full_client_refund',
   ThirtySeventy: 'thirty_seventy',
@@ -338,9 +374,7 @@ export function getGigDisputeTypeLabel(type?: string | null): string {
   );
 }
 
-export function getGigFinishRequestStatusLabel(
-  status?: string | null,
-): string {
+export function getGigFinishRequestStatusLabel(status?: string | null): string {
   return (
     (
       {

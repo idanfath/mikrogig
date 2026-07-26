@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { GigAgreementPage } from '@/features/gigs/components/gig-agreement';
+import type { GigConversation } from '@/features/gigs/conversation-types';
 import type {
   Gig,
   GigAgreement,
@@ -13,6 +14,7 @@ type Props = {
   is_client: boolean;
   is_selected_freelancer: boolean;
   capabilities: GigAgreementCapabilities;
+  conversation: GigConversation;
 };
 
 const Page: InertiaPageWithLayout<Props> = (props) => (

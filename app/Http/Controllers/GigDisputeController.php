@@ -8,6 +8,7 @@ use App\Http\Requests\StoreGigDisputeCounterproofRequest;
 use App\Http\Resources\GigDisputeResource;
 use App\Models\GigDispute;
 use App\Models\GigDisputeMedia;
+use App\Services\GigConversationService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,12 +18,13 @@ use Inertia\Response;
 
 class GigDisputeController extends Controller
 {
-    public function show(Request $request, GigDispute $dispute): Response
+    public function show(Request $request, GigDispute $dispute, GigConversationService $conversations): Response
     {
         $this->authorize('view', $dispute);
 
         return Inertia::render('app/gigs/dispute', [
             'dispute' => GigDisputeResource::make($dispute->load(['submissions.media', 'finishRequest.media', 'reporter', 'respondent', 'gig']))->resolve($request),
+            'conversation' => $conversations->present($request, $dispute->agreement),
             'server_now' => now()->toISOString(),
             'capabilities' => [
                 'canSubmitCounterproof' => $dispute->respondent_id === $request->user()->id

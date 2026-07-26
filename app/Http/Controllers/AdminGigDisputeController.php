@@ -11,6 +11,7 @@ use App\Http\Requests\ResolveGigDisputeRequest;
 use App\Http\Resources\GigDisputeResource;
 use App\Http\Resources\GigSettlementResource;
 use App\Models\GigDispute;
+use App\Services\GigConversationService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +37,7 @@ class AdminGigDisputeController extends Controller
         return Inertia::render('app/admin/gig-disputes/index', ['disputes' => GigDisputeResource::collection($disputes), 'filters' => ['status' => $status?->value, 'type' => $type?->value]]);
     }
 
-    public function show(Request $r, GigDispute $dispute): Response
+    public function show(Request $r, GigDispute $dispute, GigConversationService $conversations): Response
     {
         $this->authorize('resolve', $dispute);
 
@@ -45,6 +46,7 @@ class AdminGigDisputeController extends Controller
         return Inertia::render('app/admin/gig-disputes/show', [
             'dispute' => GigDisputeResource::make($dispute)->resolve($r),
             'settlement' => $dispute->settlement === null ? null : GigSettlementResource::make($dispute->settlement)->resolve($r),
+            'conversation' => $conversations->present($r, $dispute->agreement),
             'capabilities' => [
                 'canResolveDispute' => $dispute->status === GigDisputeStatus::AwaitingAdmin,
             ],

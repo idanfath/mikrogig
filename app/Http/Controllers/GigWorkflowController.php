@@ -25,6 +25,7 @@ use App\Http\Resources\GigResource;
 use App\Http\Resources\GigSettlementResource;
 use App\Models\Gig;
 use App\Models\GigExitRequest;
+use App\Services\GigConversationService;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,7 @@ use Inertia\Response;
 
 class GigWorkflowController extends Controller
 {
-    public function show(Request $request, Gig $gig): Response
+    public function show(Request $request, Gig $gig, GigConversationService $conversations): Response
     {
         $gig->load('client');
         $payment = $gig->currentPayment()->with(['gig', 'agreement.acceptedOffer.freelancer'])->firstOrFail();
@@ -81,6 +82,7 @@ class GigWorkflowController extends Controller
             'exit_request' => $activeExit === null ? null : GigExitRequestResource::make($activeExit)->resolve($request),
             'finish_request' => $latestFinishRequest === null ? null : GigFinishRequestResource::make($latestFinishRequest)->resolve($request),
             'settlement' => $gig->settlement ? GigSettlementResource::make($gig->settlement)->resolve($request) : null,
+            'conversation' => $conversations->present($request, $payment->agreement),
             'server_now' => now()->toISOString(),
             'capabilities' => [
                 'canStart' => $isClient && $isLocked && $isPaidAndConfirmed && $hasNoActiveWorkflow,

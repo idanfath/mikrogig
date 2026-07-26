@@ -7,6 +7,7 @@ use App\Actions\PrepareGigPaymentCheckout;
 use App\Http\Resources\GigPaymentResource;
 use App\Models\Gig;
 use App\Models\GigPayment;
+use App\Services\GigConversationService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use Throwable;
 
 class GigPaymentController extends Controller
 {
-    public function show(Request $request, Gig $gig): Response
+    public function show(Request $request, Gig $gig, GigConversationService $conversations): Response
     {
         $payment = $this->payment($gig);
         $this->authorize('view', $payment);
@@ -29,6 +30,7 @@ class GigPaymentController extends Controller
             ],
             'payment' => GigPaymentResource::make($payment)->resolve($request),
             'is_client' => $request->user()->id === $gig->client_id,
+            'conversation' => $conversations->present($request, $payment->agreement),
         ]);
     }
 

@@ -14,6 +14,8 @@ import {
   getGigDisputeSubmissionTypeLabel,
   getGigDisputeTypeLabel,
 } from '@/types/enum';
+import type { GigConversation as GigConversationData } from '../conversation-types';
+import { GigConversation } from './gig-conversation';
 
 type Dispute = {
   id: number;
@@ -43,6 +45,7 @@ export function GigDisputeDetailPage({
   dispute,
   capabilities,
   server_now: serverNow,
+  conversation,
 }: {
   dispute: Dispute;
   capabilities: {
@@ -50,6 +53,7 @@ export function GigDisputeDetailPage({
     counterproofExpired: boolean;
   };
   server_now: string;
+  conversation: GigConversationData;
 }) {
   const form = useForm({ statement: '', photos: [] as File[] });
 
@@ -175,6 +179,7 @@ export function GigDisputeDetailPage({
           <p>Keputusan: {dispute.resolution_note}</p>
         </AppPageCard>
       )}
+      <GigConversation conversation={conversation} />
     </AppPage>
   );
 }
