@@ -41,3 +41,4 @@ GEMINI.md
 /tests/Unit/*
 /tests/Feature/*
 database/seeders/RealAccountSeeder.php
+/LLM

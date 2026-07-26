@@ -5,17 +5,23 @@ namespace App\Http\Controllers;
 use App\Actions\CancelGig;
 use App\Actions\CreateGig;
 use App\Enums\GigCategory;
+use App\Enums\GigOfferStatus;
+use App\Enums\GigStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\DiscoverGigsRequest;
+use App\Http\Requests\EnhanceGigRequest;
 use App\Http\Requests\StoreGigRequest;
 use App\Http\Resources\GigOfferResource;
 use App\Http\Resources\GigResource;
 use App\Models\Gig;
 use App\Models\GigOffer;
+use App\Services\GigEnhancementService;
 use DomainException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,13 +30,29 @@ class GigController extends Controller
     public function index(DiscoverGigsRequest $request): Response
     {
         $filters = $request->validated();
+        $user = $request->user();
+
+        if (! $request->has('province_id') && $user?->province_id) {
+            $filters['province_id'] = $user->province_id;
+            if (! $request->has('regency_id') && $user->regency_id) {
+                $filters['regency_id'] = $user->regency_id;
+            }
+        }
+
         $gigs = Gig::query()
             ->open()
             ->futureScheduled()
             ->with(['client', 'media'])
             ->withCount(['offers as pending_applicants_count' => fn (Builder $query) => $query->pending()])
-            ->when($request->filled('province_id'), fn (Builder $query) => $query->where('province_id', $filters['province_id']))
-            ->when($request->filled('regency_id'), fn (Builder $query) => $query->where('regency_id', $filters['regency_id']))
+            ->when($request->filled('search'), function (Builder $query) use ($filters) {
+                $term = '%'.$filters['search'].'%';
+                $query->where(function (Builder $q) use ($term) {
+                    $q->where('title', 'like', $term)
+                        ->orWhere('description', 'like', $term);
+                });
+            })
+            ->when(! empty($filters['province_id']), fn (Builder $query) => $query->where('province_id', $filters['province_id']))
+            ->when(! empty($filters['regency_id']), fn (Builder $query) => $query->where('regency_id', $filters['regency_id']))
             ->when($request->filled('category'), fn (Builder $query) => $query->where('category', $filters['category']))
             ->when($request->filled('date_from'), fn (Builder $query) => $query->whereDate('work_date', '>=', $filters['date_from']))
             ->when($request->filled('date_to'), fn (Builder $query) => $query->whereDate('work_date', '<=', $filters['date_to']))
@@ -52,11 +74,35 @@ class GigController extends Controller
     public function create(Request $request): Response
     {
         $this->authorize('create', Gig::class);
+        $user = $request->user();
 
         return Inertia::render('app/gigs/create', [
             'categories' => GigCategory::values(),
             'today' => now(config('app.timezone'))->toDateString(),
+            'default_province_id' => $user?->province_id,
+            'default_regency_id' => $user?->regency_id,
         ]);
+    }
+
+    public function enhance(EnhanceGigRequest $request, GigEnhancementService $gigEnhancementService): JsonResponse
+    {
+        $validated = $request->validated();
+
+        try {
+            return response()->json([
+                'value' => $gigEnhancementService->enhance(
+                    $validated['field'],
+                    $validated['value'] ?? null,
+                    $validated['context'] ?? [],
+                ),
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'error' => 'Peningkatan gagal.',
+            ], 500);
+        }
     }
 
     public function store(StoreGigRequest $request, CreateGig $createGig): RedirectResponse
@@ -101,15 +147,52 @@ class GigController extends Controller
     {
         $this->authorize('viewOwned', Gig::class);
 
-        $gigs = Gig::query()
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'string', Rule::in([
+                'all',
+                GigStatus::Open->value,
+                GigStatus::InProgress->value,
+                GigStatus::AgreementPreparation->value,
+                GigStatus::Completed->value,
+                GigStatus::Cancelled->value,
+                GigStatus::DisputeResolved->value,
+            ])],
+        ]);
+
+        $query = Gig::query()
             ->forClient($request->user())
             ->with(['client', 'media'])
-            ->withCount(['offers as pending_applicants_count' => fn (Builder $query) => $query->pending()])
-            ->latest()
-            ->paginate(15);
+            ->withCount(['offers as pending_applicants_count' => fn (Builder $query) => $query->pending()]);
+
+        if (! empty($validated['search'])) {
+            $term = '%'.$validated['search'].'%';
+            $query->where(function (Builder $q) use ($term) {
+                $q->where('title', 'like', $term)
+                    ->orWhere('description', 'like', $term);
+            });
+        }
+
+        $status = $validated['status'] ?? 'all';
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $terminalStatuses = [
+            GigStatus::Completed->value,
+            GigStatus::Cancelled->value,
+            GigStatus::DisputeResolved->value,
+        ];
+
+        $gigs = $query
+            ->orderByRaw('CASE WHEN status NOT IN (?, ?, ?) THEN 1 ELSE 0 END DESC', $terminalStatuses)
+            ->orderByDesc('updated_at')
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('app/client/gigs/index', [
             'gigs' => GigResource::collection($gigs),
+            'filters' => array_merge(['status' => $status], $validated),
         ]);
     }
 
@@ -117,15 +200,61 @@ class GigController extends Controller
     {
         $this->authorize('viewApplicants', $gig);
 
-        $offers = GigOffer::query()
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'string', Rule::in([
+                'all',
+                GigOfferStatus::PENDING->value,
+                GigOfferStatus::ACCEPTED->value,
+                GigOfferStatus::REJECTED->value,
+                GigOfferStatus::WITHDRAWN->value,
+                GigOfferStatus::AUTO_WITHDRAWN->value,
+            ])],
+        ]);
+
+        $query = GigOffer::query()
             ->forGig($gig->id)
-            ->with(['freelancer.freelancerProfile'])
+            ->with(['freelancer.freelancerProfile']);
+
+        if (! empty($validated['search'])) {
+            $term = '%'.$validated['search'].'%';
+            $query->where(function (Builder $q) use ($term) {
+                $q->where('gig_offers.note', 'like', $term)
+                    ->orWhereHas('freelancer', function (Builder $fq) use ($term) {
+                        $fq->where('name', 'like', $term)
+                            ->orWhereHas('freelancerProfile', function (Builder $pq) use ($term) {
+                                $pq->where('title', 'like', $term)
+                                    ->orWhere('skills', 'like', $term);
+                            });
+                    });
+            });
+        }
+
+        $status = $validated['status'] ?? 'all';
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $offers = $query
+            ->orderByRaw('CASE status WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 WHEN ? THEN 4 WHEN ? THEN 5 ELSE 6 END', [
+                GigOfferStatus::PENDING->value,
+                GigOfferStatus::ACCEPTED->value,
+                GigOfferStatus::REJECTED->value,
+                GigOfferStatus::WITHDRAWN->value,
+                GigOfferStatus::AUTO_WITHDRAWN->value,
+            ])
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('app/client/gigs/applicants', [
             'gig' => GigResource::make($gig->load(['client', 'media']))->resolve($request),
             'offers' => GigOfferResource::collection($offers),
+            'filters' => array_merge(['status' => $status], $validated),
+            'pendingOffersCount' => GigOffer::query()
+                ->forGig($gig->id)
+                ->where('status', GigOfferStatus::PENDING->value)
+                ->count(),
         ]);
     }
 

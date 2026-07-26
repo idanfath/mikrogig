@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -35,6 +36,9 @@ class GigResource extends JsonResource
             'location_accuracy_meters' => $this->when($canSeeExactLocation, $this->location_accuracy_meters),
             'work_date' => $this->work_date->toDateString(),
             'start_time' => $this->start_time === null ? null : substr($this->start_time, 0, 5),
+            'scheduled_at' => $this->work_date && $this->start_time
+                ? CarbonImmutable::parse($this->work_date->toDateString().' '.$this->start_time, config('app.timezone'))->toIso8601String()
+                : null,
             'posted_fee' => $this->posted_fee,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

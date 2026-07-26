@@ -28,6 +28,23 @@ const compressionProfiles: Record<
       maxWidthOrHeight: 2048,
     },
   },
+  gig_photo: {
+    high: {
+      preserveExif: false,
+      maxSizeMB: 2,
+      maxWidthOrHeight: 1920,
+    },
+    medium: {
+      preserveExif: false,
+      maxSizeMB: 3,
+      maxWidthOrHeight: 1920,
+    },
+    low: {
+      preserveExif: false,
+      maxSizeMB: 4.5,
+      maxWidthOrHeight: 1920,
+    },
+  },
 };
 
 export function categorizeDeviceCapabilities(): CompressionLevelType {
@@ -86,13 +103,20 @@ export async function compressImage(
       toast.loading(`Mengompres gambar...`);
     }
 
-    const compressed = await imageCompression(file, {
+    const compressedBlob = await imageCompression(file, {
       useWebWorker: true,
       onProgress: onProgress,
       ...profileOptions,
       ...(skipQualityCompression && {
         maxSizeMB: file.size / (1024 * 1024) + 1,
       }),
+    });
+
+    const extension = file.name.split('.').pop() || 'jpg';
+    const fileName = file.name.includes('.') ? file.name : `image.${extension}`;
+    const compressed = new File([compressedBlob], fileName, {
+      type: compressedBlob.type || file.type,
+      lastModified: Date.now(),
     });
 
     if (doToast) {
@@ -113,19 +137,24 @@ export async function compressImage(
   }
 }
 
-export function getImageSizeHuman(size: number | File): string {
-  if (size instanceof File) {
-    size = size.size;
-  }
+export function getImageSizeHuman(
+  size: number | File | { size?: number },
+): string {
+  const bytes =
+    typeof size === 'number'
+      ? size
+      : typeof size === 'object' && size !== null && typeof size.size === 'number'
+        ? size.size
+        : 0;
 
-  if (size < 1024) {
-    return `${size} B`;
-  } else if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(1)} KB`;
-  } else if (size < 1024 * 1024 * 1024) {
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  } else if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  } else if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   } else {
-    return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
 }
 

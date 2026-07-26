@@ -1,14 +1,8 @@
-import { format, subYears } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { CalendarIcon, Loader2, MapPin } from 'lucide-react';
+import { subYears } from 'date-fns';
+import { Loader2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -79,40 +73,17 @@ function ProfileLocationFields({
           <FieldLabel htmlFor="date_of_birth">Tanggal lahir</FieldLabel>
           <PrivacyTooltip />
         </div>
-        <Popover open={calendarOpen} onOpenChange={onCalendarOpenChange}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              id="date_of_birth"
-              className="w-full justify-start font-normal"
-              disabled={processing}
-            >
-              <CalendarIcon data-icon="inline-start" />
-              {selectedBirthDate
-                ? format(selectedBirthDate, 'dd MMMM yyyy', { locale: id })
-                : 'Pilih tanggal lahir'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedBirthDate}
-              captionLayout="dropdown"
-              defaultMonth={defaultBirthMonth}
-              disabled={{ after: maximumBirthDate }}
-              onSelect={(date) => {
-                if (date) {
-                  onDateOfBirthChange(
-                    format(date, 'yyyy-MM-dd', { locale: id }),
-                  );
-                }
-
-                onCalendarOpenChange(false);
-              }}
-            />
-          </PopoverContent>
-        </Popover>
+        <DatePicker
+          id="date_of_birth"
+          value={dateOfBirth}
+          onChange={onDateOfBirthChange}
+          disabled={processing}
+          maxDate={maximumBirthDate}
+          captionLayout="dropdown"
+          defaultMonth={defaultBirthMonth}
+          placeholder="Pilih tanggal lahir"
+          mobileLarge
+        />
         <FieldError>{errors.date_of_birth}</FieldError>
       </Field>
       <Field data-invalid={Boolean(errors.province_id)}>
@@ -128,7 +99,7 @@ function ProfileLocationFields({
           }}
           disabled={processing || loadingProvinces}
         >
-          <SelectTrigger id="province_id" className="h-11 w-full">
+          <SelectTrigger id="province_id" className="w-full" mobileLarge>
             <SelectValue
               placeholder={loadingProvinces ? 'Memuat...' : 'Pilih provinsi'}
             />
@@ -162,7 +133,7 @@ function ProfileLocationFields({
           }}
           disabled={processing || loadingRegencies || !provinceId}
         >
-          <SelectTrigger id="regency_id" className="h-11 w-full">
+          <SelectTrigger id="regency_id" className="w-full" mobileLarge>
             <SelectValue
               placeholder={
                 loadingRegencies ? 'Memuat...' : 'Pilih kabupaten / kota'

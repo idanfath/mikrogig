@@ -8,6 +8,7 @@ export type CompressionLevelType =
 
 export const CompressionProfiles = {
   ProfilePicture: 'profile_picture',
+  GigPhoto: 'gig_photo',
 } as const;
 export type CompressionProfileType =
   (typeof CompressionProfiles)[keyof typeof CompressionProfiles];

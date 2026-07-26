@@ -69,8 +69,22 @@ final class ProceedWithLockedGigExit
             return [$locked->refresh(), $locked->responder_id];
         }, attempts: 3);
 
+        $settlement = $result->gig->settlement;
+        $refundText = 'Pengembalian dana ke klien sebesar Rp '.number_format($settlement?->client_refund ?? 0, 0, ',', '.');
+        if (($settlement?->freelancer_payout ?? 0) > 0) {
+            $refundText .= ' dan pembayaran ke freelancer Rp '.number_format($settlement->freelancer_payout, 0, ',', '.');
+        }
+
         try {
-            $this->notifications->send('Permintaan keluar gig dieksekusi', NotificationTargetType::User, $actor->id, 'Permintaan keluar gig telah dieksekusi.', [$recipientId], action_url: route('app.gigs.workflow.show', $result->gig_id), action_label: 'Lihat Workflow');
+            $this->notifications->send(
+                'Permintaan Keluar Gig Dieksekusi',
+                NotificationTargetType::User,
+                $actor->id,
+                "{$actor->name} mengeksekusi pembatalan sepihak untuk gig \"{$result->gig->title}\". {$refundText}.",
+                [$recipientId],
+                action_url: route('app.gigs.workflow.show', $result->gig_id),
+                action_label: 'Lihat Workflow'
+            );
         } catch (Throwable $exception) {
             report($exception);
         }

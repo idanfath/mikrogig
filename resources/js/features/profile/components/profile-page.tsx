@@ -141,7 +141,7 @@ export function ProfilePage({
     <TooltipProvider>
       <AppPage>
         <form onSubmit={submit} className="flex w-full flex-col gap-6">
-          <AppPageCard className="flex flex-col gap-5">
+          <AppPageCard className="relative flex flex-col gap-5">
             <ProfileHeader
               profile={profile}
               avatarUrl={avatarSelection.displayedUrl}
@@ -153,7 +153,7 @@ export function ProfilePage({
             {is_owner && editing && (
               <AvatarActions
                 fileInputRef={avatarSelection.inputRef}
-                processing={form.processing}
+                processing={form.processing || avatarSelection.isProcessing}
                 hasAvatar={Boolean(avatarSelection.displayedUrl)}
                 canRemove={
                   form.data.avatar !== null ||
@@ -161,6 +161,7 @@ export function ProfilePage({
                 }
                 onSelect={avatarSelection.handleFileChange}
                 onRemove={removeAvatar}
+                selectionError={avatarSelection.selectionError}
               />
             )}
 
@@ -214,7 +215,9 @@ export function ProfilePage({
             )}
           </AppPageCard>
 
-          <ProfileRatings ratingSummary={profile.rating_summary} />
+          {!editing && (
+            <ProfileRatings ratingSummary={profile.rating_summary} />
+          )}
 
           {editing && isFreelancer && (
             <AppPageCard>

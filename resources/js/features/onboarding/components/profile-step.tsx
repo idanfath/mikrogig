@@ -76,7 +76,7 @@ export function ProfileStep({
 
   return (
     <form onSubmit={submit} className="flex flex-1 flex-col items-center gap-4">
-      <div className="w-full max-w-xl rounded-2xl border border-neutral-100 bg-white p-8 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="w-full max-w-xl rounded-2xl border bg-card p-6 sm:p-8 text-card-foreground shadow-xs">
         <FieldGroup>
           {isFreelancer && (
             <FreelancerFields

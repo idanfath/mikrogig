@@ -54,7 +54,15 @@ final class WithdrawLockedGigExit
         }, attempts: 3);
 
         try {
-            $this->notifications->send('Permintaan keluar gig ditarik', NotificationTargetType::User, $actor->id, 'Permintaan keluar gig telah ditarik.', [$responderId], action_url: route('app.gigs.workflow.show', $result->gig_id), action_label: 'Lihat Workflow');
+            $this->notifications->send(
+                'Permintaan Keluar Ditarik',
+                NotificationTargetType::User,
+                $actor->id,
+                "{$actor->name} telah menarik kembali pengajuan keluar dari gig \"{$result->gig->title}\".",
+                [$responderId],
+                action_url: route('app.gigs.workflow.show', $result->gig_id),
+                action_label: 'Lihat Workflow'
+            );
         } catch (Throwable $exception) {
             report($exception);
         }

@@ -80,12 +80,15 @@ final class AutoAcceptGigFinishRequest
         }, attempts: 3);
 
         if ($changed) {
+            $settlement = $accepted->gig->settlement;
+            $amountFormatted = number_format($settlement?->freelancer_payout ?? 0, 0, ',', '.');
+
             try {
                 $this->notifications->send(
-                    'Penyelesaian gig diterima otomatis',
+                    'Penyelesaian Gig Otomatis & Dana Dicairkan',
                     NotificationTargetType::Users,
                     null,
-                    'Batas tinjauan berakhir. Gig selesai dan payout penuh telah dicatat.',
+                    "Batas waktu tinjauan berakhir. Pekerjaan gig \"{$accepted->gig->title}\" otomatis diselesaikan dan dana sebesar Rp {$amountFormatted} telah dicairkan.",
                     $participantIds,
                     action_url: route('app.gigs.workflow.show', $accepted->gig_id),
                     action_label: 'Lihat Penyelesaian',

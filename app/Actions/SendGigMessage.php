@@ -110,13 +110,13 @@ class SendGigMessage
 
         try {
             $this->notifications->send(
-                title: "Pesan baru dari {$sender->name}",
+                title: "Pesan Baru dari {$sender->name}",
                 targetType: NotificationTargetType::User,
                 createdBy: $sender->id,
-                body: $body ?: 'Mengirim gambar dalam percakapan gig.',
+                body: "{$sender->name} mengirimkan pesan baru pada workflow gig \"{$persisted->gig->title}\".",
                 recipientIds: [$recipient->id],
                 action_url: route('app.gig_conversations.destination', $persisted),
-                action_label: 'Buka percakapan',
+                action_label: 'Buka Percakapan',
             );
         } catch (Throwable $exception) {
             report($exception);

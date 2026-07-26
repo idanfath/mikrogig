@@ -81,10 +81,10 @@ final class RejectGigFinishRequest
 
         try {
             $this->notifications->send(
-                'Penyelesaian gig ditolak',
+                'Permintaan Revisi Pekerjaan',
                 NotificationTargetType::User,
                 $client->id,
-                'Klien menolak bukti penyelesaian. Anda dapat memperbaiki dan mengirim ulang atau menyengketakan penolakan terbaru.',
+                "{$client->name} meminta revisi pada pengajuan hasil pekerjaan gig \"{$rejected->gig->title}\". Catatan revisi: {$reason}",
                 [$freelancerId],
                 action_url: route('app.gigs.workflow.show', $rejected->gig_id),
                 action_label: 'Lihat Alasan',

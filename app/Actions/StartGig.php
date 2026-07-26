@@ -53,7 +53,15 @@ final class StartGig
             return [$lockedGig->refresh(), $lockedGig->client_id];
         }, attempts: 3);
         try {
-            $this->notifications->send('Pekerjaan dimulai', NotificationTargetType::User, $clientId, 'Klien telah memulai pekerjaan gig.', [$freelancerId], action_url: route('app.gigs.workflow.show', $gig), action_label: 'Lihat Workflow');
+            $this->notifications->send(
+                'Pekerjaan Dimulai',
+                NotificationTargetType::User,
+                $clientId,
+                "{$client->name} telah resmi memulai pekerjaan untuk gig \"{$gig->title}\". Silakan periksa halaman workflow untuk melihat instruksi dan memulai pengerjaan.",
+                [$freelancerId],
+                action_url: route('app.gigs.workflow.show', $gig),
+                action_label: 'Lihat Workflow'
+            );
         } catch (Throwable $exception) {
             report($exception);
         }

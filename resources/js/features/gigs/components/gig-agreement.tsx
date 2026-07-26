@@ -11,6 +11,7 @@ import {
 import { show as showPayment } from '@/actions/App/Http/Controllers/GigPaymentController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { show as workflow } from '@/routes/app/gigs/workflow';
@@ -49,6 +50,7 @@ export function GigAgreementPage({
       agreement.location_arrangement ?? gig.location_address,
     delivery_expectations: agreement.delivery_expectations ?? '',
     final_total_price: agreement.final_total_price?.toString() ?? '',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
   const changes = useForm({ note: '' });
   const termsSubmitted = agreement.submitted_at !== null;
@@ -99,12 +101,11 @@ export function GigAgreementPage({
                 placeholder="Lingkup pekerjaan"
               />
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input
-                  type="date"
+                <DatePicker
                   value={terms.data.work_date}
-                  onChange={(event) =>
-                    terms.setData('work_date', event.target.value)
-                  }
+                  onChange={(val) => terms.setData('work_date', val)}
+                  minDate={new Date()}
+                  placeholder="Pilih tanggal kerja"
                 />
                 <Input
                   type="time"

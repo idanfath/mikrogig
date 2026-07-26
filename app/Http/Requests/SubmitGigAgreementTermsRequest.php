@@ -32,20 +32,48 @@ class SubmitGigAgreementTermsRequest extends FormRequest
             'location_arrangement' => ['required', 'string', 'max:1000'],
             'delivery_expectations' => ['required', 'string', 'max:5000'],
             'final_total_price' => ['required', 'integer', 'min:1000', 'max:1000000000'],
+            'timezone' => ['nullable', 'string', 'timezone'],
         ];
     }
 
     public function after(): array
     {
         return [function ($validator): void {
-            if ($validator->errors()->isNotEmpty() || $this->input('work_date') !== now(config('app.timezone'))->toDateString()) {
+            if ($validator->errors()->isNotEmpty()) {
                 return;
             }
 
-            $schedule = CarbonImmutable::parse("{$this->input('work_date')} {$this->input('start_time')}", config('app.timezone'));
-            if (! $schedule->isFuture()) {
-                $validator->errors()->add('start_time', 'Waktu mulai harus di masa depan.');
+            $userTz = $this->input('timezone') ?: config('app.timezone');
+            try {
+                $schedule = CarbonImmutable::parse("{$this->input('work_date')} {$this->input('start_time')}", $userTz)
+                    ->setTimezone(config('app.timezone'));
+
+                if (! $schedule->isFuture()) {
+                    $validator->errors()->add('start_time', 'Waktu mulai harus di masa depan.');
+                }
+            } catch (\Throwable) {
+                $validator->errors()->add('timezone', 'Zona waktu tidak valid.');
             }
         }];
+    }
+
+    public function validated($key = null, $default = null): array
+    {
+        $validated = parent::validated($key, $default);
+        if (! empty($validated['work_date']) && ! empty($validated['start_time'])) {
+            $userTz = $this->input('timezone') ?: config('app.timezone');
+            try {
+                $schedule = CarbonImmutable::parse("{$validated['work_date']} {$validated['start_time']}", $userTz)
+                    ->setTimezone(config('app.timezone'));
+
+                $validated['work_date'] = $schedule->toDateString();
+                $validated['start_time'] = $schedule->format('H:i');
+            } catch (\Throwable) {
+                // Keep original if parsing fails
+            }
+        }
+        unset($validated['timezone']);
+
+        return $validated;
     }
 }

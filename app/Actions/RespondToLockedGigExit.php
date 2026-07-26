@@ -72,9 +72,24 @@ final class RespondToLockedGigExit
             return [$lockedRequest->refresh(), [$lockedRequest->requester_id, $lockedRequest->responder_id], 'Permintaan keluar gig disetujui dan gig dibatalkan.'];
         }, attempts: 3);
 
+        $settlement = $result->gig->settlement;
+        $isRefused = $result->status === GigExitStatus::Refused;
+        $title = $isRefused ? 'Permintaan Keluar Gig Ditolak' : 'Permintaan Keluar Gig Disetujui';
+        $bodyMessage = $isRefused
+            ? "{$actor->name} menolak permintaan keluar untuk gig \"{$result->gig->title}\"."
+            : "{$actor->name} menyetujui permintaan keluar untuk gig \"{$result->gig->title}\". Gig dibatalkan dan pengembalian dana sebesar Rp ".number_format($settlement?->client_refund ?? 0, 0, ',', '.').' diproses ke klien.';
+
         foreach ($recipientIds as $recipientId) {
             try {
-                $this->notifications->send('Respons permintaan keluar gig', NotificationTargetType::User, $actor->id, $message, [$recipientId], action_url: route('app.gigs.workflow.show', $result->gig_id), action_label: 'Lihat Workflow');
+                $this->notifications->send(
+                    $title,
+                    NotificationTargetType::User,
+                    $actor->id,
+                    $bodyMessage,
+                    [$recipientId],
+                    action_url: route('app.gigs.workflow.show', $result->gig_id),
+                    action_label: 'Lihat Workflow'
+                );
             } catch (Throwable $exception) {
                 report($exception);
             }

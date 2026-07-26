@@ -63,13 +63,15 @@ function BasicFields({
   return (
     <FieldGroup>
       <Field data-invalid={Boolean(errors.name)}>
-        <FieldLabel htmlFor="name">Nama</FieldLabel>
+        <FieldLabel htmlFor="name">Nama Lengkap</FieldLabel>
         <Input
           id="name"
+          placeholder="Masukkan nama lengkap Anda"
           value={name}
           onChange={(event) => onNameChange(event.target.value)}
           aria-invalid={Boolean(errors.name)}
           disabled={processing}
+          mobileLarge
         />
         <FieldError>{errors.name}</FieldError>
       </Field>

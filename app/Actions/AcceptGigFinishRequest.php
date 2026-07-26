@@ -81,12 +81,15 @@ final class AcceptGigFinishRequest
             return [$locked->refresh(), $freelancer->id];
         }, attempts: 3);
 
+        $settlement = $accepted->gig->settlement;
+        $amountFormatted = number_format($settlement?->freelancer_payout ?? 0, 0, ',', '.');
+
         try {
             $this->notifications->send(
-                'Penyelesaian gig diterima',
+                'Pekerjaan Selesai & Dana Dicairkan',
                 NotificationTargetType::User,
                 $client->id,
-                'Klien menerima bukti penyelesaian dan payout penuh telah dicatat.',
+                "Hasil pekerjaan gig \"{$accepted->gig->title}\" telah disetujui. Dana sebesar Rp {$amountFormatted} telah dicairkan ke saldo Anda.",
                 [$freelancerId],
                 action_url: route('app.gigs.workflow.show', $accepted->gig_id),
                 action_label: 'Lihat Penyelesaian',

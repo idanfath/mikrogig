@@ -2,21 +2,23 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type ProfileEnhanceButtonProps = {
+type EnhanceButtonProps = {
   available: boolean;
   loading: boolean;
   idleLabel: string;
   loadingLabel?: string;
   onClick: () => void;
+  className?: string;
 };
 
-function ProfileEnhanceButton({
+function EnhanceButton({
   available,
   loading,
   idleLabel,
   loadingLabel = 'Memproses...',
   onClick,
-}: ProfileEnhanceButtonProps) {
+  className,
+}: EnhanceButtonProps) {
   if (!available && !loading) {
     return null;
   }
@@ -26,7 +28,7 @@ function ProfileEnhanceButton({
       type="button"
       size="sm"
       variant="outline"
-      className="h-8 gap-1.5 text-xs"
+      className={cn('h-8 gap-1.5 text-xs', className)}
       onClick={onClick}
       disabled={!available}
     >
@@ -39,4 +41,4 @@ function ProfileEnhanceButton({
   );
 }
 
-export { ProfileEnhanceButton };
+export { EnhanceButton };

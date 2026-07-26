@@ -70,7 +70,7 @@ final class LeaveGigAgreementPreparation
     {
         try {
             $this->notificationService->send(
-                title: 'Freelancer meninggalkan persiapan',
+                title: 'Freelancer Meninggalkan Persiapan',
                 targetType: NotificationTargetType::User,
                 createdBy: $freelancerId,
                 body: 'Freelancer meninggalkan persiapan persetujuan dan gig dibuka kembali.',

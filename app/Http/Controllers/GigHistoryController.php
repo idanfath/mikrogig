@@ -26,6 +26,7 @@ class GigHistoryController extends Controller
         abort_unless(in_array($user->role, [UserRole::Client, UserRole::Freelancer], true), 403);
 
         $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', Rule::in([
                 'all',
                 GigStatus::Completed->value,
@@ -42,7 +43,14 @@ class GigHistoryController extends Controller
                 'settlement',
                 'dispute:id,gig_id,resolved_at',
                 'ratings:id,gig_id,rater_id,recipient_id,score',
-            ]);
+            ])
+            ->when($request->filled('search'), function (Builder $query) use ($request) {
+                $term = '%'.$request->input('search').'%';
+                $query->where(function (Builder $q) use ($term) {
+                    $q->where('title', 'like', $term)
+                        ->orWhere('description', 'like', $term);
+                });
+            });
 
         if ($user->role === UserRole::Client) {
             $query->where('client_id', $user->id);
@@ -64,7 +72,7 @@ class GigHistoryController extends Controller
 
         return Inertia::render('app/history/index', [
             'gigs' => $gigs,
-            'filters' => ['status' => $status],
+            'filters' => array_merge(['status' => $status], $validated),
         ]);
     }
 

@@ -114,7 +114,7 @@ export type HistoryDispute = {
 
 export type HistoryIndexProps = {
   gigs: Paginated<HistorySummary>;
-  filters: { status: string };
+  filters: { status: string; search?: string };
 };
 
 export type HistoryShowProps = {

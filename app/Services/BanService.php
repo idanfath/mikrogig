@@ -86,9 +86,9 @@ class BanService
 
         $this->notifications->send(
             createdBy: $admin ? $admin->id : null,
-            title: 'Your ban has been lifted',
+            title: 'Suspensi Telah Dicabut',
             targetType: NotificationTargetType::User,
-            body: 'Your ban has been lifted. Please adhere to the community guidelines to avoid future bans.',
+            body: 'Suspensi Anda telah dicabut. Patuhi pedoman komunitas untuk menghindari penangguhan di masa mendatang.',
             recipientIds: [$target->id],
             sendEmail: $this->sendEmail
         );
@@ -108,9 +108,9 @@ class BanService
 
         $this->notifications->send(
             createdBy: $admin ? $admin->id : null,
-            title: 'Your ban has been extended',
+            title: 'Masa Suspensi Diperpanjang',
             targetType: NotificationTargetType::User,
-            body: "Your ban has been extended until {$newUntil}. Please adhere to the community guidelines to avoid future bans.",
+            body: "Masa suspensi Anda diperpanjang hingga {$newUntil}. Patuhi pedoman komunitas untuk menghindari penangguhan di masa mendatang.",
             recipientIds: [$target->id],
             sendEmail: true
         );
@@ -129,7 +129,7 @@ class BanService
                     ->toIso8601String().'.';
 
             $this->notifications->send(
-                title: 'Akun ditangguhkan',
+                title: 'Akun Ditangguhkan',
                 targetType: NotificationTargetType::User,
                 createdBy: $createdBy,
                 body: "Alasan: {$reason}. {$status}",

@@ -105,10 +105,10 @@ final class SubmitGigFinishRequest
 
         try {
             $this->notifications->send(
-                'Pekerjaan siap ditinjau',
+                'Pengajuan Hasil Pekerjaan',
                 NotificationTargetType::User,
                 $freelancer->id,
-                'Pekerja telah mengirim bukti penyelesaian gig.',
+                "{$freelancer->name} telah mengajukan penyerahan hasil pekerjaan untuk gig \"{$gig->title}\".",
                 [$clientId],
                 action_url: route('app.gigs.workflow.show', $gig),
                 action_label: 'Tinjau Pekerjaan',

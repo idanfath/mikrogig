@@ -161,7 +161,7 @@ final class OpenGigDispute
 
         try {
             $this->notifications->send(
-                'Sengketa gig dibuka',
+                'Sengketa Gig Dibuka',
                 NotificationTargetType::User,
                 $reporter->id,
                 'Anda perlu menanggapi sengketa gig.',
@@ -175,7 +175,7 @@ final class OpenGigDispute
 
         try {
             $this->notifications->send(
-                'Sengketa gig baru dibuka',
+                'Sengketa Gig Baru Dibuka',
                 NotificationTargetType::Role,
                 $reporter->id,
                 'Sengketa gig baru telah dibuka dan menunggu counterproof.',

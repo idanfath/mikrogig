@@ -67,7 +67,7 @@ final class RequestGigAgreementChanges
     {
         try {
             $this->notificationService->send(
-                title: 'Freelancer meminta perubahan',
+                title: 'Freelancer Meminta Perubahan',
                 targetType: NotificationTargetType::User,
                 createdBy: $freelancerId,
                 body: 'Freelancer meminta perubahan pada syarat gig.',

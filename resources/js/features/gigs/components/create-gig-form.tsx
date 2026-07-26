@@ -1,25 +1,53 @@
 import { useForm } from '@inertiajs/react';
-import { Loader2, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { getGigCategoryLabel } from '@/types/enum';
 import type { FormEvent } from 'react';
+import toast from 'react-hot-toast';
 import { store } from '@/actions/App/Http/Controllers/GigController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
+import { EnhanceButton } from '@/components/ui/enhance-button';
+import { ImagePicker } from '@/components/ui/image-picker';
 import { Input } from '@/components/ui/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useGigEnhance } from '@/features/gigs/hooks/use-gig-enhance';
 import { useDetectLocation } from '@/features/regions/hooks/use-detect-location';
 import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
+import { compressImage } from '@/lib/image_utility';
+import { CompressionProfiles } from '@/types/client_enum';
+import { getGigCategoryLabel } from '@/types/enum';
 
-type CreateGigFormProps = { categories: string[]; today: string };
+type CreateGigFormProps = {
+  categories: string[];
+  today: string;
+  default_province_id?: string | null;
+  default_regency_id?: string | null;
+};
 
-export function CreateGigForm({ categories, today }: CreateGigFormProps) {
+export function CreateGigForm({
+  categories,
+  today,
+  default_province_id,
+  default_regency_id,
+}: CreateGigFormProps) {
   const form = useForm({
     title: '',
     description: '',
     category: '',
-    province_id: '',
-    regency_id: '',
+    province_id: default_province_id ?? '',
+    regency_id: default_regency_id ?? '',
     location_address: '',
     location_latitude: '',
     location_longitude: '',
@@ -27,218 +55,279 @@ export function CreateGigForm({ categories, today }: CreateGigFormProps) {
     work_date: today,
     start_time: '',
     posted_fee: '',
-    photos: [] as File[],
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
-  const [previews, setPreviews] = useState<string[]>([]);
-  const { detecting, detectLocation } = useDetectLocation();
+  // photos stay out of the inertia form. setData deep-clones the whole form on every keystroke,
+  // which replaced every File object and churned the preview blob urls
+  const [photos, setPhotos] = useState<File[]>([]);
+  const { detectLocation } = useDetectLocation();
   const { provinces, regencies } = useRegionSelect({
     provinceId: form.data.province_id,
     regencyId: form.data.regency_id,
   });
-  useEffect(() => () => previews.forEach(URL.revokeObjectURL), [previews]);
+  useEffect(() => {
+    detectLocation((location) => {
+      form.setData((data) => ({
+        ...data,
+        location_latitude:
+          location.latitude?.toString() ?? data.location_latitude,
+        location_longitude:
+          location.longitude?.toString() ?? data.location_longitude,
+        location_accuracy_meters: location.accuracy
+          ? Math.round(location.accuracy).toString()
+          : data.location_accuracy_meters,
+      }));
+    });
+  }, []);
 
-  const selectPhotos = (files: FileList | null) => {
-    const selected = Array.from(files ?? []).slice(0, 5);
-    previews.forEach(URL.revokeObjectURL);
-    setPreviews(selected.map((file) => URL.createObjectURL(file)));
-    form.setData('photos', selected);
-  };
-  const removePhoto = (index: number) => {
-    URL.revokeObjectURL(previews[index]);
-    setPreviews((items) => items.filter((_, itemIndex) => itemIndex !== index));
-    form.setData(
-      'photos',
-      form.data.photos.filter((_, itemIndex) => itemIndex !== index),
-    );
-  };
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    form.post(store.url(), { forceFormData: true });
+    form.transform((data) => ({ ...data, photos }));
+    form.post(store.url(), {
+      forceFormData: true,
+      onError: () => {
+        toast.error('Gagal menerbitkan Gig. Periksa pesan kesalahan pada formulir.');
+      },
+    });
   };
+
+  const photoError = Object.entries(form.errors).find(
+    ([key]) => key === 'photos' || key.startsWith('photos.'),
+  )?.[1];
+
   const error = (key: keyof typeof form.errors) =>
     form.errors[key] && (
       <p className="text-sm text-destructive">{form.errors[key]}</p>
     );
 
+  const {
+    enhancingTitle,
+    enhancingDescription,
+    canEnhanceTitle,
+    canEnhanceDescription,
+    enhanceTitle,
+    enhanceDescription,
+  } = useGigEnhance({
+    title: form.data.title,
+    description: form.data.description,
+    category: form.data.category,
+    formProcessing: form.processing,
+    onTitleChange: (val) => form.setData('title', val),
+    onDescriptionChange: (val) => form.setData('description', val),
+  });
+
   return (
-    <AppPage title="Buat Gig">
+    <AppPage
+      title="Buat Gig"
+      description="Isi detail pekerjaan mikro yang ingin Anda publikasikan untuk menemukan pekerja lokal terbaik."
+    >
       <form onSubmit={submit} className="flex flex-col gap-6">
         <AppPageCard className="grid gap-4">
-          <Input
-            placeholder="Judul"
-            value={form.data.title}
-            onChange={(e) => form.setData('title', e.target.value)}
-          />
-          {error('title')}
-          <Textarea
-            placeholder="Deskripsi"
-            value={form.data.description}
-            onChange={(e) => form.setData('description', e.target.value)}
-          />
-          {error('description')}
-          <select
-            className="h-9 rounded-md border bg-background px-2"
-            value={form.data.category}
-            onChange={(e) => form.setData('category', e.target.value)}
-          >
-            <option value="">Kategori</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {getGigCategoryLabel(category)}
-              </option>
-            ))}
-          </select>
-          {error('category')}
-          <select
-            className="h-9 rounded-md border bg-background px-2"
-            value={form.data.province_id}
-            onChange={(e) =>
-              form.setData({
-                ...form.data,
-                province_id: e.target.value,
-                regency_id: '',
-              })
-            }
-          >
-            <option value="">Provinsi</option>
-            {provinces.map((province) => (
-              <option key={province.id} value={province.id}>
-                {province.name}
-              </option>
-            ))}
-          </select>
-          {error('province_id')}
-          <select
-            className="h-9 rounded-md border bg-background px-2"
-            value={form.data.regency_id}
-            onChange={(e) => form.setData('regency_id', e.target.value)}
-          >
-            <option value="">Kabupaten/kota</option>
-            {regencies.map((regency) => (
-              <option key={regency.id} value={regency.id}>
-                {regency.name}
-              </option>
-            ))}
-          </select>
-          {error('regency_id')}
-          <Textarea
-            placeholder="Alamat lengkap"
-            value={form.data.location_address}
-            onChange={(e) => form.setData('location_address', e.target.value)}
-          />
-          {error('location_address')}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() =>
-              detectLocation((location) => {
-                form.setData((data) => ({
-                  ...data,
-                  province_id: location.province_id,
-                  regency_id: location.regency_id,
-                  location_latitude:
-                    location.latitude?.toString() ?? data.location_latitude,
-                  location_longitude:
-                    location.longitude?.toString() ?? data.location_longitude,
-                  location_accuracy_meters:
-                    location.accuracy?.toString() ??
-                    data.location_accuracy_meters,
-                }));
-              })
-            }
-            disabled={detecting}
-            className="w-full"
-          >
-            {detecting ? (
-              <Loader2
-                className="animate-spin text-primary"
-                data-icon="inline-start"
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <span className="text-sm font-medium">Judul Pekerjaan</span>
+              <EnhanceButton
+                available={canEnhanceTitle}
+                loading={enhancingTitle}
+                idleLabel="Tingkatkan Judul dengan AI"
+                onClick={enhanceTitle}
               />
-            ) : (
-              <MapPin className="text-primary" data-icon="inline-start" />
-            )}
-            {detecting
-              ? 'Mendeteksi Lokasi...'
-              : 'Gunakan Lokasi Saat Ini (GPS)'}
-          </Button>
-          <div className="grid gap-3 sm:grid-cols-2">
+            </div>
             <Input
-              type="number"
-              step="any"
-              placeholder="Latitude opsional"
-              value={form.data.location_latitude}
-              onChange={(e) =>
-                form.setData('location_latitude', e.target.value)
-              }
+              placeholder="Masukkan Judul Pekerjaan"
+              value={form.data.title}
+              onChange={(e) => form.setData('title', e.target.value)}
+              disabled={form.processing || enhancingTitle}
+              mobileLarge
             />
-            <Input
-              type="number"
-              step="any"
-              placeholder="Longitude opsional"
-              value={form.data.location_longitude}
-              onChange={(e) =>
-                form.setData('location_longitude', e.target.value)
-              }
-            />
+            {error('title')}
           </div>
-          <Input
-            type="number"
-            placeholder="Akurasi meter opsional"
+
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <span className="text-sm font-medium">Deskripsi Pekerjaan</span>
+              <EnhanceButton
+                available={canEnhanceDescription}
+                loading={enhancingDescription}
+                idleLabel="Tingkatkan Deskripsi dengan AI"
+                onClick={enhanceDescription}
+              />
+            </div>
+            <Textarea
+              placeholder="Jelaskan detail pekerjaan, kebutuhan, dan syarat"
+              value={form.data.description}
+              onChange={(e) => form.setData('description', e.target.value)}
+              disabled={form.processing || enhancingDescription}
+            />
+            {error('description')}
+          </div>
+          <div>
+            <div className="mb-1.5">
+              <span className="text-sm font-medium">Kategori Pekerjaan</span>
+            </div>
+            <Select
+              value={form.data.category}
+              onValueChange={(val) => form.setData('category', val)}
+            >
+              <SelectTrigger className="w-full" mobileLarge>
+                <SelectValue placeholder="Pilih Kategori Pekerjaan" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {getGigCategoryLabel(category)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {error('category')}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="mb-1.5">
+                <span className="text-sm font-medium">Provinsi</span>
+              </div>
+              <Select
+                value={form.data.province_id}
+                onValueChange={(val) =>
+                  form.setData({
+                    ...form.data,
+                    province_id: val,
+                    regency_id: '',
+                  })
+                }
+              >
+                <SelectTrigger className="w-full" mobileLarge>
+                  <SelectValue placeholder="Pilih Provinsi" />
+                </SelectTrigger>
+                <SelectContent>
+                  {provinces.map((province) => (
+                    <SelectItem key={province.id} value={province.id}>
+                      {province.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {error('province_id')}
+            </div>
+
+            <div>
+              <div className="mb-1.5">
+                <span className="text-sm font-medium">Kabupaten / Kota</span>
+              </div>
+              <Select
+                value={form.data.regency_id}
+                onValueChange={(val) => form.setData('regency_id', val)}
+              >
+                <SelectTrigger className="w-full" mobileLarge>
+                  <SelectValue placeholder="Pilih Kabupaten/Kota" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regencies.map((regency) => (
+                    <SelectItem key={regency.id} value={regency.id}>
+                      {regency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {error('regency_id')}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-1.5">
+              <span className="text-sm font-medium">Alamat Lengkap</span>
+            </div>
+            <Textarea
+              placeholder="Alamat lengkap lokasi pekerjaan"
+              value={form.data.location_address}
+              onChange={(e) => form.setData('location_address', e.target.value)}
+            />
+            {error('location_address')}
+          </div>
+          <input
+            type="hidden"
+            name="location_latitude"
+            value={form.data.location_latitude}
+          />
+          <input
+            type="hidden"
+            name="location_longitude"
+            value={form.data.location_longitude}
+          />
+          <input
+            type="hidden"
+            name="location_accuracy_meters"
             value={form.data.location_accuracy_meters}
-            onChange={(e) =>
-              form.setData('location_accuracy_meters', e.target.value)
-            }
           />
           <div className="grid gap-3 sm:grid-cols-3">
-            <Input
-              type="date"
-              min={today}
-              value={form.data.work_date}
-              onChange={(e) => form.setData('work_date', e.target.value)}
-            />
-            <Input
-              type="time"
-              value={form.data.start_time}
-              onChange={(e) => form.setData('start_time', e.target.value)}
-            />
-            <Input
-              type="number"
-              min="1000"
-              placeholder="Biaya Rp"
-              value={form.data.posted_fee}
-              onChange={(e) => form.setData('posted_fee', e.target.value)}
-            />
-          </div>
-          {error('work_date')}
-          {error('start_time')}
-          {error('posted_fee')}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            onChange={(e) => selectPhotos(e.target.files)}
-          />
-          {error('photos')}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {previews.map((preview, index) => (
-              <div key={preview} className="relative">
-                <img
-                  src={preview}
-                  alt="Pratinjau foto"
-                  className="aspect-square w-full rounded object-cover"
-                />
-                <Button
-                  type="button"
-                  size="xs"
-                  variant="destructive"
-                  className="absolute top-1 right-1"
-                  onClick={() => removePhoto(index)}
-                >
-                  Hapus
-                </Button>
+            <div>
+              <div className="mb-1.5">
+                <span className="text-sm font-medium">Tanggal Kerja</span>
               </div>
-            ))}
+              <DatePicker
+                value={form.data.work_date}
+                onChange={(val) => form.setData('work_date', val)}
+                minDate={new Date()}
+                placeholder="Pilih tanggal kerja"
+                mobileLarge
+              />
+              {error('work_date')}
+            </div>
+
+            <div>
+              <div className="mb-1.5">
+                <span className="text-sm font-medium">Waktu Mulai</span>
+              </div>
+              <Input
+                type="time"
+                value={form.data.start_time}
+                onChange={(e) => form.setData('start_time', e.target.value)}
+                mobileLarge
+              />
+              {error('start_time')}
+            </div>
+
+            <div>
+              <div className="mb-1.5">
+                <span className="text-sm font-medium">Biaya Pekerjaan</span>
+              </div>
+              <InputGroup mobileLarge>
+                <InputGroupAddon align="inline-start">Rp</InputGroupAddon>
+                <InputGroupInput
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Biaya"
+                  value={
+                    form.data.posted_fee !== ''
+                      ? Number(form.data.posted_fee).toLocaleString('id-ID')
+                      : ''
+                  }
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    form.setData('posted_fee', raw);
+                  }}
+                  mobileLarge
+                />
+              </InputGroup>
+              {error('posted_fee')}
+            </div>
           </div>
+          <ImagePicker
+            files={photos}
+            onFilesChange={setPhotos}
+            label="Foto pekerjaan"
+            description="JPEG, PNG, atau WebP. Maksimal 5 foto, masing-masing 5 MB."
+            error={photoError}
+            maxFiles={5}
+            maxBytes={5 * 1024 * 1024}
+            maxDimensions={{ width: 12000, height: 12000 }}
+            disabled={form.processing}
+            transformFile={(file) =>
+              compressImage(file, CompressionProfiles.GigPhoto)
+            }
+          />
           {form.progress && (
             <progress value={form.progress.percentage} max="100">
               {form.progress.percentage}%

@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { AppPage } from '@/components/layout/app-page';
 import {
   InputGroup,
   InputGroupAddon,
@@ -71,47 +72,53 @@ export function NotificationInbox() {
   }, [isDesktop, filtersSearch, closeDetail]);
 
   return (
-    <div className="w-full max-w-4xl px-4">
-      <div className="mb-4 flex flex-col gap-4">
-        <NotificationToolbar
+    <AppPage
+      title="Notifikasi"
+      description="Kotak masuk dan riwayat notifikasi terbaru Anda."
+      className="max-w-4xl"
+    >
+      <div className="w-full">
+        <div className="mb-4 flex flex-col gap-4">
+          <NotificationToolbar
+            inbox={inbox}
+            isDesktop={isDesktop}
+            isCompact={isCompact}
+            unreadCount={unreadCount}
+            onToggleCompact={toggleCompact}
+            onMarkAllRead={markAllRead}
+          />
+
+          <InputGroup mobileLarge>
+            <InputGroupAddon align="inline-start">
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              type="text"
+              placeholder="Cari notifikasi..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              mobileLarge
+            />
+          </InputGroup>
+        </div>
+        <NotificationList
           inbox={inbox}
-          isDesktop={isDesktop}
           isCompact={isCompact}
-          unreadCount={unreadCount}
-          onToggleCompact={toggleCompact}
-          onMarkAllRead={markAllRead}
+          isDesktop={isDesktop}
+          hasSearch={Boolean(filters?.search)}
+          onOpen={openMessage}
+          onDelete={deleteMessage}
         />
 
-        <InputGroup mobileLarge>
-          <InputGroupAddon align="inline-start">
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            type="text"
-            placeholder="Cari notifikasi..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            mobileLarge
-          />
-        </InputGroup>
+        {isDesktop && <NotificationPagination inbox={inbox} />}
+        <NotificationDetailPanel
+          open={open}
+          onOpenChange={setOpen}
+          selected={selected}
+          isDesktop={isDesktop}
+          onDelete={deleteMessage}
+        />
       </div>
-      <NotificationList
-        inbox={inbox}
-        isCompact={isCompact}
-        isDesktop={isDesktop}
-        hasSearch={Boolean(filters?.search)}
-        onOpen={openMessage}
-        onDelete={deleteMessage}
-      />
-
-      {isDesktop && <NotificationPagination inbox={inbox} />}
-      <NotificationDetailPanel
-        open={open}
-        onOpenChange={setOpen}
-        selected={selected}
-        isDesktop={isDesktop}
-        onDelete={deleteMessage}
-      />
-    </div>
+    </AppPage>
   );
 }

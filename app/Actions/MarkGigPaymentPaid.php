@@ -87,22 +87,24 @@ final class MarkGigPaymentPaid
         }, attempts: 3);
 
         if (! $wasAlreadyPaid) {
-            $this->notify($clientId, $freelancerId, $paidPayment->gig_id);
+            $this->notify($clientId, $freelancerId, $paidPayment);
         }
 
         return $paidPayment;
     }
 
-    private function notify(int $clientId, int $freelancerId, int $gigId): void
+    private function notify(int $clientId, int $freelancerId, GigPayment $payment): void
     {
+        $amountFormatted = number_format($payment->amount, 0, ',', '.');
+
         try {
             $this->notificationService->send(
-                title: 'Pembayaran dikonfirmasi',
+                title: 'Pembayaran Escrow Dikonfirmasi',
                 targetType: NotificationTargetType::User,
                 createdBy: $clientId,
-                body: 'Pembayaran demo telah dikonfirmasi dan gig kini terkunci.',
+                body: "Pembayaran escrow sebesar Rp {$amountFormatted} untuk gig \"{$payment->gig->title}\" telah dikonfirmasi. Dana tersimpan aman di escrow.",
                 recipientIds: [$freelancerId],
-                action_url: route('app.gigs.payment.show', ['gig' => $gigId]),
+                action_url: route('app.gigs.payment.show', ['gig' => $payment->gig_id]),
                 action_label: 'Lihat Pembayaran',
             );
         } catch (Throwable $exception) {

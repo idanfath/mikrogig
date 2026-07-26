@@ -21,13 +21,7 @@ export function NotificationToolbar({
   onMarkAllRead,
 }: NotificationToolbarProps) {
   return (
-    <div className="flex flex-row flex-wrap items-center justify-between gap-2">
-      <div>
-        <h2 className="text-xl font-bold tracking-tight">Kotak Masuk</h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          Notifikasi terbaru Anda
-        </p>
-      </div>
+    <div className="flex flex-row flex-wrap items-center justify-end gap-2">
       <div className="flex items-center gap-1.5">
         {isDesktop && (
           <>

@@ -58,7 +58,15 @@ final class RequestLockedGigExit
             return [$request->refresh(), $request->responder_id];
         }, attempts: 3);
         try {
-            $this->notifications->send('Permintaan keluar gig', NotificationTargetType::User, $actor->id, 'Ada permintaan keluar dari gig terkunci.', [$recipient], action_url: route('app.gigs.workflow.show', $gig), action_label: 'Lihat Workflow');
+            $this->notifications->send(
+                'Permintaan Keluar Gig',
+                NotificationTargetType::User,
+                $actor->id,
+                "{$actor->name} mengajukan permintaan keluar dari gig \"{$gig->title}\". Catatan alasan: {$reason}",
+                [$recipient],
+                action_url: route('app.gigs.workflow.show', $gig),
+                action_label: 'Lihat Workflow'
+            );
         } catch (Throwable $exception) {
             report($exception);
         }

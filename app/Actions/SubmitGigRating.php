@@ -124,10 +124,10 @@ final class SubmitGigRating
 
         try {
             $this->notifications->send(
-                'Rating gig baru',
+                'Ulasan & Rating Baru',
                 NotificationTargetType::User,
                 $rating->rater_id,
-                "Anda menerima rating {$rating->score} bintang untuk gig {$gig->title}.",
+                "{$rater->name} memberikan rating {$rating->score} bintang untuk gig \"{$gig->title}\".",
                 [$rating->recipient_id],
                 action_url: route('app.history.show', $gig),
                 action_label: 'Lihat riwayat gig',

@@ -54,7 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function avatarUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => Storage::disk('cos')->url($this->avatar ?? 'avatars/default_avatar.jpg')
+            get: fn () => Storage::disk('cos')->url($this->avatar ?? 'assets/defaults/default_avatar.jpg')
         );
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,6 +17,9 @@ class GigAgreementResource extends JsonResource
             'final_scope' => $this->final_scope,
             'work_date' => $this->work_date?->toDateString(),
             'start_time' => $this->start_time === null ? null : substr($this->start_time, 0, 5),
+            'scheduled_at' => $this->work_date && $this->start_time
+                ? CarbonImmutable::parse($this->work_date->toDateString().' '.$this->start_time, config('app.timezone'))->toIso8601String()
+                : null,
             'location_arrangement' => $this->location_arrangement,
             'delivery_expectations' => $this->delivery_expectations,
             'final_total_price' => $this->final_total_price,

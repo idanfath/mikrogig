@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ProfileEnhanceButton } from './profile-enhance-button';
+import { EnhanceButton } from '@/components/ui/enhance-button';
 
 type FreelancerFieldsProps = {
   title: string;
@@ -82,7 +82,7 @@ function FreelancerFields({
       <Field data-invalid={Boolean(errors.title)}>
         <div className="flex items-center justify-between gap-2">
           <FieldLabel htmlFor="title">Judul profil</FieldLabel>
-          <ProfileEnhanceButton
+          <EnhanceButton
             available={availability.title}
             loading={enhancingTitle}
             idleLabel="Tingkatkan dengan AI"
@@ -106,7 +106,7 @@ function FreelancerFields({
       <Field data-invalid={Boolean(errors.bio)}>
         <div className="flex items-center justify-between gap-2">
           <FieldLabel htmlFor="bio">Bio</FieldLabel>
-          <ProfileEnhanceButton
+          <EnhanceButton
             available={availability.bio}
             loading={enhancingBio}
             idleLabel="Tingkatkan dengan AI"
@@ -130,7 +130,7 @@ function FreelancerFields({
       <Field data-invalid={Boolean(errors.skills)}>
         <div className="flex items-center justify-between gap-2">
           <FieldLabel>Keahlian</FieldLabel>
-          <ProfileEnhanceButton
+          <EnhanceButton
             available={availability.skills}
             loading={enhancingSkills}
             idleLabel="Rekomendasikan Keahlian"

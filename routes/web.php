@@ -92,6 +92,7 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
             Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 
             Route::get('/gigs', [GigController::class, 'index'])->name('gigs.index');
+            Route::post('/gigs/enhance', [GigController::class, 'enhance'])->middleware('throttle:10,1')->name('gigs.enhance');
             Route::get('/gigs/create', [GigController::class, 'create'])->name('gigs.create');
             Route::post('/gigs', [GigController::class, 'store'])->name('gigs.store');
             Route::get('/gigs/{gig}', [GigController::class, 'show'])->name('gigs.show');

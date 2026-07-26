@@ -19,6 +19,7 @@ class DiscoverGigsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'search' => ['nullable', 'string', 'max:100'],
             'province_id' => ['nullable', 'string'],
             'regency_id' => ['nullable', 'string', 'required_with:province_id'],
             'category' => ['nullable', Rule::enum(GigCategory::class)],

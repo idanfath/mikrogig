@@ -17,6 +17,7 @@ import {
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatDate } from '@/lib/date';
 import { Textarea } from '@/components/ui/textarea';
 import { getServerCountdown } from '@/lib/server-time';
 import {
@@ -184,7 +185,10 @@ export function GigWorkflowPage({
           {getGigPaymentStatusLabel(payment.status)}
         </p>
         <p>
-          Jadwal: {agreement.work_date} pukul {agreement.start_time}
+          Jadwal:{' '}
+          {agreement.scheduled_at
+            ? formatDate(agreement.scheduled_at, 'dd MMMM yyyy · HH:mm')
+            : `${agreement.work_date} pukul ${agreement.start_time}`}
         </p>
         <p>
           Klien: {participants.client.name}

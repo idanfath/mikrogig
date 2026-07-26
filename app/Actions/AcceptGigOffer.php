@@ -124,7 +124,7 @@ final class AcceptGigOffer
             $this->notify(
                 $client->id,
                 $freelancerId,
-                'Penawaran ditarik otomatis',
+                'Penawaran Ditarik Otomatis',
                 'Penawaran Anda ditarik otomatis karena klien memilih freelancer lain. Anda dapat melamar kembali jika gig ini kembali terbuka.',
                 $gigId,
             );

@@ -142,7 +142,7 @@ final class CancelGig
     ): void {
         try {
             $this->notificationService->send(
-                title: 'Gig dibatalkan',
+                title: 'Gig Dibatalkan',
                 targetType: NotificationTargetType::User,
                 createdBy: $clientId,
                 body: 'Gig yang Anda lamar telah dibatalkan oleh klien.',

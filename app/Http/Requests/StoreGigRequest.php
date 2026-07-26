@@ -32,6 +32,7 @@ class StoreGigRequest extends FormRequest
             'work_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
             'posted_fee' => ['required', 'integer', 'between:1000,1000000000'],
+            'timezone' => ['nullable', 'string', 'timezone'],
             'photos' => ['required', 'array', 'min:1', 'max:5'],
             'photos.*' => [
                 'required',
@@ -61,17 +62,45 @@ class StoreGigRequest extends FormRequest
                 }
 
                 if ($this->filled('work_date') && $this->filled('start_time')) {
-                    $scheduledAt = Carbon::createFromFormat(
-                        'Y-m-d H:i',
-                        $this->input('work_date').' '.$this->input('start_time'),
-                        config('app.timezone'),
-                    );
+                    $userTz = $this->input('timezone') ?: config('app.timezone');
+                    try {
+                        $scheduledAt = Carbon::createFromFormat(
+                            'Y-m-d H:i',
+                            $this->input('work_date').' '.$this->input('start_time'),
+                            $userTz,
+                        )->setTimezone(config('app.timezone'));
 
-                    if ($scheduledAt->isToday() && $scheduledAt->isPast()) {
-                        $validator->errors()->add('start_time', 'Waktu mulai hari ini harus di masa depan.');
+                        if ($scheduledAt->isToday() && $scheduledAt->isPast()) {
+                            $validator->errors()->add('start_time', 'Waktu mulai hari ini harus di masa depan.');
+                        }
+                    } catch (\Throwable) {
+                        $validator->errors()->add('timezone', 'Zona waktu tidak valid.');
                     }
                 }
             },
         ];
+    }
+
+    public function validated($key = null, $default = null): array
+    {
+        $validated = parent::validated($key, $default);
+        if (! empty($validated['work_date']) && ! empty($validated['start_time'])) {
+            $userTz = $this->input('timezone') ?: config('app.timezone');
+            try {
+                $scheduledAt = Carbon::createFromFormat(
+                    'Y-m-d H:i',
+                    $validated['work_date'].' '.$validated['start_time'],
+                    $userTz,
+                )->setTimezone(config('app.timezone'));
+
+                $validated['work_date'] = $scheduledAt->toDateString();
+                $validated['start_time'] = $scheduledAt->format('H:i');
+            } catch (\Throwable) {
+                // Keep original if parsing fails
+            }
+        }
+        unset($validated['timezone']);
+
+        return $validated;
     }
 }

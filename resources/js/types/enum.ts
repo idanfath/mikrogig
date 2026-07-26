@@ -270,6 +270,48 @@ export function getGigStatusLabel(status?: string | null): string {
   );
 }
 
+export function getGigStatusVariant(
+  status: string,
+): 'success' | 'secondary' | 'warning' | 'destructive' {
+  switch (status) {
+    case GigStatus.Open:
+    case GigStatus.Completed:
+      return 'success';
+    case GigStatus.AgreementPreparation:
+    case GigStatus.LockPending:
+    case GigStatus.PaymentPending:
+    case GigStatus.Locked:
+    case GigStatus.InProgress:
+    case GigStatus.Review:
+      return 'secondary';
+    case GigStatus.Disputed:
+      return 'warning';
+    case GigStatus.Cancelled:
+    case GigStatus.DisputeResolved:
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+}
+
+export function getGigOfferStatusVariant(
+  status: string,
+): 'success' | 'secondary' | 'warning' | 'destructive' {
+  switch (status) {
+    case GigOfferStatus.ACCEPTED:
+      return 'success';
+    case GigOfferStatus.PENDING:
+      return 'warning';
+    case GigOfferStatus.WITHDRAWN:
+    case GigOfferStatus.AUTO_WITHDRAWN:
+      return 'secondary';
+    case GigOfferStatus.REJECTED:
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+}
+
 export function getGigOfferStatusLabel(status?: string | null): string {
   if (!status) {
     return '';

@@ -26,6 +26,7 @@ export type Gig = {
   location_accuracy_meters: number | null;
   work_date: string;
   start_time: string;
+  scheduled_at?: string | null;
   posted_fee: number;
   created_at: string | null;
   updated_at: string | null;
@@ -56,6 +57,7 @@ export type GigOffer = {
   note: string | null;
   created_at: string | null;
   updated_at: string | null;
+  is_active?: boolean;
   gig?: Gig;
   freelancer?: Freelancer;
 };
@@ -66,6 +68,7 @@ export type GigAgreement = {
   final_scope: string | null;
   work_date: string | null;
   start_time: string | null;
+  scheduled_at?: string | null;
   location_arrangement: string | null;
   delivery_expectations: string | null;
   final_total_price: number | null;

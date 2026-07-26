@@ -81,22 +81,24 @@ final class ExpireGigPayment
             report($exception);
         }
 
-        $this->notify($clientId, $clientId, $expiredPayment->gig_id);
-        $this->notify($clientId, $freelancerId, $expiredPayment->gig_id);
+        $this->notify($clientId, $clientId, $expiredPayment);
+        $this->notify($clientId, $freelancerId, $expiredPayment);
 
         return $expiredPayment;
     }
 
-    private function notify(int $clientId, int $recipientId, int $gigId): void
+    private function notify(int $clientId, int $recipientId, GigPayment $payment): void
     {
+        $amountFormatted = number_format($payment->amount, 0, ',', '.');
+
         try {
             $this->notificationService->send(
-                title: 'Waktu pembayaran berakhir',
+                title: 'Batas Waktu Pembayaran Berakhir',
                 targetType: NotificationTargetType::User,
                 createdBy: $clientId,
-                body: 'Batas waktu pembayaran demo telah berakhir dan gig dibatalkan.',
+                body: "Batas waktu pembayaran escrow Rp {$amountFormatted} untuk gig \"{$payment->gig->title}\" telah berakhir. Gig otomatis dibatalkan.",
                 recipientIds: [$recipientId],
-                action_url: route('app.gigs.payment.show', ['gig' => $gigId]),
+                action_url: route('app.gigs.payment.show', ['gig' => $payment->gig_id]),
                 action_label: 'Lihat Pembayaran',
             );
         } catch (Throwable $exception) {

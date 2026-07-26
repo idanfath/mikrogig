@@ -83,7 +83,7 @@ final class ExpireGigDisputeCounterproof
         if ($changed) {
             try {
                 $this->notifications->send(
-                    'Sengketa gig diselesaikan otomatis',
+                    'Sengketa Gig Diselesaikan Otomatis',
                     NotificationTargetType::Users,
                     null,
                     'Batas waktu counterproof berakhir dan sengketa telah diselesaikan.',

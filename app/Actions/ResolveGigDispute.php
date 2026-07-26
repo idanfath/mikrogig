@@ -93,12 +93,16 @@ final class ResolveGigDispute
             return [$locked->refresh(), [$client->id, $freelancer->id]];
         }, attempts: 3);
 
+        $settlement = $resolved->gig->settlement;
+        $clientRefund = number_format($settlement?->client_refund ?? 0, 0, ',', '.');
+        $freelancerPayout = number_format($settlement?->freelancer_payout ?? 0, 0, ',', '.');
+
         try {
             $this->notifications->send(
-                'Sengketa gig diselesaikan',
+                'Keputusan Sengketa Gig',
                 NotificationTargetType::Users,
                 $admin->id,
-                'Admin telah menyelesaikan sengketa gig Anda.',
+                "Admin telah menyelesaikan sengketa gig \"{$resolved->gig->title}\". Alokasi dana: pengembalian klien Rp {$clientRefund} dan pencairan freelancer Rp {$freelancerPayout}.",
                 $participantIds,
                 action_url: route('app.gig_disputes.show', $resolved),
                 action_label: 'Lihat Sengketa',

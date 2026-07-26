@@ -70,7 +70,7 @@ final class RejectSelectedFreelancer
     {
         try {
             $this->notificationService->send(
-                title: 'Pilihan freelancer dibatalkan',
+                title: 'Pilihan Freelancer Dibatalkan',
                 targetType: NotificationTargetType::User,
                 createdBy: $clientId,
                 body: 'Klien membatalkan pilihan Anda dan gig dibuka kembali.',
