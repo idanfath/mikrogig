@@ -34,6 +34,7 @@ import {
   GigStatus,
   getGigCategoryLabel,
   getGigOfferStatusLabel,
+  getGigOfferStatusVariant,
   getGigStatusLabel,
   getGigStatusVariant,
 } from '@/types/enum';
@@ -48,38 +49,6 @@ type GigDetailProps = {
   has_current_agreement: boolean;
   has_reached_pending_limit?: boolean;
   has_active_accepted_work?: boolean;
-};
-
-const getStatusVariant = (status: string) => {
-  switch (status) {
-    case GigStatus.Open:
-    case GigStatus.Completed:
-      return 'success';
-    case GigStatus.InProgress:
-    case GigStatus.AgreementPreparation:
-    case GigStatus.Disputed:
-    case GigStatus.DisputeResolved:
-      return 'warning';
-    case GigStatus.Cancelled:
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-};
-
-const getOfferBadgeVariant = (status: string) => {
-  switch (status) {
-    case GigOfferStatus.PENDING:
-      return 'warning';
-    case GigOfferStatus.ACCEPTED:
-      return 'success';
-    case GigOfferStatus.REJECTED:
-    case GigOfferStatus.WITHDRAWN:
-    case GigOfferStatus.AUTO_WITHDRAWN:
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
 };
 
 const workflowStatuses: string[] = [
@@ -437,7 +406,7 @@ export function GigDetail({
                 </span>
               </div>
               <Badge
-                variant={getOfferBadgeVariant(myOffer.status)}
+                variant={getGigOfferStatusVariant(myOffer.status)}
                 className="px-3 py-1 font-medium"
               >
                 {getGigOfferStatusLabel(myOffer.status)}
