@@ -171,6 +171,8 @@ class GigHistoryController extends Controller
 
     private function historySummary(Gig $gig, int $viewerId): array
     {
+        $viewerRating = $gig->ratings->firstWhere('rater_id', $viewerId);
+
         return [
             'id' => $gig->id,
             'title' => $gig->title,
@@ -184,7 +186,8 @@ class GigHistoryController extends Controller
                     'freelancer_payout' => $gig->settlement->freelancer_payout,
                     'client_refund' => $gig->settlement->client_refund,
                 ],
-            'viewer_has_rated' => $gig->ratings->contains('rater_id', $viewerId),
+            'viewer_has_rated' => $viewerRating !== null,
+            'viewer_rating' => $viewerRating?->score,
             'counterpart_has_rated' => $gig->ratings->contains(
                 'rater_id',
                 $viewerId === $gig->client_id

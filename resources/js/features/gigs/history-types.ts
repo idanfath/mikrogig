@@ -31,6 +31,7 @@ export type HistorySummary = {
   counterpart: HistoryPerson | null;
   settlement: HistorySettlement | null;
   viewer_has_rated: boolean;
+  viewer_rating?: number | null;
   counterpart_has_rated: boolean;
 };
 

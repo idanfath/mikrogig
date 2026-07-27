@@ -50,7 +50,7 @@ export function GigHistoryCard({ gig }: GigHistoryCardProps) {
         </Badge>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/50 pt-2 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-3 text-xs">
         <div>
           {gig.counterpart ? (
             <Link
@@ -59,10 +59,10 @@ export function GigHistoryCard({ gig }: GigHistoryCardProps) {
             >
               <UserAvatar user={gig.counterpart} size="sm" />
               <div className="flex flex-col">
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Mitra Kerja
                 </span>
-                <span className="text-sm leading-tight font-medium group-hover:text-primary group-hover:underline">
+                <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                   {gig.counterpart.name}
                 </span>
               </div>
@@ -75,28 +75,30 @@ export function GigHistoryCard({ gig }: GigHistoryCardProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
-          <div className="flex items-center gap-1.5 text-muted-foreground">
+        <div className="flex items-center gap-1.5 rounded-lg bg-secondary/40 px-2.5 py-1 border border-border/40">
+          <div className="flex items-center gap-1">
             <Star
               className={`size-3.5 ${
                 gig.viewer_has_rated
-                  ? 'fill-warning text-warning'
+                  ? 'fill-amber-400 text-amber-500'
                   : 'text-muted-foreground/40'
               }`}
             />
-            <span>
-              Rating Anda:{' '}
-              <strong
-                className={
-                  gig.viewer_has_rated
-                    ? 'font-medium text-foreground'
-                    : 'font-normal'
-                }
-              >
-                {gig.viewer_has_rated ? 'Sudah Dikirim' : 'Belum'}
-              </strong>
-            </span>
+            {gig.viewer_has_rated && gig.viewer_rating ? (
+              <span className="text-xs font-bold text-foreground">
+                {gig.viewer_rating}.0
+              </span>
+            ) : null}
           </div>
+          <span
+            className={`text-xs ${
+              gig.viewer_has_rated
+                ? 'font-medium text-muted-foreground'
+                : 'font-normal text-muted-foreground'
+            }`}
+          >
+            {gig.viewer_has_rated ? 'Ulasan Anda' : 'Belum ada ulasan'}
+          </span>
         </div>
       </div>
 
