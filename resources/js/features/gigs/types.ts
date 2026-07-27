@@ -1,3 +1,5 @@
+import type { GigOfferStatus, GigPaymentStatus, GigStatus } from '@/types/enum';
+
 export type GigMedia = {
   id: number;
   url: string;
@@ -53,7 +55,7 @@ export type Freelancer = {
 
 export type GigOffer = {
   id: number;
-  status: string;
+  status: GigOfferStatus;
   offered_fee: number;
   note: string | null;
   created_at: string | null;
@@ -125,4 +127,3 @@ export type Paginated<T> = {
   links: Array<{ url: string | null; label: string; active: boolean }>;
   meta?: { current_page: number; last_page: number };
 };
-import type { GigPaymentStatus, GigStatus } from '@/types/enum';

@@ -67,23 +67,12 @@ import {
 import type { GigConversation as GigConversationData } from '../conversation-types';
 import { GigConversation } from './gig-conversation';
 
-type FinishRequest = {
-  id: number;
-  status: string;
-  completion_note: string;
-  review_due_at: string;
-  accepted_at: string | null;
-  rejected_at: string | null;
-  rejection_reason: string | null;
-  media: Array<{ id: number; url: string }>;
-};
-
-type FinishRequestMedia = {
+export type FinishRequestMedia = {
   id: number;
   url: string;
 };
 
-type GigFinishRequestData = {
+export type GigFinishRequestData = {
   id: number;
   status: string;
   completion_note: string;
@@ -92,13 +81,13 @@ type GigFinishRequestData = {
   media: FinishRequestMedia[];
 };
 
-type GigSettlementData = {
+export type GigSettlementData = {
   outcome: string;
   freelancer_payout: number;
   client_refund: number;
 };
 
-type GigWorkflowPageProps = {
+export type GigWorkflowPageProps = {
   gig: { id: number; title: string; status: string };
   payment: { amount: number; status: string };
   agreement: { work_date: string; start_time: string; scheduled_at: string };

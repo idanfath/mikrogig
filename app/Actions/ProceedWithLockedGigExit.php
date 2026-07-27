@@ -82,8 +82,8 @@ final class ProceedWithLockedGigExit
                 $actor->id,
                 "{$actor->name} mengeksekusi pembatalan sepihak untuk gig \"{$result->gig->title}\". {$refundText}.",
                 [$recipientId],
-                action_url: route('app.gigs.workflow.show', $result->gig_id),
-                action_label: 'Lihat Workflow'
+                action_url: route('app.history.show', $result->gig_id),
+                action_label: 'Lihat Riwayat'
             );
         } catch (Throwable $exception) {
             report($exception);

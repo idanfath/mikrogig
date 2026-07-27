@@ -139,9 +139,15 @@ class GigWorkflowController extends Controller
     {
         $this->authorize('respond', $gigExitRequest);
         try {
-            $action->execute($request->user(), $gigExitRequest, GigExitDecision::from($request->validated('decision')));
+            $updated = $action->execute($request->user(), $gigExitRequest, GigExitDecision::from($request->validated('decision')));
         } catch (DomainException $e) {
             return back()->with('error', $e->getMessage());
+        }
+
+        if ($updated->status === GigExitStatus::Executed) {
+            return redirect()
+                ->route('app.history.show', $updated->gig_id)
+                ->with('success', 'Permintaan keluar gig disetujui dan gig dibatalkan.');
         }
 
         return back()->with('success', 'Respons exit disimpan.');
@@ -168,18 +174,20 @@ class GigWorkflowController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Exit gig dieksekusi.');
+        return redirect()
+            ->route('app.history.show', $gigExitRequest->gig_id)
+            ->with('success', 'Exit gig dieksekusi.');
     }
 
     public function dispute(StoreGigDisputeRequest $request, Gig $gig, OpenGigDispute $action): RedirectResponse
     {
         $d = $request->validated();
         try {
-            $action->execute($request->user(), $gig, GigDisputeType::from($d['type']), $d['statement'], $d['photos'] ?? []);
+            $dispute = $action->execute($request->user(), $gig, GigDisputeType::from($d['type']), $d['statement'], $d['photos'] ?? []);
         } catch (DomainException $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Sengketa dibuka.');
+        return redirect()->route('app.gig_disputes.show', $dispute)->with('success', 'Sengketa dibuka.');
     }
 }

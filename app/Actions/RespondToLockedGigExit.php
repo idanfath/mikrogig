@@ -87,8 +87,10 @@ final class RespondToLockedGigExit
                     $actor->id,
                     $bodyMessage,
                     [$recipientId],
-                    action_url: route('app.gigs.workflow.show', $result->gig_id),
-                    action_label: 'Lihat Workflow'
+                    action_url: $isRefused
+                        ? route('app.gigs.workflow.show', $result->gig_id)
+                        : route('app.history.show', $result->gig_id),
+                    action_label: $isRefused ? 'Lihat Workflow' : 'Lihat Riwayat'
                 );
             } catch (Throwable $exception) {
                 report($exception);

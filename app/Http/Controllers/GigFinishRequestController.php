@@ -41,7 +41,9 @@ class GigFinishRequestController extends Controller
             return back()->with('error', $exception->getMessage());
         }
 
-        return back()->with('success', 'Penyelesaian gig diterima.');
+        return redirect()
+            ->route('app.history.show', $finishRequest->gig_id)
+            ->with('success', 'Penyelesaian gig diterima.');
     }
 
     public function reject(RejectGigFinishRequestRequest $request, GigFinishRequest $finishRequest, RejectGigFinishRequest $action): RedirectResponse

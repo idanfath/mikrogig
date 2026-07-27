@@ -64,7 +64,11 @@ class GigAgreementController extends Controller
     {
         $this->authorize('respond', $this->currentAgreement($gig));
 
-        return $this->execute(fn () => $acceptAgreement->execute($request->user(), $gig), 'Syarat gig berhasil disetujui.');
+        return $this->execute(
+            fn () => $acceptAgreement->execute($request->user(), $gig),
+            'Syarat gig berhasil disetujui.',
+            toRoute: route('app.gigs.payment.show', $gig)
+        );
     }
 
     public function requestChanges(RequestGigAgreementChangesRequest $request, Gig $gig, RequestGigAgreementChanges $requestChanges): RedirectResponse

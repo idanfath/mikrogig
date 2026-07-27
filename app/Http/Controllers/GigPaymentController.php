@@ -95,7 +95,7 @@ class GigPaymentController extends Controller
         }
 
         return redirect()
-            ->route('app.gigs.payment.show', ['gig' => $gig->id])
+            ->route('app.gigs.workflow.show', ['gig' => $gig->id])
             ->with('success', 'Pembayaran demo berhasil dikonfirmasi.');
     }
 
