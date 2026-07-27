@@ -1,13 +1,15 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/hooks/use-confirm';
 import StatusLayout from '@/layout/StatusLayout';
 import asset from '@/lib/assets';
 import { home, logout } from '@/routes';
 import verification from '@/routes/verification';
 
 const Notice: InertiaPageWithLayout = () => {
+  const [confirm, confirmDialog] = useConfirm();
   const id = usePage().props.id as string;
 
   const [lastSentTime, setLastSentTime] = useState<number | null>(() => {
@@ -72,12 +74,22 @@ const Notice: InertiaPageWithLayout = () => {
               mobileLarge
               variant="destructive"
               className="w-full sm:w-auto"
-              onClick={() => router.post(logout.url())}
+              onClick={() => {
+                confirm({
+                  title: 'Konfirmasi Keluar',
+                  description: 'Apakah Anda yakin ingin keluar dari akun Anda?',
+                  confirmLabel: 'Keluar',
+                  cancelLabel: 'Batal',
+                  destructive: true,
+                  onConfirm: () => router.post(logout.url()),
+                });
+              }}
             >
               Logout
             </Button>
           </div>
         </div>
+        {confirmDialog}
       </div>
     </>
   );

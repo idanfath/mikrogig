@@ -1,6 +1,27 @@
-import { router, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
-
+import { useEffect, useState } from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { show as showDispute } from '@/actions/App/Http/Controllers/GigDisputeController';
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Coins,
+  FileCheck,
+  FileText,
+  Image,
+  Info,
+  PlayCircle,
+  ShieldAlert,
+  ShieldCheck,
+  User,
+  UserCheck,
+  XCircle,
+} from 'lucide-react';
 import {
   accept as acceptFinish,
   reject as rejectFinish,
@@ -15,10 +36,19 @@ import {
   withdraw,
 } from '@/actions/App/Http/Controllers/GigWorkflowController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ImagePicker } from '@/components/ui/image-picker';
 import { Input } from '@/components/ui/input';
-import { formatDate } from '@/lib/date';
 import { Textarea } from '@/components/ui/textarea';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import { useConfirm } from '@/hooks/use-confirm';
+import { formatDate } from '@/lib/date';
+import { compressImage } from '@/lib/image_utility';
+import { capitalize } from '@/lib/utils';
+import { show as showGig } from '@/routes/app/gigs';
+import { show as showProfile } from '@/routes/app/profile';
+import { CompressionProfiles } from '@/types/client_enum';
 import { getServerCountdown } from '@/lib/server-time';
 import {
   GigDisputeType,
@@ -29,8 +59,10 @@ import {
   getGigExitStatusLabel,
   getGigFinishRequestStatusLabel,
   getGigPaymentStatusLabel,
+  getGigPaymentStatusVariant,
   getGigSettlementOutcomeLabel,
   getGigStatusLabel,
+  getGigStatusVariant,
 } from '@/types/enum';
 import type { GigConversation as GigConversationData } from '../conversation-types';
 import { GigConversation } from './gig-conversation';
@@ -46,13 +78,33 @@ type FinishRequest = {
   media: Array<{ id: number; url: string }>;
 };
 
+type FinishRequestMedia = {
+  id: number;
+  url: string;
+};
+
+type GigFinishRequestData = {
+  id: number;
+  status: string;
+  completion_note: string;
+  review_due_at: string;
+  rejection_reason: string | null;
+  media: FinishRequestMedia[];
+};
+
+type GigSettlementData = {
+  outcome: string;
+  freelancer_payout: number;
+  client_refund: number;
+};
+
 type GigWorkflowPageProps = {
   gig: { id: number; title: string; status: string };
   payment: { amount: number; status: string };
   agreement: { work_date: string; start_time: string; scheduled_at: string };
   participants: {
-    client: { name: string; location: string | null };
-    freelancer: { name: string; location: string | null };
+    client: { id: number; name: string; avatar_url: string; location: string | null };
+    freelancer: { id: number; name: string; avatar_url: string; location: string | null };
   };
   exit_request: {
     id: number;
@@ -61,12 +113,9 @@ type GigWorkflowPageProps = {
     reason: string;
     response: string | null;
   } | null;
-  finish_request: FinishRequest | null;
-  settlement: {
-    outcome: string;
-    freelancer_payout: number;
-    client_refund: number;
-  } | null;
+  finish_request?: GigFinishRequestData | null;
+  dispute?: { id: number; status: string; type: string } | null;
+  settlement?: GigSettlementData | null;
   server_now: string;
   capabilities: {
     canStart: boolean;
@@ -94,27 +143,37 @@ export function GigWorkflowPage({
   participants,
   exit_request: exitRequest,
   finish_request: finishRequest,
+  dispute: activeDispute,
   settlement,
   server_now: serverNow,
   capabilities,
   conversation,
 }: GigWorkflowPageProps) {
+  const [confirm, confirmDialog] = useConfirm();
   const startForm = useForm({});
   const exitType = capabilities.canRequestClientCancellation
     ? GigExitType.ClientCancellation
     : GigExitType.FreelancerAbandonment;
   const exitForm = useForm({ type: exitType, reason: '' });
+  const [finishPhotos, setFinishPhotos] = useState<File[]>([]);
+  const [disputePhotos, setDisputePhotos] = useState<File[]>([]);
+
+  const finishForm = useForm({
+    completion_note: '',
+  });
   const disputeForm = useForm({
     type: GigDisputeType.NoShow as string,
     statement: '',
-    photos: [] as File[],
-  });
-  const finishForm = useForm({
-    completion_note: '',
-    photos: [] as File[],
   });
   const reviewForm = useForm({ reason: '' });
   const responseForm = useForm({ decision: GigExitDecision.Agree });
+
+  const finishPhotoError = Object.entries(finishForm.errors).find(
+    ([key]) => key === 'photos' || key.startsWith('photos.'),
+  )?.[1];
+  const disputePhotoError = Object.entries(disputeForm.errors).find(
+    ([key]) => key === 'photos' || key.startsWith('photos.'),
+  )?.[1];
   const scheduledAt = new Date(agreement.scheduled_at).getTime();
   const reportsOpen = new Date(serverNow).getTime() >= scheduledAt;
   const disputeType = capabilities.canReportNoShow
@@ -176,355 +235,684 @@ export function GigWorkflowPage({
   return (
     <AppPage
       title={`Workflow: ${gig.title}`}
-      description="Tindakan hanya tersedia saat status gig mengizinkannya."
+      description="Pantau alur pelaksanaan gig, pengiriman bukti hasil kerja, dan penyelesaian transaksi."
     >
-      <AppPageCard>
-        <p>Status: {getGigStatusLabel(gig.status)}</p>
-        <p>
-          Pembayaran: Rp{payment.amount.toLocaleString('id-ID')} ·{' '}
-          {getGigPaymentStatusLabel(payment.status)}
-        </p>
-        <p>
-          Jadwal:{' '}
-          {agreement.scheduled_at
-            ? formatDate(agreement.scheduled_at, 'dd MMMM yyyy · HH:mm')
-            : `${agreement.work_date} pukul ${agreement.start_time}`}
-        </p>
-        <p>
-          Klien: {participants.client.name}
-          {participants.client.location
-            ? ` · ${participants.client.location}`
-            : ''}
-        </p>
-        <p>
-          Pekerja: {participants.freelancer.name}
-          {participants.freelancer.location
-            ? ` · ${participants.freelancer.location}`
-            : ''}
-        </p>
-        {!reportsOpen && gig.status === GigStatus.Locked && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Pelaporan tidak hadir atau mulai kerja terhalang tersedia setelah
-            jadwal mulai, dalam{' '}
-            {getServerCountdown(agreement.scheduled_at, serverNow)}.
-          </p>
-        )}
-      </AppPageCard>
+      <div className="flex flex-col gap-6">
+        <AppPageCard className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <Briefcase className="size-5 text-primary" />
+              <span className="font-bold text-foreground text-sm sm:text-base">
+                Status Execution Workflow
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={getGigStatusVariant(gig.status)}
+                className="px-3 py-1 font-medium text-xs"
+              >
+                {getGigStatusLabel(gig.status)}
+              </Badge>
+              <Button asChild variant="outline" size="sm">
+                <Link href={showGig.url(gig)}>
+                  <ArrowLeft className="mr-1.5 size-4" />
+                  Detail Gig
+                </Link>
+              </Button>
+            </div>
+          </div>
 
-      {capabilities.canStart && (
-        <Button
-          onClick={() => startForm.post(start.url(gig))}
-          disabled={startForm.processing}
-        >
-          Mulai kerja
-        </Button>
-      )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
+              <Coins className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Escrow Pembayaran
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-foreground text-base">
+                    Rp{payment.amount.toLocaleString('id-ID')}
+                  </span>
+                  <Badge variant={getGigPaymentStatusVariant(payment.status)} className="text-[10px] px-2 py-0.5">
+                    {getGigPaymentStatusLabel(payment.status)}
+                  </Badge>
+                </div>
+              </div>
+            </div>
 
-      {(capabilities.canRequestClientCancellation ||
-        capabilities.canRequestFreelancerAbandonment) && (
-        <AppPageCard>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              exitForm.post(storeExit.url(gig));
-            }}
-            className="flex flex-col gap-2"
-          >
-            <Textarea
-              value={exitForm.data.reason}
-              onChange={(event) =>
-                exitForm.setData('reason', event.target.value)
-              }
-              placeholder="Alasan keluar"
-            />
-            {exitForm.errors.reason && (
-              <p className="text-sm text-destructive">
-                {exitForm.errors.reason}
-              </p>
-            )}
-            <Button type="submit" disabled={exitForm.processing}>
-              Minta keluar gig
-            </Button>
-          </form>
+            <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
+              <Clock className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Jadwal Pekerjaan
+                </span>
+                <span className="font-medium text-foreground text-sm">
+                  {agreement.scheduled_at
+                    ? formatDate(agreement.scheduled_at, 'dd MMMM yyyy · HH:mm')
+                    : `${agreement.work_date} pukul ${agreement.start_time}`}
+                </span>
+              </div>
+            </div>
+
+            <Link
+              href={showProfile({ user: participants.client.id }).url}
+              className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-secondary/50 p-3 transition-colors hover:bg-secondary"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <UserAvatar
+                  user={{
+                    name: participants.client.name,
+                    avatar_url: participants.client.avatar_url,
+                  }}
+                  size="sm"
+                  className="size-10 shrink-0"
+                />
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                    Klien (Pemberi Kerja)
+                  </span>
+                  <span className="truncate text-xs font-semibold sm:text-sm text-foreground">
+                    {participants.client.name}
+                  </span>
+                  {participants.client.location && (
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {capitalize(participants.client.location, true)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+            </Link>
+
+            <Link
+              href={showProfile({ user: participants.freelancer.id }).url}
+              className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-secondary/50 p-3 transition-colors hover:bg-secondary"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <UserAvatar
+                  user={{
+                    name: participants.freelancer.name,
+                    avatar_url: participants.freelancer.avatar_url,
+                  }}
+                  size="sm"
+                  className="size-10 shrink-0"
+                />
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                    Pekerja (Freelancer)
+                  </span>
+                  <span className="truncate text-xs font-semibold sm:text-sm text-foreground">
+                    {participants.freelancer.name}
+                  </span>
+                  {participants.freelancer.location && (
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {capitalize(participants.freelancer.location, true)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+            </Link>
+          </div>
+
+          {!reportsOpen && gig.status === GigStatus.Locked && (
+            <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-200">
+              <Clock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>
+                Pelaporan tidak hadir atau mulai kerja terhalang tersedia setelah jadwal mulai, dalam{' '}
+                <strong>{getServerCountdown(agreement.scheduled_at, serverNow)}</strong>.
+              </span>
+            </div>
+          )}
+
+          {activeDispute && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-foreground">
+              <div className="flex items-start gap-3">
+                <ShieldAlert className="size-5 text-destructive shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                  <h3 className="font-bold text-foreground text-sm sm:text-base">
+                    Pekerjaan Ini Sedang Dalam Sengketa
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Sengketa sedang ditinjau. Anda dapat melihat detail pernyataan dan bukti pada halaman sengketa.
+                  </p>
+                </div>
+              </div>
+              <Button asChild variant="destructive" size="sm" className="shrink-0 self-start sm:self-auto">
+                <Link href={showDispute.url(activeDispute)}>
+                  <ShieldAlert className="mr-1.5 size-4" />
+                  Lihat Sengketa
+                </Link>
+              </Button>
+            </div>
+          )}
+
+          {capabilities.canStart && (
+            <div className="pt-2 border-t border-border/40 flex justify-end">
+              <Button
+                disabled={startForm.processing}
+                onClick={() =>
+                  confirm({
+                    title: 'Mulai pekerjaan gig?',
+                    description: 'Status gig akan diubah menjadi Sedang Berjalan.',
+                    confirmLabel: 'Ya, mulai sekarang',
+                    onConfirm: () => startForm.post(start.url(gig)),
+                  })
+                }
+              >
+                <PlayCircle className="mr-1.5 size-4" />
+                Mulai kerja
+              </Button>
+            </div>
+          )}
         </AppPageCard>
-      )}
 
-      {exitRequest && (
-        <AppPageCard>
-          <p>Permintaan exit: {getGigExitStatusLabel(exitRequest.status)}</p>
-          <p className="text-sm text-muted-foreground">{exitRequest.reason}</p>
-          {capabilities.canRespondToExitRequest && (
+        {(capabilities.canRequestClientCancellation ||
+          capabilities.canRequestFreelancerAbandonment) && (
+          <AppPageCard className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="size-4 text-amber-500" />
+              <h3 className="font-bold text-foreground text-sm">Minta Keluar dari Gig</h3>
+            </div>
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                responseForm.patch(respond.url(exitRequest));
+                confirm({
+                  title: 'Kirim permintaan keluar gig?',
+                  description: 'Pihak lawan akan diminta untuk menyetujui permintaan keluar ini.',
+                  confirmLabel: 'Ya, kirim permintaan',
+                  destructive: true,
+                  onConfirm: () => exitForm.post(storeExit.url(gig)),
+                });
               }}
-              className="mt-3 flex gap-2"
+              className="flex flex-col gap-3"
             >
-              <Button type="submit" disabled={responseForm.processing}>
-                Setuju
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={responseForm.processing}
-                onClick={() => {
-                  responseForm.transform(() => ({
-                    decision: GigExitDecision.Refuse,
-                  }));
-                  responseForm.patch(respond.url(exitRequest));
-                }}
-              >
-                Tolak
-              </Button>
+              <Textarea
+                value={exitForm.data.reason}
+                onChange={(event) =>
+                  exitForm.setData('reason', event.target.value)
+                }
+                placeholder="Tuliskan alasan pengajuan keluar dari gig..."
+                rows={3}
+              />
+              {exitForm.errors.reason && (
+                <p className="text-xs text-destructive">
+                  {exitForm.errors.reason}
+                </p>
+              )}
+              <div className="flex justify-end">
+                <Button type="submit" variant="destructive" disabled={exitForm.processing}>
+                  Minta keluar gig
+                </Button>
+              </div>
             </form>
-          )}
-          {capabilities.canWithdrawExitRequest && (
-            <Button
-              className="mt-3"
-              variant="outline"
-              disabled={responseForm.processing}
-              onClick={() => responseForm.patch(withdraw.url(exitRequest))}
-            >
-              Tarik permintaan
-            </Button>
-          )}
-          {capabilities.canProceedUnilaterally && (
-            <Button
-              className="mt-3"
-              disabled={responseForm.processing}
-              onClick={() => responseForm.post(proceed.url(exitRequest))}
-            >
-              Lanjutkan secara sepihak
-            </Button>
-          )}
-        </AppPageCard>
-      )}
+          </AppPageCard>
+        )}
 
-      {finishRequest && (
-        <AppPageCard>
-          <p>
-            Bukti penyelesaian:{' '}
-            {getGigFinishRequestStatusLabel(finishRequest.status)}
-          </p>
-          <p className="text-sm">{finishRequest.completion_note}</p>
-          {finishRequest.rejection_reason && (
-            <p className="text-sm text-destructive">
-              Alasan penolakan: {finishRequest.rejection_reason}
+        {exitRequest && (
+          <AppPageCard className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="size-4 text-amber-500" />
+                <h3 className="font-bold text-foreground text-sm">Permintaan Keluar Gig</h3>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                {getGigExitStatusLabel(exitRequest.status)}
+              </Badge>
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap bg-secondary/30 p-3 rounded-xl border border-border/40">
+              "{exitRequest.reason}"
             </p>
-          )}
-          <div className="flex flex-col gap-1">
-            {finishRequest.media.map((media, index) => (
-              <a
-                key={media.id}
-                href={media.url}
-                className="text-sm text-primary underline"
-              >
-                Buka bukti penyelesaian {index + 1}
-              </a>
-            ))}
-          </div>
-          {finishRequest.status === GigFinishRequestStatus.Pending &&
-            !capabilities.finishReviewExpired && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Batas tinjauan:{' '}
-                {new Date(finishRequest.review_due_at).toLocaleString('id-ID')}{' '}
-                · {getServerCountdown(finishRequest.review_due_at, serverNow)}
-              </p>
-            )}
-          {capabilities.finishReviewExpired && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Menunggu penyelesaian otomatis.
-            </p>
-          )}
-          {gig.status === GigStatus.Review &&
-            finishRequest.status === GigFinishRequestStatus.Pending &&
-            !capabilities.canAcceptFinishRequest &&
-            !capabilities.finishReviewExpired && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Menunggu tinjauan klien.
-              </p>
-            )}
-        </AppPageCard>
-      )}
 
-      {(capabilities.canAcceptFinishRequest ||
-        capabilities.canRejectFinishRequest) &&
-        finishRequest && (
-          <AppPageCard>
-            <div className="flex flex-col gap-3">
-              {capabilities.canAcceptFinishRequest && (
+            {capabilities.canRespondToExitRequest && (
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border/40">
                 <Button
-                  disabled={reviewForm.processing}
+                  disabled={responseForm.processing}
                   onClick={() =>
-                    reviewForm.patch(acceptFinish.url(finishRequest))
+                    confirm({
+                      title: 'Setujui permintaan keluar?',
+                      description: 'Gig akan dibatalkan dan settlement akan diproses.',
+                      confirmLabel: 'Ya, setuju',
+                      onConfirm: () => {
+                        responseForm.transform(() => ({
+                          decision: GigExitDecision.Agree,
+                        }));
+                        responseForm.patch(respond.url(exitRequest));
+                      },
+                    })
                   }
                 >
-                  Terima penyelesaian
+                  Setuju
                 </Button>
-              )}
-              {capabilities.canRejectFinishRequest && (
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    reviewForm.patch(rejectFinish.url(finishRequest));
-                  }}
-                  className="flex flex-col gap-2"
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={responseForm.processing}
+                  onClick={() =>
+                    confirm({
+                      title: 'Tolak permintaan keluar?',
+                      description: 'Permintaan keluar akan ditolak.',
+                      confirmLabel: 'Ya, tolak',
+                      destructive: true,
+                      onConfirm: () => {
+                        responseForm.transform(() => ({
+                          decision: GigExitDecision.Refuse,
+                        }));
+                        responseForm.patch(respond.url(exitRequest));
+                      },
+                    })
+                  }
                 >
-                  <Textarea
-                    value={reviewForm.data.reason}
-                    onChange={(event) =>
-                      reviewForm.setData('reason', event.target.value)
-                    }
-                    placeholder="Alasan penolakan"
-                  />
-                  {reviewForm.errors.reason && (
-                    <p className="text-sm text-destructive">
-                      {reviewForm.errors.reason}
-                    </p>
-                  )}
-                  <Button
-                    type="submit"
-                    variant="destructive"
-                    disabled={reviewForm.processing}
-                  >
-                    Tolak penyelesaian
-                  </Button>
-                </form>
+                  Tolak
+                </Button>
+              </div>
+            )}
+
+            {capabilities.canWithdrawExitRequest && (
+              <div className="flex justify-end pt-2 border-t border-border/40">
+                <Button
+                  variant="outline"
+                  disabled={responseForm.processing}
+                  onClick={() =>
+                    confirm({
+                      title: 'Tarik permintaan keluar?',
+                      description: 'Permintaan keluar yang diajukan akan ditarik.',
+                      confirmLabel: 'Ya, tarik',
+                      onConfirm: () => responseForm.patch(withdraw.url(exitRequest)),
+                    })
+                  }
+                >
+                  Tarik permintaan
+                </Button>
+              </div>
+            )}
+
+            {capabilities.canProceedUnilaterally && (
+              <div className="flex justify-end pt-2 border-t border-border/40">
+                <Button
+                  disabled={responseForm.processing}
+                  onClick={() =>
+                    confirm({
+                      title: 'Lanjutkan secara sepihak?',
+                      description: 'Proses keluar gig akan dilanjutkan sepihak karena batas waktu terlewati.',
+                      confirmLabel: 'Ya, lanjutkan',
+                      onConfirm: () => responseForm.post(proceed.url(exitRequest)),
+                    })
+                  }
+                >
+                  Lanjutkan secara sepihak
+                </Button>
+              </div>
+            )}
+          </AppPageCard>
+        )}
+
+        {finishRequest && (
+          <AppPageCard className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <FileCheck className="size-5 text-primary" />
+                <h3 className="font-bold text-foreground text-sm sm:text-base">
+                  Bukti Penyelesaian Pekerjaan
+                </h3>
+              </div>
+              <Badge variant="outline" className="px-3 py-1 font-medium text-xs">
+                {getGigFinishRequestStatusLabel(finishRequest.status)}
+              </Badge>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Catatan Pekerja
+              </span>
+              <div className="rounded-xl bg-secondary/30 p-3.5 border border-border/40 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+                {finishRequest.completion_note}
+              </div>
+            </div>
+
+            {finishRequest.rejection_reason && (
+              <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3.5 text-xs text-destructive">
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold">Alasan Penolakan Klien</span>
+                  <span>{finishRequest.rejection_reason}</span>
+                </div>
+              </div>
+            )}
+
+            {finishRequest.media.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Foto Bukti Hasil Pekerjaan ({finishRequest.media.length})
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {finishRequest.media.map((media: FinishRequestMedia, index: number) => (
+                    <a
+                      key={media.id}
+                      href={media.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-card px-3 py-2 text-xs font-medium text-primary hover:bg-secondary transition-colors"
+                    >
+                      <Image className="size-3.5" />
+                      <span>Bukti Foto #{index + 1}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {finishRequest.status === GigFinishRequestStatus.Pending &&
+              !capabilities.finishReviewExpired && (
+                <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+                  <Clock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <span>
+                    Batas waktu tinjauan klien:{' '}
+                    <strong>{formatDate(finishRequest.review_due_at, 'dd MMMM yyyy · HH:mm')}</strong> · Sisa waktu{' '}
+                    <strong>{getServerCountdown(finishRequest.review_due_at, serverNow)}</strong>.
+                  </span>
+                </div>
               )}
+
+            {capabilities.finishReviewExpired && (
+              <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 p-3 text-xs text-primary">
+                <Info className="size-4 shrink-0" />
+                <span>Batas waktu tinjauan berakhir. Menunggu penyelesaian otomatis.</span>
+              </div>
+            )}
+
+            {gig.status === GigStatus.Review &&
+              finishRequest.status === GigFinishRequestStatus.Pending &&
+              !capabilities.canAcceptFinishRequest &&
+              !capabilities.finishReviewExpired && (
+                <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-secondary/30 p-3 text-xs text-muted-foreground">
+                  <Clock className="size-4 shrink-0" />
+                  <span>Menunggu peninjauan dari klien.</span>
+                </div>
+              )}
+          </AppPageCard>
+        )}
+
+        {(capabilities.canAcceptFinishRequest ||
+          capabilities.canRejectFinishRequest) &&
+          finishRequest && (
+            <AppPageCard className="flex flex-col gap-4">
+              <h3 className="font-bold text-foreground text-sm">Tinjauan Hasil Pekerjaan</h3>
+              <div className="flex flex-col gap-3">
+                {capabilities.canAcceptFinishRequest && (
+                  <div className="flex justify-end">
+                    <Button
+                      disabled={reviewForm.processing}
+                      onClick={() =>
+                        confirm({
+                          title: 'Terima hasil penyelesaian?',
+                          description: 'Pekerjaan dianggap selesai dan dana escrow akan dicairkan ke pekerja.',
+                          confirmLabel: 'Ya, terima & selesaikan',
+                          onConfirm: () => reviewForm.patch(acceptFinish.url(finishRequest)),
+                        })
+                      }
+                    >
+                      <CheckCircle2 className="mr-1.5 size-4" />
+                      Terima penyelesaian
+                    </Button>
+                  </div>
+                )}
+
+                {capabilities.canRejectFinishRequest && (
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      confirm({
+                        title: 'Tolak hasil penyelesaian?',
+                        description: 'Alasan penolakan akan dikirimkan kepada pekerja.',
+                        confirmLabel: 'Ya, tolak penyelesaian',
+                        destructive: true,
+                        onConfirm: () => reviewForm.patch(rejectFinish.url(finishRequest)),
+                      });
+                    }}
+                    className="flex flex-col gap-3 pt-3 border-t border-border/40"
+                  >
+                    <Textarea
+                      value={reviewForm.data.reason}
+                      onChange={(event) =>
+                        reviewForm.setData('reason', event.target.value)
+                      }
+                      placeholder="Tuliskan alasan penolakan hasil pekerjaan..."
+                      rows={3}
+                    />
+                    {reviewForm.errors.reason && (
+                      <p className="text-xs text-destructive">
+                        {reviewForm.errors.reason}
+                      </p>
+                    )}
+                    <div className="flex justify-end">
+                      <Button
+                        type="submit"
+                        variant="destructive"
+                        disabled={reviewForm.processing}
+                      >
+                        <XCircle className="mr-1.5 size-4" />
+                        Tolak penyelesaian
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </AppPageCard>
+          )}
+
+        {capabilities.canSubmitFinishRequest && (
+          <AppPageCard className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <FileCheck className="size-5 text-primary" />
+              <h3 className="font-bold text-foreground text-sm sm:text-base">
+                Kirim Bukti Penyelesaian Pekerjaan
+              </h3>
+            </div>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                finishForm.transform((data) => ({
+                  ...data,
+                  photos: finishPhotos,
+                }));
+                finishForm.post(storeFinish.url(gig), {
+                  forceFormData: true,
+                  onSuccess: () => {
+                    finishForm.reset();
+                    setFinishPhotos([]);
+                  },
+                });
+              }}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  Catatan Penyelesaian
+                </label>
+                <Textarea
+                  value={finishForm.data.completion_note}
+                  onChange={(event) =>
+                    finishForm.setData('completion_note', event.target.value)
+                  }
+                  placeholder="Jelaskan secara ringkas pekerjaan yang telah diselesaikan..."
+                  rows={4}
+                />
+                {finishForm.errors.completion_note && (
+                  <p className="text-xs text-destructive">
+                    {finishForm.errors.completion_note}
+                  </p>
+                )}
+              </div>
+
+              <ImagePicker
+                files={finishPhotos}
+                onFilesChange={setFinishPhotos}
+                label="Foto Bukti Hasil Pekerjaan"
+                description="JPEG, PNG, atau WebP. Maksimal 5 foto, masing-masing 5 MB."
+                error={finishPhotoError}
+                maxFiles={5}
+                maxBytes={5 * 1024 * 1024}
+                maxDimensions={{ width: 12000, height: 12000 }}
+                disabled={finishForm.processing}
+                transformFile={(file) =>
+                  compressImage(file, CompressionProfiles.GigPhoto)
+                }
+              />
+
+              {finishForm.progress && (
+                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-primary h-2 transition-all duration-300"
+                    style={{ width: `${finishForm.progress.percentage}%` }}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <Button type="submit" disabled={finishForm.processing}>
+                  <FileCheck className="mr-1.5 size-4" />
+                  Kirim untuk ditinjau
+                </Button>
+              </div>
+            </form>
+          </AppPageCard>
+        )}
+
+        {canOpenDispute && (
+          <AppPageCard className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="size-5 text-destructive" />
+              <h3 className="font-bold text-foreground text-sm sm:text-base">
+                {disputeType === GigDisputeType.WorkObstruction
+                  ? 'Laporkan Hambatan Penyelesaian'
+                  : disputeType === GigDisputeType.FinishRejected
+                    ? 'Sengketakan Penolakan Terbaru'
+                    : 'Laporkan Sengketa Pekerjaan'}
+              </h3>
+            </div>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                confirm({
+                  title: 'Buka sengketa pekerjaan?',
+                  description: 'Tim admin akan meninjau pernyataan dan bukti yang diserahkan.',
+                  confirmLabel: 'Ya, buka sengketa',
+                  destructive: true,
+                  onConfirm: () => {
+                    disputeForm.transform((data) => ({
+                      ...data,
+                      type: disputeType,
+                      photos: disputePhotos,
+                    }));
+                    disputeForm.post(dispute.url(gig), { forceFormData: true });
+                  },
+                });
+              }}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  Pernyataan Sengketa
+                </label>
+                <Textarea
+                  value={disputeForm.data.statement}
+                  onChange={(event) =>
+                    disputeForm.setData('statement', event.target.value)
+                  }
+                  placeholder="Jelaskan secara detail permasalahan atau hambatan yang dialami..."
+                  rows={4}
+                />
+                {disputeForm.errors.statement && (
+                  <p className="text-xs text-destructive">
+                    {disputeForm.errors.statement}
+                  </p>
+                )}
+              </div>
+
+              <ImagePicker
+                files={disputePhotos}
+                onFilesChange={setDisputePhotos}
+                label="Foto Lampiran Bukti Sengketa"
+                description={
+                  disputeType === GigDisputeType.FinishRejected
+                    ? 'Foto tambahan opsional, maksimal 5 foto, masing-masing 5 MB.'
+                    : 'Wajib 1–5 foto bukti, masing-masing 5 MB.'
+                }
+                error={disputePhotoError}
+                maxFiles={5}
+                maxBytes={5 * 1024 * 1024}
+                maxDimensions={{ width: 12000, height: 12000 }}
+                disabled={disputeForm.processing}
+                transformFile={(file) =>
+                  compressImage(file, CompressionProfiles.GigPhoto)
+                }
+              />
+
+              {disputeForm.progress && (
+                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-destructive h-2 transition-all duration-300"
+                    style={{ width: `${disputeForm.progress.percentage}%` }}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <Button type="submit" variant="destructive" disabled={disputeForm.processing}>
+                  <ShieldAlert className="mr-1.5 size-4" />
+                  Buka sengketa
+                </Button>
+              </div>
+            </form>
+          </AppPageCard>
+        )}
+
+        {settlement && (
+          <AppPageCard className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="size-5 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="font-bold text-foreground text-sm sm:text-base">
+                  Hasil Penyelesaian (Settlement)
+                </h3>
+              </div>
+              <Badge variant="default" className="px-3 py-1 font-medium text-xs">
+                {getGigSettlementOutcomeLabel(settlement.outcome)}
+              </Badge>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+                <Coins className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-200">
+                    Pencairan Pekerja
+                  </span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300 text-base">
+                    Rp{settlement.freelancer_payout.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
+                <Coins className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Refund Klien
+                  </span>
+                  <span className="font-bold text-foreground text-base">
+                    Rp{settlement.client_refund.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
             </div>
           </AppPageCard>
         )}
 
-      {capabilities.canSubmitFinishRequest && (
-        <AppPageCard>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              finishForm.post(storeFinish.url(gig), {
-                forceFormData: true,
-                onSuccess: () => finishForm.reset(),
-              });
-            }}
-            className="flex flex-col gap-2"
-          >
-            <p className="font-medium">Kirim bukti penyelesaian</p>
-            <Textarea
-              value={finishForm.data.completion_note}
-              onChange={(event) =>
-                finishForm.setData('completion_note', event.target.value)
-              }
-              placeholder="Catatan penyelesaian"
-            />
-            {finishForm.errors.completion_note && (
-              <p className="text-sm text-destructive">
-                {finishForm.errors.completion_note}
-              </p>
-            )}
-            <Input
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(event) =>
-                finishForm.setData(
-                  'photos',
-                  Array.from(event.target.files ?? []),
-                )
-              }
-            />
-            {finishForm.errors.photos && (
-              <p className="text-sm text-destructive">
-                {finishForm.errors.photos}
-              </p>
-            )}
-            {finishForm.progress && (
-              <p className="text-sm text-muted-foreground">
-                Mengunggah {finishForm.progress.percentage}%
-              </p>
-            )}
-            <Button type="submit" disabled={finishForm.processing}>
-              Kirim untuk ditinjau
-            </Button>
-          </form>
-        </AppPageCard>
-      )}
-
-      {canOpenDispute && (
-        <AppPageCard>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              disputeForm.transform((data) => ({
-                ...data,
-                type: disputeType,
-              }));
-              disputeForm.post(dispute.url(gig), { forceFormData: true });
-            }}
-            className="flex flex-col gap-2"
-          >
-            <p className="font-medium">
-              {disputeType === GigDisputeType.WorkObstruction
-                ? 'Laporkan hambatan penyelesaian'
-                : disputeType === GigDisputeType.FinishRejected
-                  ? 'Sengketakan penolakan terbaru'
-                  : 'Laporkan sengketa'}
-            </p>
-            <Textarea
-              value={disputeForm.data.statement}
-              onChange={(event) =>
-                disputeForm.setData('statement', event.target.value)
-              }
-              placeholder="Pernyataan sengketa"
-            />
-            {disputeForm.errors.statement && (
-              <p className="text-sm text-destructive">
-                {disputeForm.errors.statement}
-              </p>
-            )}
-            <Input
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(event) =>
-                disputeForm.setData(
-                  'photos',
-                  Array.from(event.target.files ?? []),
-                )
-              }
-            />
-            <p className="text-xs text-muted-foreground">
-              {disputeType === GigDisputeType.FinishRejected
-                ? 'Foto tambahan opsional, maksimal 5.'
-                : 'Wajib 1–5 foto.'}
-            </p>
-            {disputeForm.errors.photos && (
-              <p className="text-sm text-destructive">
-                {disputeForm.errors.photos}
-              </p>
-            )}
-            {disputeForm.progress && (
-              <p className="text-sm text-muted-foreground">
-                Mengunggah {disputeForm.progress.percentage}%
-              </p>
-            )}
-            <Button type="submit" disabled={disputeForm.processing}>
-              Buka sengketa
-            </Button>
-          </form>
-        </AppPageCard>
-      )}
-
-      {settlement && (
-        <AppPageCard>
-          <p>Settlement: {getGigSettlementOutcomeLabel(settlement.outcome)}</p>
-          <p>
-            Untuk pekerja: Rp
-            {settlement.freelancer_payout.toLocaleString('id-ID')} · Refund
-            klien: Rp{settlement.client_refund.toLocaleString('id-ID')}
-          </p>
-        </AppPageCard>
-      )}
-      <GigConversation conversation={conversation} />
+        <GigConversation conversation={conversation} />
+      </div>
+      {confirmDialog}
     </AppPage>
   );
 }

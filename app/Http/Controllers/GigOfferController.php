@@ -135,6 +135,7 @@ class GigOfferController extends Controller
             return back()->with('error', $exception->getMessage());
         }
 
-        return back()->with('success', 'Penawaran berhasil diterima.');
+        return redirect()->route('app.gigs.agreement.show', ['gig' => $gigOffer->gig_id])
+            ->with('success', 'Penawaran berhasil diterima.');
     }
 }

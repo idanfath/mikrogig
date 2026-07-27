@@ -164,8 +164,8 @@ final class OpenGigDispute
                 'Sengketa Gig Dibuka',
                 NotificationTargetType::User,
                 $reporter->id,
-                'Anda perlu menanggapi sengketa gig.',
-                [$respondentId],
+                'Sengketa gig telah dibuka dan dalam proses peninjauan.',
+                [$reporter->id, $respondentId],
                 action_url: route('app.gig_disputes.show', $dispute),
                 action_label: 'Lihat Sengketa',
             );

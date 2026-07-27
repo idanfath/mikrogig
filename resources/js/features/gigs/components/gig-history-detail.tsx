@@ -2,6 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { store as storeRating } from '@/actions/App/Http/Controllers/GigRatingController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
+import { formatDate } from '@/lib/date';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +18,7 @@ import {
   getGigPaymentStatusLabel,
   getGigSettlementOutcomeLabel,
   getGigStatusLabel,
+  getGigStatusVariant,
 } from '@/types/enum';
 import type { HistoryShowProps } from '../history-types';
 import { GigConversation } from './gig-conversation';
@@ -63,11 +65,11 @@ export function GigHistoryDetail({
       <AppPageCard className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold">Gig</h2>
-          <Badge variant="secondary">{getGigStatusLabel(gig.status)}</Badge>
+          <Badge variant={getGigStatusVariant(gig.status)}>{getGigStatusLabel(gig.status)}</Badge>
         </div>
         <p>{gig.description}</p>
         <p className="text-sm text-muted-foreground">
-          Jadwal {gig.work_date} pukul {gig.start_time} · {gig.location_address}
+          Jadwal {gig.scheduled_at ? formatDate(gig.scheduled_at, 'dd MMMM yyyy pukul HH:mm') : `${gig.work_date} pukul ${gig.start_time}`} · {gig.location_address}
         </p>
         <p className="text-sm">Biaya awal: {money(gig.posted_fee)}</p>
         <p className="text-sm">Final: {dateTime(terminalAt)}</p>
@@ -98,7 +100,7 @@ export function GigHistoryDetail({
             Ruang lingkup: {agreement.final_scope ?? '-'}
           </p>
           <p className="text-sm">
-            Jadwal: {agreement.work_date ?? '-'} {agreement.start_time ?? ''}
+            Jadwal: {agreement.scheduled_at ? formatDate(agreement.scheduled_at, 'dd MMMM yyyy pukul HH:mm') : `${agreement.work_date ?? '-'} ${agreement.start_time ?? ''}`}
           </p>
           <p className="text-sm">
             Lokasi: {agreement.location_arrangement ?? '-'}

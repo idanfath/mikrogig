@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { withdraw } from '@/actions/App/Http/Controllers/GigOfferController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
+import { useConfirm } from '@/hooks/use-confirm';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ListToolbar } from '@/components/ui/list-toolbar';
@@ -50,6 +51,7 @@ type ApplicationListProps = {
 
 export function ApplicationList({ offers, filters }: ApplicationListProps) {
   const form = useForm({});
+  const [confirm, confirmDialog] = useConfirm();
   const [search, setSearch] = useState(filters?.search ?? '');
   const [status, setStatus] = useState(filters?.status ?? 'all');
 
@@ -110,7 +112,16 @@ export function ApplicationList({ offers, filters }: ApplicationListProps) {
             <Button
               variant="destructive"
               disabled={form.processing}
-              onClick={() => form.patch(withdraw.url(offer))}
+              onClick={() => {
+                confirm({
+                  title: 'Tarik Lamaran',
+                  description: `Apakah Anda yakin ingin menarik lamaran untuk gig "${offer.gig?.title ?? ''}"?`,
+                  confirmLabel: 'Tarik Lamaran',
+                  cancelLabel: 'Batal',
+                  destructive: true,
+                  onConfirm: () => form.patch(withdraw.url(offer)),
+                });
+              }}
             >
               Tarik lamaran
             </Button>
@@ -207,6 +218,7 @@ export function ApplicationList({ offers, filters }: ApplicationListProps) {
         )}
 
         <Pagination page={offers} />
+        {confirmDialog}
       </div>
     </AppPage>
   );

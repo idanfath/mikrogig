@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react';
 
 import {
@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/sidebar';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { NotificationSidebarItem } from '@/features/notifications/components/notification-sidebar-item';
+import { useConfirm } from '@/hooks/use-confirm';
 import { logout } from '@/routes';
 import app from '@/routes/app';
 import type { Auth } from '@/types/auth';
@@ -42,9 +43,23 @@ function AppSidebar({ className }: AppSidebarProps) {
     props: { auth },
   } = usePage<{ auth: Auth }>();
   const { isMobile } = useSidebar();
+  const [confirm, confirmDialog] = useConfirm();
   const currentPath = url.split('?')[0];
   const user = auth.user;
   const categories = filterNavCategories(appNavigation, user?.role);
+
+  const handleLogout = () => {
+    confirm({
+      title: 'Konfirmasi Keluar',
+      description: 'Apakah Anda yakin ingin keluar dari akun Anda?',
+      confirmLabel: 'Keluar',
+      cancelLabel: 'Batal',
+      destructive: true,
+      onConfirm: () => {
+        router.post(logout().url);
+      },
+    });
+  };
 
   return (
     <Sidebar className={className} collapsible="icon">
@@ -121,11 +136,13 @@ function AppSidebar({ className }: AppSidebarProps) {
                 </DropdownMenuItem>
                 <NotificationSidebarItem />
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild variant="destructive">
-                  <Link href={logout()} method="post" className="w-full">
-                    <LogOut aria-hidden="true" />
-                    Keluar
-                  </Link>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={handleLogout}
+                  className="cursor-pointer"
+                >
+                  <LogOut aria-hidden="true" />
+                  Keluar
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -133,6 +150,7 @@ function AppSidebar({ className }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
+      {confirmDialog}
     </Sidebar>
   );
 }

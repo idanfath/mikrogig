@@ -76,21 +76,33 @@ class GigAgreementController extends Controller
     {
         $this->authorize('respond', $this->currentAgreement($gig));
 
-        return $this->execute(fn () => $declineAgreement->execute($request->user(), $gig), 'Persetujuan ditolak dan gig dibuka kembali.');
+        return $this->execute(
+            fn () => $declineAgreement->execute($request->user(), $gig),
+            'Persetujuan ditolak dan gig dibuka kembali.',
+            toRoute: route('app.gigs.show', $gig)
+        );
     }
 
     public function leave(Request $request, Gig $gig, LeaveGigAgreementPreparation $leaveAgreement): RedirectResponse
     {
         $this->authorize('respond', $this->currentAgreement($gig));
 
-        return $this->execute(fn () => $leaveAgreement->execute($request->user(), $gig), 'Persiapan persetujuan ditinggalkan dan gig dibuka kembali.');
+        return $this->execute(
+            fn () => $leaveAgreement->execute($request->user(), $gig),
+            'Persiapan persetujuan ditinggalkan dan gig dibuka kembali.',
+            toRoute: route('app.gigs.show', $gig)
+        );
     }
 
     public function reject(Request $request, Gig $gig, RejectSelectedFreelancer $rejectFreelancer): RedirectResponse
     {
         $this->authorize('rejectSelected', $this->currentAgreement($gig));
 
-        return $this->execute(fn () => $rejectFreelancer->execute($request->user(), $gig), 'Freelancer ditolak dan gig dibuka kembali.');
+        return $this->execute(
+            fn () => $rejectFreelancer->execute($request->user(), $gig),
+            'Freelancer ditolak dan gig dibuka kembali.',
+            toRoute: route('app.gigs.show', $gig)
+        );
     }
 
     private function currentAgreement(Gig $gig): GigAgreement
@@ -99,12 +111,16 @@ class GigAgreementController extends Controller
             ?? $gig->agreements()->with(['gig', 'acceptedOffer'])->latest('id')->firstOrFail();
     }
 
-    private function execute(callable $transition, string $message): RedirectResponse
+    private function execute(callable $transition, string $message, ?string $toRoute = null): RedirectResponse
     {
         try {
             $transition();
         } catch (DomainException $exception) {
             return back()->with('error', $exception->getMessage());
+        }
+
+        if ($toRoute !== null) {
+            return redirect($toRoute)->with('success', $message);
         }
 
         return back()->with('success', $message);

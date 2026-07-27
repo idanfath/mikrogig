@@ -18,6 +18,7 @@ use App\Enums\GigStatus;
 use App\Http\Requests\RespondGigExitRequest;
 use App\Http\Requests\StoreGigDisputeRequest;
 use App\Http\Requests\StoreGigExitRequest;
+use App\Http\Resources\GigDisputeResource;
 use App\Http\Resources\GigExitRequestResource;
 use App\Http\Resources\GigFinishRequestResource;
 use App\Http\Resources\GigPaymentResource;
@@ -81,6 +82,7 @@ class GigWorkflowController extends Controller
             ],
             'exit_request' => $activeExit === null ? null : GigExitRequestResource::make($activeExit)->resolve($request),
             'finish_request' => $latestFinishRequest === null ? null : GigFinishRequestResource::make($latestFinishRequest)->resolve($request),
+            'dispute' => $gig->dispute ? GigDisputeResource::make($gig->dispute)->resolve($request) : null,
             'settlement' => $gig->settlement ? GigSettlementResource::make($gig->settlement)->resolve($request) : null,
             'conversation' => $conversations->present($request, $payment->agreement),
             'server_now' => now()->toISOString(),

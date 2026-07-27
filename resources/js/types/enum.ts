@@ -336,6 +336,22 @@ export function getGigPaymentStatusLabel(status?: string | null): string {
   );
 }
 
+export function getGigPaymentStatusVariant(
+  status?: string | null,
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  switch (status) {
+    case GigPaymentStatus.Paid:
+      return 'default';
+    case GigPaymentStatus.Pending:
+      return 'secondary';
+    case GigPaymentStatus.Cancelled:
+    case GigPaymentStatus.Expired:
+      return 'destructive';
+    default:
+      return 'outline';
+  }
+}
+
 export function getGigExitStatusLabel(status?: string | null): string {
   return (
     (
@@ -399,6 +415,21 @@ export function getGigDisputeStatusLabel(status?: string | null): string {
     status ??
     ''
   );
+}
+
+export function getGigDisputeStatusVariant(
+  status?: string | null,
+): 'default' | 'secondary' | 'outline' | 'destructive' {
+  switch (status) {
+    case 'resolved':
+      return 'secondary';
+    case 'awaiting_counterproof':
+      return 'destructive';
+    case 'awaiting_admin':
+      return 'default';
+    default:
+      return 'outline';
+  }
 }
 
 export function getGigDisputeTypeLabel(type?: string | null): string {
@@ -469,5 +500,41 @@ export function getGigSettlementOutcomeLabel(outcome?: string | null): string {
     )[outcome ?? ''] ??
     outcome ??
     ''
+  );
+}
+
+export const GigWorkflowEventFrontendLabel = {
+  freelancer_selected: 'Pekerja Dipilih',
+  agreement_terms_submitted: 'Ketentuan Disampaikan',
+  agreement_changes_requested: 'Perubahan Ketentuan Diajukan',
+  agreement_accepted: 'Ketentuan Disetujui',
+  agreement_declined: 'Ketentuan Ditolak',
+  freelancer_left: 'Pekerja Mengundurkan Diri',
+  selected_freelancer_rejected: 'Pekerja Ditolak',
+  payment_pending: 'Menunggu Pembayaran',
+  payment_confirmed: 'Pembayaran Dikonfirmasi',
+  payment_cancelled: 'Pembayaran Dibatalkan',
+  payment_expired: 'Pembayaran Kadaluarsa',
+  work_started: 'Pekerjaan Dimulai',
+  exit_requested: 'Permohonan Berhenti Diajukan',
+  exit_accepted: 'Permohonan Berhenti Disetujui',
+  exit_refused: 'Permohonan Berhenti Ditolak',
+  exit_withdrawn: 'Permohonan Berhenti Ditarik',
+  exit_proceeded: 'Permohonan Berhenti Diproses',
+  finish_submitted: 'Hasil Pekerjaan Dikirim',
+  finish_rejected: 'Hasil Pekerjaan Ditolak',
+  gig_completed: 'Gig Selesai',
+  dispute_opened: 'Sengketa Dibuka',
+  counterproof_submitted: 'Bukti Balasan Dikirim',
+  dispute_resolved: 'Sengketa Diselesaikan Admin',
+  gig_cancelled: 'Gig Dibatalkan',
+} as const;
+
+export function getGigWorkflowEventLabel(event?: string | null): string {
+  if (!event) return '';
+  return (
+    GigWorkflowEventFrontendLabel[
+      event as keyof typeof GigWorkflowEventFrontendLabel
+    ] ?? event
   );
 }

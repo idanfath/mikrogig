@@ -25,6 +25,7 @@ export function ProfilePage({
   max_date_of_birth,
 }: ProfilePageProps) {
   const isFreelancer = profile.role === 'freelancer';
+  const isAdmin = profile.role === 'admin';
   const [editing, setEditing] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const { detecting, detectLocation } = useDetectLocation();
@@ -215,7 +216,7 @@ export function ProfilePage({
             )}
           </AppPageCard>
 
-          {!editing && (
+          {!editing && !isAdmin && (
             <ProfileRatings ratingSummary={profile.rating_summary} />
           )}
 

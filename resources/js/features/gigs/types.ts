@@ -33,6 +33,7 @@ export type Gig = {
   started_at: string | null;
   cancelled_at: string | null;
   completed_at: string | null;
+  dispute_id?: number | null;
   media: GigMedia[];
   client: GigClient;
   pending_applicants_count?: number;

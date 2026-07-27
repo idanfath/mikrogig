@@ -21,8 +21,8 @@ class GigDisputeResource extends JsonResource
             'status' => $this->status->value,
             'reporter_id' => $this->reporter_id,
             'respondent_id' => $this->respondent_id,
-            'reporter' => $this->whenLoaded('reporter', fn () => ['id' => $this->reporter->id, 'name' => $this->reporter->name, 'avatar_url' => $this->reporter->avatar_url]),
-            'respondent' => $this->whenLoaded('respondent', fn () => ['id' => $this->respondent->id, 'name' => $this->respondent->name, 'avatar_url' => $this->respondent->avatar_url]),
+            'reporter' => $this->whenLoaded('reporter', fn () => ['id' => $this->reporter->id, 'name' => $this->reporter->name, 'role' => $this->reporter->role->value, 'avatar_url' => $this->reporter->avatar_url, 'location' => $this->reporter->location]),
+            'respondent' => $this->whenLoaded('respondent', fn () => ['id' => $this->respondent->id, 'name' => $this->respondent->name, 'role' => $this->respondent->role->value, 'avatar_url' => $this->respondent->avatar_url, 'location' => $this->respondent->location]),
             'opened_at' => $this->opened_at->toISOString(),
             'counterproof_due_at' => $this->counterproof_due_at->toISOString(),
             'finding' => $this->finding?->value,
@@ -32,6 +32,7 @@ class GigDisputeResource extends JsonResource
             'submissions' => $this->whenLoaded('submissions', fn () => $this->submissions->map(fn ($submission) => [
                 'id' => $submission->id,
                 'type' => $submission->type->value,
+                'submitted_by' => $submission->submitted_by,
                 'statement' => $submission->statement,
                 'submitted_at' => $submission->submitted_at->toISOString(),
                 'media' => $submission->relationLoaded('media')

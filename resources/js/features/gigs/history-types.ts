@@ -50,6 +50,7 @@ export type HistoryAgreement = {
   final_scope: string | null;
   work_date: string | null;
   start_time: string | null;
+  scheduled_at?: string | null;
   location_arrangement: string | null;
   delivery_expectations: string | null;
   final_total_price: number | null;

@@ -27,7 +27,7 @@ export function GigCard({ gig, children }: GigCardProps) {
   return (
     <article className="group flex flex-col gap-4 rounded-2xl border bg-card p-4 shadow-xs transition-all duration-200 hover:border-primary/30 hover:shadow-md sm:flex-row sm:gap-5 sm:p-5">
       {gig.media[0] && (
-        <div className="w-full shrink-0 overflow-hidden rounded-xl sm:w-40">
+        <div className="hidden shrink-0 overflow-hidden rounded-xl sm:block sm:w-40">
           <PhotoProvider>
             <PhotoView src={gig.media[0].url}>
               <img

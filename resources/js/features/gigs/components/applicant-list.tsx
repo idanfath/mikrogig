@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UserAvatar } from '@/components/ui/user-avatar';
+import { useConfirm } from '@/hooks/use-confirm';
 import { formatDate } from '@/lib/date';
 import { capitalize } from '@/lib/utils';
 import applicants from '@/routes/app/client/gigs/applicants';
@@ -54,6 +55,7 @@ export function ApplicantList({
   filters,
   pendingOffersCount,
 }: ApplicantListProps) {
+  const [confirm, confirmDialog] = useConfirm();
   const form = useForm({});
   const [search, setSearch] = useState(filters?.search ?? '');
   const [status, setStatus] = useState(filters?.status ?? 'all');
@@ -347,7 +349,15 @@ export function ApplicantList({
                         variant="outline"
                         size="sm"
                         disabled={form.processing}
-                        onClick={() => form.patch(reject.url(offer))}
+                        onClick={() =>
+                          confirm({
+                            title: 'Tolak pelamar ini?',
+                            description: `Penawaran dari ${offer.freelancer?.name ?? 'pelamar'} akan ditolak. Pelamar akan menerima notifikasi.`,
+                            confirmLabel: 'Ya, tolak pelamar',
+                            destructive: true,
+                            onConfirm: () => form.patch(reject.url(offer)),
+                          })
+                        }
                         className="border-destructive/30 text-destructive hover:bg-destructive/10"
                       >
                         Tolak
@@ -356,7 +366,14 @@ export function ApplicantList({
                         variant="default"
                         size="sm"
                         disabled={form.processing}
-                        onClick={() => form.patch(accept.url(offer))}
+                        onClick={() =>
+                          confirm({
+                            title: 'Terima pelamar ini?',
+                            description: `Anda akan memilih ${offer.freelancer?.name ?? 'pelamar'} untuk mengerjakan gig ini (Rp${offer.offered_fee.toLocaleString('id-ID')}). Alur persetujuan gig akan dimulai.`,
+                            confirmLabel: 'Ya, terima pelamar',
+                            onConfirm: () => form.patch(accept.url(offer)),
+                          })
+                        }
                       >
                         Terima Pelamar
                       </Button>
@@ -370,6 +387,7 @@ export function ApplicantList({
 
         <Pagination page={offers} />
       </div>
+      {confirmDialog}
     </AppPage>
   );
 }

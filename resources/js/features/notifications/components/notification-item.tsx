@@ -1,7 +1,10 @@
-import { Bell } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { Bell, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatRelativeTime } from '@/lib/date';
+import { isInternalActionUrl, toInertiaHref } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { InboxMessage } from '../types';
 
 type NotificationItemProps = {
@@ -17,6 +20,7 @@ export function NotificationItem({
   onOpen,
   onDelete,
 }: NotificationItemProps) {
+  const isMobile = useIsMobile();
   const isUnread = !message.read_at;
 
   return (
@@ -72,6 +76,29 @@ export function NotificationItem({
         className="flex shrink-0 items-center gap-1.5 self-center"
         onClick={(e) => e.stopPropagation()}
       >
+        {!isMobile && message.action_url && (
+          <Button
+            asChild
+            size="sm"
+            className={`font-semibold transition-none ${isCompact ? 'h-6 px-2 text-[10px]' : 'h-7 px-2.5 text-[11px]'}`}
+          >
+            {isInternalActionUrl(message.action_url) ? (
+              <Link href={toInertiaHref(message.action_url)}>
+                <ExternalLink data-icon="inline-start" />
+                {message.action_label ?? 'Buka'}
+              </Link>
+            ) : (
+              <a
+                href={message.action_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink data-icon="inline-start" />
+                {message.action_label ?? 'Buka'}
+              </a>
+            )}
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"

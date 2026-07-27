@@ -75,8 +75,8 @@ final class LeaveGigAgreementPreparation
                 createdBy: $freelancerId,
                 body: 'Freelancer meninggalkan persiapan persetujuan dan gig dibuka kembali.',
                 recipientIds: [$clientId],
-                action_url: route('app.gigs.agreement.show', ['gig' => $gigId]),
-                action_label: 'Lihat Persetujuan',
+                action_url: route('app.gigs.show', ['gig' => $gigId]),
+                action_label: 'Lihat Detail Gig',
             );
         } catch (Throwable $exception) {
             report($exception);

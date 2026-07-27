@@ -13,6 +13,7 @@ use App\Models\Gig;
 use App\Models\GigAgreement;
 use App\Models\GigPayment;
 use App\Services\GigConversationService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -113,6 +114,9 @@ class GigHistoryController extends Controller
                 'final_scope' => $agreement->final_scope,
                 'work_date' => $agreement->work_date?->toDateString(),
                 'start_time' => $agreement->start_time === null ? null : substr($agreement->start_time, 0, 5),
+                'scheduled_at' => $agreement->work_date && $agreement->start_time
+                    ? CarbonImmutable::parse($agreement->work_date->toDateString().' '.$agreement->start_time, config('app.timezone'))->toIso8601String()
+                    : null,
                 'location_arrangement' => $agreement->location_arrangement,
                 'delivery_expectations' => $agreement->delivery_expectations,
                 'final_total_price' => $agreement->final_total_price,

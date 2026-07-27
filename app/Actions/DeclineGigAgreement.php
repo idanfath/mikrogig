@@ -75,8 +75,8 @@ final class DeclineGigAgreement
                 createdBy: $freelancerId,
                 body: $body,
                 recipientIds: [$clientId],
-                action_url: route('app.gigs.agreement.show', ['gig' => $gigId]),
-                action_label: 'Lihat Persetujuan',
+                action_url: route('app.gigs.show', ['gig' => $gigId]),
+                action_label: 'Lihat Detail Gig',
             );
         } catch (Throwable $exception) {
             report($exception);

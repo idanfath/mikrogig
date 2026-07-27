@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useConfirm } from '@/hooks/use-confirm';
 import clientGigs from '@/routes/app/client/gigs';
 import { create } from '@/routes/app/gigs';
 import { GigStatus, getGigStatusLabel } from '@/types/enum';
@@ -52,6 +53,7 @@ type OwnedGigListProps = {
 
 export function OwnedGigList({ gigs, filters }: OwnedGigListProps) {
   const form = useForm({});
+  const [confirm, confirmDialog] = useConfirm();
   const [search, setSearch] = useState(filters?.search ?? '');
   const [status, setStatus] = useState(filters?.status ?? 'all');
 
@@ -85,7 +87,16 @@ export function OwnedGigList({ gigs, filters }: OwnedGigListProps) {
         <Button
           variant="destructive"
           disabled={form.processing}
-          onClick={() => form.patch(cancel.url(gig))}
+          onClick={() =>
+            confirm({
+              title: 'Batalkan gig ini?',
+              description:
+                'Gig akan ditutup permanen dan tidak bisa dibuka kembali. Pelamar yang ada akan diberi tahu.',
+              confirmLabel: 'Ya, batalkan gig',
+              destructive: true,
+              onConfirm: () => form.patch(cancel.url(gig)),
+            })
+          }
         >
           Batalkan
         </Button>
@@ -100,8 +111,8 @@ export function OwnedGigList({ gigs, filters }: OwnedGigListProps) {
     >
       <div className="flex flex-col gap-4">
         <AppPageCard>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <form onSubmit={submit} className="flex-1">
+          <div className="flex flex-col gap-4">
+            <form onSubmit={submit} className="w-full">
               <ListToolbar
                 search={search}
                 onSearchChange={setSearch}
@@ -150,7 +161,7 @@ export function OwnedGigList({ gigs, filters }: OwnedGigListProps) {
               </ListToolbar>
             </form>
 
-            <Button asChild className="shrink-0 max-sm:w-full">
+            <Button asChild className="w-full">
               <Link href={create()}>
                 <Plus className="mr-1.5 size-4" />
                 Buat Gig Baru
@@ -195,6 +206,7 @@ export function OwnedGigList({ gigs, filters }: OwnedGigListProps) {
           <Pagination page={gigs} />
         </div>
       </div>
+      {confirmDialog}
     </AppPage>
   );
 }
