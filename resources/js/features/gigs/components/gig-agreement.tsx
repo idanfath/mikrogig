@@ -174,6 +174,8 @@ export function GigAgreementPage({
                     )}
                 </AppPageCard>
 
+                <GigConversation conversation={conversation} />
+
                 {capabilities.can_submit_terms && (
                     <AppPageCard>
                         <form onSubmit={submitTerms} className="flex flex-col gap-4">
@@ -539,8 +541,6 @@ export function GigAgreementPage({
                             )}
                         </AppPageCard>
                     )}
-
-                <GigConversation conversation={conversation} />
             </div>
             {confirmDialog}
         </AppPage>

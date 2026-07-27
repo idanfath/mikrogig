@@ -597,6 +597,8 @@ export function AdminGigDisputeDetail({
           );
         })}
 
+        <GigConversation conversation={conversation} />
+
         {dispute.resolution_note && (
           <AppPageCard className="flex flex-col gap-3 border-emerald-500/30 bg-emerald-500/5">
             <div className="flex items-center gap-2 border-b border-emerald-500/20 pb-2 text-emerald-900 dark:text-emerald-200">
@@ -760,8 +762,6 @@ export function AdminGigDisputeDetail({
             </div>
           </AppPageCard>
         )}
-
-        <GigConversation conversation={conversation} />
       </div>
 
       {confirmDialog}

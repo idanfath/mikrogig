@@ -60,7 +60,7 @@ class GigConversationService
         }
 
         if ($user->role === UserRole::Admin) {
-            return $gig->status === GigStatus::Disputed
+            return in_array($gig->status, [GigStatus::Disputed, GigStatus::DisputeResolved], true)
                 && $gig->dispute?->gig_agreement_id === $agreement->id;
         }
 

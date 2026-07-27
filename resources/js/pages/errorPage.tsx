@@ -60,15 +60,28 @@ const ErrorPage: InertiaPageWithLayout<ErrorPageProps> = ({ status }) => {
                 </div>
                 <div className="mt-auto w-full shrink-0 sm:w-fit sm:self-center">
                     {status !== 403 ? (
-                        <Button
-                            variant="default"
-                            size="lg"
-                            mobileLarge
-                            className="w-full sm:w-auto"
-                            onClick={() => window.history.back()}
-                        >
-                            Kembali
-                        </Button>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+
+                            {(status === 404 && isLoggedIn) && (
+                                <Button
+                                    variant="default"
+                                    size="lg"
+                                    mobileLarge
+                                    className="w-full sm:w-auto"
+                                    onClick={() => router.visit(isLoggedIn ? app.home.url() : home.url())}
+                                >
+                                    Kembali ke Beranda
+                                </Button>)}
+                            <Button
+                                variant={status === 404 ? 'secondary' : 'default'}
+                                size="lg"
+                                mobileLarge
+                                className="w-full sm:w-auto"
+                                onClick={() => window.history.back()}
+                            >
+                                Kembali
+                            </Button>
+                        </div>
                     ) : (
                         <div className="flex flex-col gap-2 sm:flex-row">
                             <Button

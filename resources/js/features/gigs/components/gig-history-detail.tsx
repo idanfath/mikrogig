@@ -93,6 +93,8 @@ export function GigHistoryDetail({
         )}
       </AppPageCard>
 
+      <GigConversation conversation={conversation} />
+
       {agreements.map((agreement) => (
         <AppPageCard key={agreement.id} className="flex flex-col gap-2">
           <h2 className="font-semibold">Persetujuan #{agreement.id}</h2>
@@ -293,7 +295,6 @@ export function GigHistoryDetail({
           </form>
         )}
       </AppPageCard>
-      <GigConversation conversation={conversation} />
     </AppPage>
   );
 }

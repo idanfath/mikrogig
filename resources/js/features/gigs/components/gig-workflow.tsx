@@ -51,10 +51,14 @@ import { show as showProfile } from '@/routes/app/profile';
 import { CompressionProfiles } from '@/types/client_enum';
 import { getServerCountdown } from '@/lib/server-time';
 import {
+  GigDisputeStatus,
   GigDisputeType,
   GigExitDecision,
+  GigExitStatus,
   GigExitType,
   GigFinishRequestStatus,
+  GigPaymentStatus,
+  GigSettlementOutcome,
   GigStatus,
   getGigExitStatusLabel,
   getGigFinishRequestStatusLabel,
@@ -74,7 +78,7 @@ export type FinishRequestMedia = {
 
 export type GigFinishRequestData = {
   id: number;
-  status: string;
+  status: GigFinishRequestStatus;
   completion_note: string;
   review_due_at: string;
   rejection_reason: string | null;
@@ -82,14 +86,14 @@ export type GigFinishRequestData = {
 };
 
 export type GigSettlementData = {
-  outcome: string;
+  outcome: GigSettlementOutcome;
   freelancer_payout: number;
   client_refund: number;
 };
 
 export type GigWorkflowPageProps = {
-  gig: { id: number; title: string; status: string };
-  payment: { amount: number; status: string };
+  gig: { id: number; title: string; status: GigStatus };
+  payment: { amount: number; status: GigPaymentStatus };
   agreement: { work_date: string; start_time: string; scheduled_at: string };
   participants: {
     client: { id: number; name: string; avatar_url: string; location: string | null };
@@ -97,13 +101,13 @@ export type GigWorkflowPageProps = {
   };
   exit_request: {
     id: number;
-    status: string;
-    type: string;
+    status: GigExitStatus;
+    type: GigExitType;
     reason: string;
-    response: string | null;
+    response: GigExitDecision | null;
   } | null;
   finish_request?: GigFinishRequestData | null;
-  dispute?: { id: number; status: string; type: string } | null;
+  dispute?: { id: number; status: GigDisputeStatus; type: GigDisputeType } | null;
   settlement?: GigSettlementData | null;
   server_now: string;
   capabilities: {
@@ -227,6 +231,7 @@ export function GigWorkflowPage({
       description="Pantau alur pelaksanaan gig, pengiriman bukti hasil kerja, dan penyelesaian transaksi."
     >
       <div className="flex flex-col gap-6">
+        <GigConversation conversation={conversation} />
         <AppPageCard className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/40">
             <div className="flex items-center gap-2">
@@ -898,8 +903,6 @@ export function GigWorkflowPage({
             </div>
           </AppPageCard>
         )}
-
-        <GigConversation conversation={conversation} />
       </div>
       {confirmDialog}
     </AppPage>

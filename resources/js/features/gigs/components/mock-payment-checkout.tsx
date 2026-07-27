@@ -28,7 +28,7 @@ export function MockPaymentCheckoutPage({ gig, payment }: Props) {
       title="Checkout Pembayaran Demo"
       description="Halaman pembayaran simulasi untuk memproses escrow gig."
     >
-      <AppPageCard className="flex max-w-xl flex-col gap-4">
+      <AppPageCard className="flex flex-col gap-4">
         <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-secondary/30 p-3.5 text-xs font-medium text-foreground">
           <CreditCard className="size-4 shrink-0 text-muted-foreground" />
           <span>Pembayaran simulasi (demo), tidak ada uang sungguhan yang ditransfer.</span>

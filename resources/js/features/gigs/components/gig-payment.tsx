@@ -82,6 +82,7 @@ export function GigPaymentPage({
       description="Status transaksi escrow pembayaran demo dan instruksi penyelesaian."
     >
       <div className="flex flex-col gap-6">
+        <GigConversation conversation={conversation} />
         <AppPageCard className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/40">
             <div className="flex items-center gap-2">
@@ -201,8 +202,6 @@ export function GigPaymentPage({
             </div>
           )}
         </AppPageCard>
-
-        <GigConversation conversation={conversation} />
       </div>
       {confirmDialog}
     </AppPage>
