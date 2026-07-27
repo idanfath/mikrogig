@@ -14,6 +14,7 @@ use App\Models\GigAgreement;
 use App\Models\GigPayment;
 use App\Services\GigConversationService;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;

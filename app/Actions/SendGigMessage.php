@@ -115,7 +115,7 @@ class SendGigMessage
                 createdBy: $sender->id,
                 body: "{$sender->name} mengirimkan pesan baru pada workflow gig \"{$persisted->gig->title}\".",
                 recipientIds: [$recipient->id],
-                action_url: route('app.gig_conversations.destination', $persisted),
+                action_url: route('app.gig_conversations.show', $persisted),
                 action_label: 'Buka Percakapan',
             );
         } catch (Throwable $exception) {

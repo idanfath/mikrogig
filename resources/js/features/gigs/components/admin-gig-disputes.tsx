@@ -224,9 +224,6 @@ export function AdminGigDisputeQueue({
               <AppPageCard key={dispute.id} className="flex flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/40">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      #{dispute.id}
-                    </Badge>
                     <span className="font-bold text-foreground text-sm sm:text-base">
                       {getGigDisputeTypeLabel(dispute.type)}
                     </span>
@@ -390,16 +387,13 @@ export function AdminGigDisputeDetail({
 
   return (
     <AppPage
-      title={`Detail Sengketa #${dispute.id}`}
+      title="Detail Sengketa Pekerjaan"
       description="Tinjau bukti dari pelapor dan responden sebelum memberikan keputusan sengketa."
     >
       <div className="flex flex-col gap-6">
         <AppPageCard className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/40">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="font-mono text-xs">
-                #{dispute.id}
-              </Badge>
               <span className="font-bold text-foreground text-sm sm:text-base">
                 {getGigDisputeTypeLabel(dispute.type)}
               </span>
@@ -500,7 +494,7 @@ export function AdminGigDisputeDetail({
               <div className="flex items-center gap-2">
                 <FileCheck className="size-4 text-primary" />
                 <h3 className="font-bold text-foreground text-sm">
-                  Bukti Pengiriman Hasil Pekerjaan #{dispute.finish_request.id}
+                  Bukti Pengiriman Hasil Pekerjaan
                 </h3>
               </div>
               <Badge variant="outline" className="text-xs font-semibold">

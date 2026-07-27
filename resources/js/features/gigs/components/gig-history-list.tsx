@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { History } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
@@ -111,7 +112,19 @@ export function GigHistoryList({ gigs, filters }: HistoryIndexProps) {
       </div>
 
       {gigs.data.length === 0 && (
-        <AppPageCard>Belum ada riwayat gig.</AppPageCard>
+        <AppPageCard className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <History className="size-6" />
+          </div>
+          <span className="text-sm font-semibold text-foreground">
+            Belum ada riwayat gig
+          </span>
+          <p className="text-xs text-muted-foreground max-w-sm">
+            {hasActiveFilters || search
+              ? 'Tidak ada riwayat yang cocok dengan kata kunci atau filter terpilih.'
+              : 'Semua gig yang sudah selesai, dibatalkan, atau diselesaikan akan muncul di sini.'}
+          </p>
+        </AppPageCard>
       )}
       <Pagination page={gigs} />
     </AppPage>

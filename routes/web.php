@@ -85,6 +85,7 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
         Route::get('/history/{gig}', [GigHistoryController::class, 'show'])->name('history.show');
         Route::get('/gig-finish-request-media/{media}', [GigFinishRequestController::class, 'media'])->name('gig_finish_request_media.show');
         Route::get('/gig-dispute-media/{media}', [GigDisputeController::class, 'media'])->name('gig_dispute_media.show');
+        Route::get('/gig-agreements/{agreement}/chat', [GigConversationController::class, 'show'])->name('gig_conversations.show');
         Route::get('/gig-agreements/{agreement}/conversation', [GigConversationController::class, 'destination'])->name('gig_conversations.destination');
         Route::get('/gig-message-media/{media}', [GigConversationController::class, 'media'])->name('gig_message_media.show');
 

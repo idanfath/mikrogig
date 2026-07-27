@@ -1,9 +1,8 @@
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import { Calendar, Mail, MapPin, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from '@/components/ui/user-avatar';
+import { formatDate } from '@/lib/date';
 import { capitalize } from '@/lib/utils';
 import { UserRoleFrontendLabel } from '@/types/enum';
 import type { Profile } from '../types';
@@ -61,9 +60,7 @@ function ProfileHeader({
                             <div className="flex items-center gap-2">
                                 <Calendar className="size-3.5 shrink-0 text-muted-foreground/70" />
                                 <span className="text-foreground font-medium">
-                                    {format(new Date(profile.date_of_birth), 'dd MMM yyyy', {
-                                        locale: id,
-                                    })}
+                                    {formatDate(profile.date_of_birth, 'dd MMM yyyy')}
                                 </span>
                                 <PrivacyTooltip />
                             </div>

@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { X } from 'lucide-react';
+import { SearchX, X } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
@@ -51,6 +51,7 @@ export function GigDiscovery({
   });
 
   const hasActiveFilters = Boolean(
+    data.search ||
     data.province_id ||
     data.regency_id ||
     data.category ||
@@ -70,12 +71,9 @@ export function GigDiscovery({
   };
 
   const resetFilters = () => {
-    const resetData: Filters = {
-      search: data.search ?? '',
-    };
-    setData(resetData);
+    setData({});
     router.get(
-      index.url({ query: resetData }),
+      index.url(),
       {},
       { preserveScroll: true, preserveState: true },
     );
@@ -267,27 +265,52 @@ export function GigDiscovery({
                 </div>
               </div>
 
-              {hasActiveFilters && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={resetFilters}
-                >
-                  Reset filter
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={resetFilters}
+              >
+                Reset filter
+              </Button>
             </ListToolbar>
           </form>
         </AppPageCard>
-        <div className="flex flex-col gap-4">
-          {gigs.data.map((gig) => (
-            <GigCard key={gig.id} gig={gig} />
-          ))}
-        </div>
-        {gigs.data.length === 0 && (
-          <AppPageCard>Tidak ada gig yang sesuai.</AppPageCard>
+        {gigs.data.length > 0 && (
+          <div className="flex flex-col gap-4">
+            {gigs.data.map((gig) => (
+              <GigCard key={gig.id} gig={gig} />
+            ))}
+          </div>
         )}
+
+        {gigs.data.length === 0 && (
+          <AppPageCard className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <SearchX className="size-6" />
+            </div>
+            <span className="text-sm font-semibold text-foreground">
+              Tidak ada gig yang sesuai
+            </span>
+            <p className="text-xs text-muted-foreground max-w-sm">
+              {hasActiveFilters || data.search
+                ? 'Coba ubah kata kunci pencarian atau sesuaikan filter lokasi, kategori, dan biaya Anda.'
+                : 'Belum ada gig lokal yang tersedia saat ini. Silakan periksa kembali nanti.'}
+            </p>
+            {(hasActiveFilters || data.search) && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={resetFilters}
+              >
+                Reset semua filter
+              </Button>
+            )}
+          </AppPageCard>
+        )}
+
         <Pagination page={gigs} />
       </div>
     </AppPage>

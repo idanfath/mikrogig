@@ -1,5 +1,12 @@
-import { router, useForm, usePage, usePoll } from '@inertiajs/react';
-import { ChevronDown, ChevronRight, Paperclip, SendHorizontal } from 'lucide-react';
+import { Link, router, useForm, usePage, usePoll } from '@inertiajs/react';
+import {
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    MessageCircle,
+    Paperclip,
+    SendHorizontal,
+} from 'lucide-react';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -14,13 +21,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { imageAccept, useImageSelection } from '@/hooks/use-image-selection';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { formatDate } from '@/lib/date';
-import { sentenceCase } from '@/lib/utils';
+import { formatDate, formatDateDivider } from '@/lib/date';
+import { cn, sentenceCase, toInertiaHref } from '@/lib/utils';
+import {
+    destination,
+    show,
+} from '@/routes/app/gig_conversations';
 import type { Auth } from '@/types/auth';
 import {
     GigMessageKind,
     GigWorkflowEvent,
+    getGigDisputeFindingLabel,
     getGigDisputeTypeLabel,
+    getGigSettlementOutcomeLabel,
     getGigWorkflowEventLabel,
 } from '@/types/enum';
 import type {
@@ -38,28 +51,6 @@ function getDateKey(dateString: string): string {
     }
 }
 
-function formatDateDivider(dateString: string): string {
-    try {
-        const now = new Date();
-        const todayStr = getDateKey(now.toISOString());
-        const msgDateStr = getDateKey(dateString);
-
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = getDateKey(yesterday.toISOString());
-
-        if (msgDateStr === todayStr) {
-            return 'Hari ini';
-        }
-        if (msgDateStr === yesterdayStr) {
-            return 'Kemarin';
-        }
-
-        return formatDate(dateString, 'EEEE, d MMMM yyyy');
-    } catch {
-        return dateString;
-    }
-}
 
 function getEventActor(
     workflowEvent: string | null,
@@ -173,10 +164,12 @@ function formatSnapshotValue(key: string, value: unknown): string {
         if (strVal === 'unilateral') return 'Sepihak';
     }
 
+    if (key === 'finding') {
+        return getGigDisputeFindingLabel(strVal);
+    }
+
     if (key === 'outcome') {
-        if (strVal === 'full_client_refund') return 'Pengembalian Dana Klien 100%';
-        if (strVal === 'full_freelancer_payout') return 'Pembayaran Freelancer 100%';
-        if (strVal === 'split') return 'Pembagian Dana (Split)';
+        return getGigSettlementOutcomeLabel(strVal);
     }
 
     if (key === 'mode') {
@@ -226,11 +219,17 @@ function getWorkflowEventTitle(
 type Props = {
     conversation: GigConversationData | null;
     defaultExpanded?: boolean;
+    mode?: 'inline' | 'page';
 };
 
 const CHAT_EXPANDED_STORAGE_KEY = 'gig_chat_is_expanded';
 
-export function GigConversation({ conversation, defaultExpanded = true }: Props) {
+export function GigConversation({
+    conversation,
+    defaultExpanded = true,
+    mode = 'inline',
+}: Props) {
+    const isPage = mode === 'page';
     const isMobile = useIsMobile();
     const [isExpanded, setIsExpanded] = useState<boolean>(() => {
         try {
@@ -312,6 +311,7 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                 .join(','),
         [messages],
     );
+    const recentMessages = useMemo(() => messages.slice(-5), [messages]);
 
     useEffect(() => {
         if (
@@ -365,6 +365,9 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
         return null;
     }
 
+    const isConversationExpanded = isPage || (!isMobile && isExpanded);
+    const ConversationContainer = isPage ? 'main' : AppPageCard;
+
     const leftPerson = isClientViewer
         ? conversation.participants[1] ?? conversation.participants[0]
         : conversation.participants[0];
@@ -373,22 +376,41 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
         ? conversation.participants[0]
         : conversation.participants[1] ?? conversation.participants[0];
 
-    const recentMessages = useMemo(() => messages.slice(-5), [messages]);
-
     return (
-        <AppPageCard
-            id="conversation"
-            className="flex flex-col overflow-hidden p-0"
+        <ConversationContainer
+            id={isPage ? undefined : 'conversation'}
+            className={cn(
+                'flex flex-col overflow-hidden',
+                isPage ? 'h-dvh min-h-dvh bg-background' : 'p-0',
+            )}
         >
-            {/* Header / Title */}
-            <div className="flex flex-col gap-1.5 border-b border-border/60 bg-card px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex shrink-0 flex-col gap-1.5 border-b border-border/60 bg-card px-4 py-3 sm:px-6 sm:py-4">
                 <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-sm font-bold text-foreground sm:text-base">
-                        Percakapan Gig
-                    </h2>
+                    <div className="flex min-w-0 items-center gap-2">
+                        {isPage && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Kembali"
+                                onClick={() => {
+                                    if (window.history.length > 1) {
+                                        window.history.back();
+                                    } else {
+                                        router.get(destination(conversation.agreement_id));
+                                    }
+                                }}
+                            >
+                                <ChevronLeft data-icon="inline-start" />
+                            </Button>
+                        )}
+                        <h2 className="truncate text-sm font-bold text-foreground sm:text-base">
+                            Percakapan Gig
+                        </h2>
+                    </div>
 
                     <div className="flex items-center gap-2">
-                        {isExpanded && conversation.has_older && (
+                        {isConversationExpanded && conversation.has_older && (
                             <Button
                                 type="button"
                                 variant="outline"
@@ -426,20 +448,33 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                                 Muat pesan sebelumnya
                             </Button>
                         )}
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="xs"
-                            className="gap-1.5 text-xs font-medium text-foreground/80 hover:text-foreground"
-                            onClick={toggleExpanded}
-                            aria-label={isExpanded ? 'Sembunyikan percakapan' : 'Tampilkan percakapan'}
-                        >
-                            <span>{isExpanded ? 'Sembunyikan' : 'Buka chat'}</span>
-                            <ChevronDown
-                                className={`size-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''
-                                    }`}
-                            />
-                        </Button>
+                        {!isPage && (
+                            isMobile ? (
+                                <Button asChild variant="outline" size="xs" className="gap-1.5">
+                                    <Link href={show(conversation.agreement_id)}>
+                                        <MessageCircle data-icon="inline-start" />
+                                        Buka chat
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="xs"
+                                    className="gap-1.5 text-xs font-medium text-foreground/80 hover:text-foreground"
+                                    onClick={toggleExpanded}
+                                    aria-label={isExpanded ? 'Sembunyikan percakapan' : 'Tampilkan percakapan'}
+                                >
+                                    <span>{isExpanded ? 'Sembunyikan' : 'Buka chat'}</span>
+                                    <ChevronDown
+                                        className={cn(
+                                            'size-4 transition-transform duration-200',
+                                            isExpanded && 'rotate-180',
+                                        )}
+                                    />
+                                </Button>
+                            )
+                        )}
                     </div>
                 </div>
 
@@ -448,7 +483,7 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                     <span>{rightPerson?.name}</span>
                 </div>
 
-                {!isExpanded && recentMessages.length > 0 && (
+                {!isConversationExpanded && recentMessages.length > 0 && (
                     <div className="mt-2 flex flex-col gap-1.5 border-t border-border/40 pt-2.5">
                         {recentMessages.map((msg) => {
                             const isUser = msg.kind === GigMessageKind.User;
@@ -517,9 +552,8 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                 )}
             </div>
 
-            {isExpanded && (
+            {isConversationExpanded && (
                 <>
-                    {/* Chat Body */}
                     <div
                         ref={listRef}
                         onScroll={(event) => {
@@ -528,7 +562,10 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                                 element.scrollHeight - element.scrollTop - element.clientHeight <
                                 80;
                         }}
-                        className="flex max-h-[32rem] min-h-[16rem] w-full min-w-0 flex-col gap-3 overflow-x-hidden overflow-y-auto bg-muted/15 p-4 sm:p-6"
+                        className={cn(
+                            'flex w-full min-w-0 flex-col gap-3 overflow-x-hidden overflow-y-auto bg-muted/15 p-4 sm:p-6',
+                            isPage ? 'min-h-0 flex-1' : 'max-h-[32rem] min-h-[16rem]',
+                        )}
                     >
                         {messages.length === 0 && (
                             <p className="py-8 text-center text-sm text-muted-foreground">
@@ -574,10 +611,9 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                                     }
                                 }
 
-                                // header clickable when event_action exists
-                                const HeaderWrapper = message.event_action ? 'a' : 'div';
+                                const HeaderWrapper = message.event_action ? Link : 'div';
                                 const headerWrapperProps = message.event_action
-                                    ? { href: message.event_action.url }
+                                    ? { href: toInertiaHref(message.event_action.url) }
                                     : {};
 
                                 const eventTimeElement = (
@@ -900,16 +936,21 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                         })}
                     </div>
 
-                    {/* Footer / Input */}
                     {conversation.capabilities.isReadOnly && (
-                        <div className="border-t border-border/60 bg-muted/40 p-4 text-center text-xs text-muted-foreground">
+                        <div className={cn(
+                            'border-t border-border/60 bg-muted/40 p-4 text-center text-xs text-muted-foreground',
+                            isPage && 'shrink-0',
+                        )}>
                             Percakapan ini telah ditutup dan hanya dapat dibaca.
                         </div>
                     )}
 
                     {conversation.capabilities.canSendMessage && (
                         <form
-                            className="flex flex-col gap-1 border-t border-border/60 bg-card px-1 pt-1.5"
+                            className={cn(
+                                'flex flex-col gap-1 border-t border-border/60 bg-card px-1 pt-1.5',
+                                isPage && 'shrink-0 pb-[env(safe-area-inset-bottom)]',
+                            )}
                             onSubmit={(event) => {
                                 event.preventDefault();
                                 form.post(store.url(conversation.agreement_id), {
@@ -990,6 +1031,6 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                     )}
                 </>
             )}
-        </AppPageCard>
+        </ConversationContainer>
     );
 }

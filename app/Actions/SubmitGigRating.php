@@ -3,7 +3,6 @@
 namespace App\Actions;
 
 use App\Enums\GigOfferStatus;
-use App\Enums\NotificationTargetType;
 use App\Enums\UserRole;
 use App\Models\Gig;
 use App\Models\GigOffer;
@@ -14,7 +13,6 @@ use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 final class SubmitGigRating
 {
@@ -120,20 +118,6 @@ final class SubmitGigRating
             }
 
             throw $exception;
-        }
-
-        try {
-            $this->notifications->send(
-                'Ulasan & Rating Baru',
-                NotificationTargetType::User,
-                $rating->rater_id,
-                "{$rater->name} memberikan rating {$rating->score} bintang untuk gig \"{$gig->title}\".",
-                [$rating->recipient_id],
-                action_url: route('app.history.show', $gig),
-                action_label: 'Lihat riwayat gig',
-            );
-        } catch (Throwable $exception) {
-            report($exception);
         }
 
         return $rating;

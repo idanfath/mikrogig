@@ -112,6 +112,14 @@ export const GigDisputeFinding = {
 export type GigDisputeFinding =
   (typeof GigDisputeFinding)[keyof typeof GigDisputeFinding];
 
+export const GigDisputeFindingFrontendLabel = {
+  client_at_fault: 'Klien Bersalah',
+  freelancer_at_fault: 'Pekerja Bersalah',
+  inconclusive: 'Tidak Meyakinkan',
+} as const;
+export type GigDisputeFindingFrontendLabel =
+  (typeof GigDisputeFindingFrontendLabel)[keyof typeof GigDisputeFindingFrontendLabel];
+
 export const GigFinishRequestStatus = {
   Pending: 'pending',
   Accepted: 'accepted',
@@ -476,17 +484,11 @@ export function getGigDisputeSubmissionTypeLabel(type?: string | null): string {
 }
 
 export function getGigDisputeFindingLabel(finding?: string | null): string {
-  return (
-    (
-      {
-        client_at_fault: 'Klien bersalah',
-        freelancer_at_fault: 'Pekerja bersalah',
-        inconclusive: 'Tidak meyakinkan',
-      } as Record<string, string>
-    )[finding ?? ''] ??
-    finding ??
-    ''
-  );
+  return finding && finding in GigDisputeFindingFrontendLabel
+    ? GigDisputeFindingFrontendLabel[
+        finding as keyof typeof GigDisputeFindingFrontendLabel
+      ]
+    : finding ?? '';
 }
 
 export function getGigSettlementOutcomeLabel(outcome?: string | null): string {

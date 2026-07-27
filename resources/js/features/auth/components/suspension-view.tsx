@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/lib/date';
 import { getServerCountdown } from '@/lib/server-time';
 import { logout } from '@/routes';
 import app from '@/routes/app';
@@ -101,13 +102,13 @@ function SuspensionView({ ban, server_now: serverNow }: SuspensionProps) {
                     </div>
                     <div className="flex flex-col gap-1">
                         <dt className="text-muted-foreground">Mulai</dt>
-                        <dd>{new Date(ban.banned_at).toLocaleString('id-ID')}</dd>
+                        <dd>{formatDate(ban.banned_at, 'dd MMMM yyyy · HH:mm')}</dd>
                     </div>
                     <div className="flex flex-col gap-1">
                         <dt className="text-muted-foreground">Berakhir</dt>
                         <dd>
                             {ban.banned_until
-                                ? new Date(ban.banned_until).toLocaleString('id-ID')
+                                ? formatDate(ban.banned_until, 'dd MMMM yyyy · HH:mm')
                                 : 'Tidak terbatas'}
                         </dd>
                     </div>
@@ -118,7 +119,7 @@ function SuspensionView({ ban, server_now: serverNow }: SuspensionProps) {
                 <AppPageCard className="flex flex-col gap-4">
                     <div>
                         <h2 className="font-semibold">
-                            Pelanggaran gig #{offense.sequence}
+                            Pelanggaran ke-{offense.sequence}
                         </h2>
                         <p className="text-sm text-muted-foreground">
                             Durasi {offense.duration_days} hari · {offense.gig.title}

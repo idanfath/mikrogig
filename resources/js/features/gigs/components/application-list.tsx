@@ -1,4 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
+import { FileSearch } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { withdraw } from '@/actions/App/Http/Controllers/GigOfferController';
@@ -214,7 +215,19 @@ export function ApplicationList({ offers, filters }: ApplicationListProps) {
         )}
 
         {offers.data.length === 0 && (
-          <AppPageCard>Belum ada lamaran yang diajukan.</AppPageCard>
+          <AppPageCard className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <FileSearch className="size-6" />
+            </div>
+            <span className="text-sm font-semibold text-foreground">
+              Belum ada lamaran
+            </span>
+            <p className="text-xs text-muted-foreground max-w-sm">
+              {hasActiveFilters || search
+                ? 'Tidak ada lamaran yang cocok dengan kata kunci atau filter terpilih.'
+                : 'Anda belum melamar pekerjaan mikro apapun. Silakan jelajahi gig dan ajukan penawaran Anda.'}
+            </p>
+          </AppPageCard>
         )}
 
         <Pagination page={offers} />

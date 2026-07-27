@@ -138,7 +138,7 @@ export function GigDisputeDetailPage({
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-base sm:text-lg font-bold text-foreground">
-                    Sengketa Pekerjaan #{dispute.id}
+                    Sengketa Pekerjaan
                   </h2>
                   <Badge variant={getGigDisputeStatusVariant(dispute.status)}>
                     {getGigDisputeStatusLabel(dispute.status)}
@@ -250,7 +250,7 @@ export function GigDisputeDetailPage({
               <div className="flex items-center gap-2">
                 <FileCheck className="size-4 text-primary" />
                 <h3 className="font-bold text-foreground text-sm">
-                  Bukti Hasil Pekerjaan Terbaru (#{dispute.finish_request.id})
+                  Bukti Hasil Pekerjaan Terbaru
                 </h3>
               </div>
               <Badge variant="outline" className="text-xs font-semibold">

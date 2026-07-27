@@ -1,5 +1,5 @@
 import { Link, router, useForm } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Briefcase, Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { cancel } from '@/actions/App/Http/Controllers/GigController';
@@ -200,7 +200,19 @@ export function OwnedGigList({ gigs, filters }: OwnedGigListProps) {
           )}
 
           {gigs.data.length === 0 && (
-            <AppPageCard>Belum ada gig yang dibuat.</AppPageCard>
+            <AppPageCard className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Briefcase className="size-6" />
+              </div>
+              <span className="text-sm font-semibold text-foreground">
+                Belum ada gig
+              </span>
+              <p className="text-xs text-muted-foreground max-w-sm">
+                {hasActiveFilters || search
+                  ? 'Tidak ada gig yang cocok dengan kata kunci atau filter terpilih.'
+                  : 'Anda belum membuat gig pekerjaan mikro. Buat gig pertama Anda sekarang.'}
+              </p>
+            </AppPageCard>
           )}
 
           <Pagination page={gigs} />

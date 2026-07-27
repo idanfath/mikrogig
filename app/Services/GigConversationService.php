@@ -195,7 +195,7 @@ class GigConversationService
             default => route('app.home'),
         };
 
-        return $route.'#conversation';
+        return $route;
     }
 
     private function isLatestAgreement(GigAgreement $agreement): bool

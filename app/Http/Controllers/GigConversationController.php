@@ -11,9 +11,28 @@ use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class GigConversationController extends Controller
 {
+    public function show(
+        Request $request,
+        GigAgreement $agreement,
+        GigConversationService $conversations,
+    ): Response|RedirectResponse {
+        if ($request->user()->activeBan()->exists()
+            && ! $conversations->canView($request->user(), $agreement)) {
+            return redirect()->route('app.suspension');
+        }
+
+        $this->authorize('viewConversation', $agreement);
+
+        return Inertia::render('app/gigs/conversation', [
+            'conversation' => $conversations->present($request, $agreement),
+        ]);
+    }
+
     public function destination(
         Request $request,
         GigAgreement $agreement,
