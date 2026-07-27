@@ -60,6 +60,7 @@ import {
   GigPaymentStatus,
   GigSettlementOutcome,
   GigStatus,
+  getGigDisputeTypeLabel,
   getGigExitStatusLabel,
   getGigFinishRequestStatusLabel,
   getGigPaymentStatusLabel,
@@ -775,15 +776,22 @@ export function GigWorkflowPage({
 
         {canOpenDispute && (
           <AppPageCard className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="size-5 text-destructive" />
-              <h3 className="font-bold text-foreground text-sm sm:text-base">
-                {disputeType === GigDisputeType.WorkObstruction
-                  ? 'Laporkan Hambatan Penyelesaian'
-                  : disputeType === GigDisputeType.FinishRejected
-                    ? 'Sengketakan Penolakan Terbaru'
-                    : 'Laporkan Sengketa Pekerjaan'}
-              </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="size-5 text-destructive" />
+                <h3 className="font-bold text-foreground text-sm sm:text-base">
+                  {disputeType === GigDisputeType.WorkObstruction
+                    ? 'Laporkan Hambatan Penyelesaian'
+                    : disputeType === GigDisputeType.FinishRejected
+                      ? 'Sengketakan Penolakan Terbaru'
+                      : 'Laporkan Sengketa Pekerjaan'}
+                </h3>
+              </div>
+              {disputeType && (
+                <Badge variant="outline" className="text-xs">
+                  {getGigDisputeTypeLabel(disputeType)}
+                </Badge>
+              )}
             </div>
             <form
               onSubmit={(event) => {
