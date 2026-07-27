@@ -99,7 +99,7 @@ function getEventActor(
             return 'admin';
 
         case 'dispute_opened':
-            return 'client';
+            return snapshot?.type && snapshot.type !== 'no_show' ? 'freelancer' : 'client';
 
         default:
             return 'system';
@@ -228,9 +228,33 @@ type Props = {
     defaultExpanded?: boolean;
 };
 
+const CHAT_EXPANDED_STORAGE_KEY = 'gig_chat_is_expanded';
+
 export function GigConversation({ conversation, defaultExpanded = true }: Props) {
     const isMobile = useIsMobile();
-    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+    const [isExpanded, setIsExpanded] = useState<boolean>(() => {
+        try {
+            const saved = localStorage.getItem(CHAT_EXPANDED_STORAGE_KEY);
+            if (saved !== null) {
+                return saved === 'true';
+            }
+        } catch {
+            // fallback if localStorage is unavailable
+        }
+        return defaultExpanded;
+    });
+
+    const toggleExpanded = () => {
+        setIsExpanded((prev) => {
+            const next = !prev;
+            try {
+                localStorage.setItem(CHAT_EXPANDED_STORAGE_KEY, String(next));
+            } catch {
+                // fallback if localStorage is unavailable
+            }
+            return next;
+        });
+    };
     const { auth } = usePage<{ auth?: Auth }>().props;
     const currentUserId = auth?.user?.id;
     const viewerRole = auth?.user?.role;
@@ -407,7 +431,7 @@ export function GigConversation({ conversation, defaultExpanded = true }: Props)
                             variant="outline"
                             size="xs"
                             className="gap-1.5 text-xs font-medium text-foreground/80 hover:text-foreground"
-                            onClick={() => setIsExpanded(!isExpanded)}
+                            onClick={toggleExpanded}
                             aria-label={isExpanded ? 'Sembunyikan percakapan' : 'Tampilkan percakapan'}
                         >
                             <span>{isExpanded ? 'Sembunyikan' : 'Buka chat'}</span>
