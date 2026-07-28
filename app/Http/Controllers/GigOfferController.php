@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\AcceptGigOffer;
-use App\Actions\ApplyToGig;
-use App\Actions\RejectGigOffer;
-use App\Actions\WithdrawGigOffer;
+use App\Actions\Gig\AcceptGigOffer;
+use App\Actions\Gig\ApplyToGig;
+use App\Actions\Gig\RejectGigOffer;
+use App\Actions\Gig\WithdrawGigOffer;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigStatus;
 use App\Http\Requests\ApplyToGigRequest;
@@ -67,16 +67,16 @@ class GigOfferController extends Controller
             GigOfferStatus::ACCEPTED->value,
         ];
 
-        $offers = $query
-            ->select('gig_offers.*')
-            ->join('gigs', 'gigs.id', '=', 'gig_offers.gig_id')
-            ->orderByRaw('CASE WHEN gig_offers.status IN (?, ?) AND gigs.status NOT IN (?, ?, ?) THEN 1 ELSE 0 END DESC', array_merge($activeOfferStatuses, $terminalStatuses))
-            ->orderByDesc('gig_offers.updated_at')
-            ->paginate(15)
-            ->withQueryString();
-
         return Inertia::render('app/applications/index', [
-            'offers' => GigOfferResource::collection($offers),
+            'offers' => fn () => GigOfferResource::collection(
+                $query
+                    ->select('gig_offers.*')
+                    ->join('gigs', 'gigs.id', '=', 'gig_offers.gig_id')
+                    ->orderByRaw('CASE WHEN gig_offers.status IN (?, ?) AND gigs.status NOT IN (?, ?, ?) THEN 1 ELSE 0 END DESC', array_merge($activeOfferStatuses, $terminalStatuses))
+                    ->orderByDesc('gig_offers.updated_at')
+                    ->paginate(15)
+                    ->withQueryString(),
+            ),
             'filters' => array_merge(['status' => $status], $validated),
         ]);
     }

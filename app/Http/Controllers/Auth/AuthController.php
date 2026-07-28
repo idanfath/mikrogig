@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Actions\RegisterUserAction;
-use App\Actions\SendUserOnboardingNotifications;
+use App\Actions\Account\RegisterUserAction;
+use App\Actions\Account\SendUserOnboardingNotifications;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\RequestGigDisputeAiOverview;
-use App\Actions\ResolveGigDispute;
+use App\Actions\Dispute\RequestGigDisputeAiOverview;
+use App\Actions\Dispute\ResolveGigDispute;
 use App\Enums\GigDisputeFinding;
 use App\Enums\GigDisputeStatus;
 use App\Enums\GigDisputeType;
@@ -36,12 +36,12 @@ class AdminGigDisputeController extends Controller
             ->orderByRaw('case when status = ? then null else counterproof_due_at end', [GigDisputeStatus::Resolved->value])
             ->orderByRaw('case when status = ? then null else opened_at end', [GigDisputeStatus::Resolved->value])
             ->orderByDesc('resolved_at')
-            ->orderByDesc('id')
-            ->paginate(15)
-            ->withQueryString();
+            ->orderByDesc('id');
 
         return Inertia::render('app/admin/gig-disputes/index', [
-            'disputes' => GigDisputeResource::collection($disputes),
+            'disputes' => fn () => GigDisputeResource::collection(
+                $disputes->paginate(15)->withQueryString(),
+            ),
             'filters' => ['status' => $status?->value, 'type' => $type?->value],
             'server_now' => now()->toISOString(),
         ]);

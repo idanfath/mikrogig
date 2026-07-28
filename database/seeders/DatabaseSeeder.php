@@ -12,10 +12,5 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             UserBanSeeder::class,
         ]);
-        if (file_exists(database_path('seeders/RealAccountSeeder.php'))) {
-            /** @var class-string<Seeder> $seeder */
-            $seeder = 'Database\Seeders\RealAccountSeeder';
-            $this->call($seeder);
-        }
     }
 }

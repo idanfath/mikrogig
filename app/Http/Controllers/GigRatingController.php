@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SubmitGigRating;
+use App\Actions\Workflow\SubmitGigRating;
 use App\Http\Requests\StoreGigRatingRequest;
 use App\Models\Gig;
 use DomainException;

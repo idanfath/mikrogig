@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\AcceptGigFinishRequest;
-use App\Actions\RejectGigFinishRequest;
-use App\Actions\SubmitGigFinishRequest;
+use App\Actions\Workflow\AcceptGigFinishRequest;
+use App\Actions\Workflow\RejectGigFinishRequest;
+use App\Actions\Workflow\SubmitGigFinishRequest;
 use App\Http\Requests\RejectGigFinishRequestRequest;
 use App\Http\Requests\StoreGigFinishRequestRequest;
 use App\Models\Gig;

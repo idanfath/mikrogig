@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { MobileBottomNavigation } from '@/components/layout/mobile-bottom-navigation';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useGigStateRealtime } from '@/features/gigs/hooks/use-gig-state-realtime';
 import { NotificationHeaderButton } from '@/features/notifications/components/notification-header-button';
 import { useRealtimeNotifications } from '@/features/notifications/hooks/use-realtime-notifications';
 
@@ -18,6 +19,7 @@ type AppLayoutProps = {
 
 export default function AppLayout({ title, children }: AppLayoutProps) {
   useRealtimeNotifications();
+  useGigStateRealtime();
 
   return (
     <Layout>

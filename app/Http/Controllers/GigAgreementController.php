@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\AcceptGigAgreement;
-use App\Actions\DeclineGigAgreement;
-use App\Actions\LeaveGigAgreementPreparation;
-use App\Actions\RejectSelectedFreelancer;
-use App\Actions\RequestGigAgreementChanges;
-use App\Actions\SubmitGigAgreementTerms;
+use App\Actions\Agreement\AcceptGigAgreement;
+use App\Actions\Agreement\DeclineGigAgreement;
+use App\Actions\Agreement\LeaveGigAgreementPreparation;
+use App\Actions\Agreement\RequestGigAgreementChanges;
+use App\Actions\Agreement\SubmitGigAgreementTerms;
+use App\Actions\Gig\RejectSelectedFreelancer;
 use App\Enums\GigStatus;
 use App\Http\Requests\RequestGigAgreementChangesRequest;
 use App\Http\Requests\SubmitGigAgreementTermsRequest;
@@ -40,7 +40,7 @@ class GigAgreementController extends Controller
             'agreement' => GigAgreementResource::make($agreement)->resolve($request),
             'is_client' => $isClient,
             'is_selected_freelancer' => $isSelectedFreelancer,
-            'conversation' => $conversations->present($request, $agreement),
+            'conversation' => fn (): array => $conversations->present($request, $agreement),
             'capabilities' => [
                 'can_submit_terms' => $isClient && $gig->status === GigStatus::AgreementPreparation,
                 'can_accept' => $canRespond,

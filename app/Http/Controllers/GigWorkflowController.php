@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\OpenGigDispute;
-use App\Actions\ProceedWithLockedGigExit;
-use App\Actions\RequestLockedGigExit;
-use App\Actions\RespondToLockedGigExit;
-use App\Actions\StartGig;
-use App\Actions\WithdrawLockedGigExit;
+use App\Actions\Dispute\OpenGigDispute;
+use App\Actions\Workflow\ProceedWithLockedGigExit;
+use App\Actions\Workflow\RequestLockedGigExit;
+use App\Actions\Workflow\RespondToLockedGigExit;
+use App\Actions\Workflow\StartGig;
+use App\Actions\Workflow\WithdrawLockedGigExit;
 use App\Enums\GigDisputeType;
 use App\Enums\GigExitDecision;
 use App\Enums\GigExitStatus;
@@ -84,7 +84,7 @@ class GigWorkflowController extends Controller
             'finish_request' => $latestFinishRequest === null ? null : GigFinishRequestResource::make($latestFinishRequest)->resolve($request),
             'dispute' => $gig->dispute ? GigDisputeResource::make($gig->dispute)->resolve($request) : null,
             'settlement' => $gig->settlement ? GigSettlementResource::make($gig->settlement)->resolve($request) : null,
-            'conversation' => $conversations->present($request, $payment->agreement),
+            'conversation' => fn (): array => $conversations->present($request, $payment->agreement),
             'server_now' => now()->toISOString(),
             'capabilities' => [
                 'canStart' => $isClient && $isLocked && $isPaidAndConfirmed && $hasNoActiveWorkflow,

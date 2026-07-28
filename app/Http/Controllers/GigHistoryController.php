@@ -65,15 +65,13 @@ class GigHistoryController extends Controller
             $query->where('status', $status);
         }
 
-        $gigs = $query
-            ->orderByDesc('updated_at')
-            ->orderByDesc('id')
-            ->paginate(15)
-            ->withQueryString()
-            ->through(fn (Gig $gig): array => $this->historySummary($gig, $user->id));
-
         return Inertia::render('app/history/index', [
-            'gigs' => $gigs,
+            'gigs' => fn () => $query
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->paginate(15)
+                ->withQueryString()
+                ->through(fn (Gig $gig): array => $this->historySummary($gig, $user->id)),
             'filters' => array_merge(['status' => $status], $validated),
         ]);
     }
@@ -162,7 +160,7 @@ class GigHistoryController extends Controller
                 'recipient_id' => $rating->recipient_id,
             ])->values(),
             'terminal_at' => $this->terminalAt($gig),
-            'conversation' => $conversationAgreement === null
+            'conversation' => fn (): ?array => $conversationAgreement === null
                 ? null
                 : $conversations->present($request, $conversationAgreement),
             'capabilities' => [

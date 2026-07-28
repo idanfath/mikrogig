@@ -511,11 +511,11 @@ export function AdminGigDisputeDetail({
   const aiOverviewForm = useForm({});
   const form = useForm<{
     finding: GigDisputeFindingValue;
-    inconclusive_outcome: GigSettlementOutcomeValue;
+    inconclusive_outcome: GigSettlementOutcomeValue | null;
     resolution_note: string;
   }>({
     finding: GigDisputeFinding.FreelancerAtFault,
-    inconclusive_outcome: GigSettlementOutcome.FullClientRefund,
+    inconclusive_outcome: null,
     resolution_note: '',
   });
 
@@ -969,9 +969,18 @@ export function AdminGigDisputeDetail({
                   </FieldLabel>
                   <Select
                     value={form.data.finding}
-                    onValueChange={(val) =>
-                      form.setData('finding', val as GigDisputeFindingValue)
-                    }
+                    onValueChange={(value) => {
+                      const finding = value as GigDisputeFindingValue;
+
+                      form.setData((data) => ({
+                        ...data,
+                        finding,
+                        inconclusive_outcome:
+                          finding === GigDisputeFinding.Inconclusive
+                            ? data.inconclusive_outcome
+                            : null,
+                      }));
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Pilih Pihak Bersalah" />
@@ -996,7 +1005,7 @@ export function AdminGigDisputeDetail({
                       Pembagian Hasil Settlement (Inconclusive)
                     </FieldLabel>
                     <Select
-                      value={form.data.inconclusive_outcome}
+                      value={form.data.inconclusive_outcome ?? undefined}
                       onValueChange={(val) =>
                         form.setData(
                           'inconclusive_outcome',

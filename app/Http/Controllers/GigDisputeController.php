@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SubmitGigDisputeCounterproof;
+use App\Actions\Dispute\SubmitGigDisputeCounterproof;
 use App\Enums\GigDisputeStatus;
 use App\Http\Requests\StoreGigDisputeCounterproofRequest;
 use App\Http\Resources\GigDisputeResource;
@@ -24,7 +24,7 @@ class GigDisputeController extends Controller
 
         return Inertia::render('app/gigs/dispute', [
             'dispute' => GigDisputeResource::make($dispute->load(['submissions.media', 'finishRequest.media', 'reporter', 'respondent', 'gig']))->resolve($request),
-            'conversation' => $conversations->present($request, $dispute->agreement),
+            'conversation' => fn (): array => $conversations->present($request, $dispute->agreement),
             'server_now' => now()->toISOString(),
             'capabilities' => [
                 'canSubmitCounterproof' => $dispute->respondent_id === $request->user()->id

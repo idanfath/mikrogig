@@ -14,6 +14,7 @@ use App\Http\Controllers\GigOfferController;
 use App\Http\Controllers\GigPaymentController;
 use App\Http\Controllers\GigRatingController;
 use App\Http\Controllers\GigWorkflowController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
@@ -64,7 +65,7 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
     ->prefix('app')
     ->name('app.')
     ->group(function () {
-        Route::get('/', [AppController::class, 'index'])->name('home');
+        Route::get('/', [HomeController::class, 'index'])->name('home');
         Route::get('/user', [AppController::class, 'user'])->name('user');
         Route::get('/suspension', [SuspensionController::class, 'show'])->name('suspension');
 
@@ -97,6 +98,7 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
             Route::get('/gigs/create', [GigController::class, 'create'])->name('gigs.create');
             Route::post('/gigs', [GigController::class, 'store'])->name('gigs.store');
             Route::get('/gigs/{gig}', [GigController::class, 'show'])->name('gigs.show');
+            Route::get('/gigs/{gig}/destination', [GigController::class, 'destination'])->name('gigs.destination');
             Route::get('/gigs/{gig}/agreement', [GigAgreementController::class, 'show'])->name('gigs.agreement.show');
             Route::post('/gig-agreements/{agreement}/messages', [GigConversationController::class, 'store'])->name('gig_conversations.messages.store');
             Route::post('/gig-agreements/{agreement}/messages/read', [GigConversationController::class, 'markRead'])->name('gig_conversations.messages.read');

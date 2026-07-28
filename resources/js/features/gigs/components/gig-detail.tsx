@@ -119,9 +119,6 @@ export function GigDetail({
 
     const hasDetailActions =
         hasCurrentAgreement ||
-        gig.status === GigStatus.PaymentPending ||
-        gig.status === GigStatus.Locked ||
-        workflowStatuses.includes(gig.status) ||
         ((gig.status === GigStatus.Open ||
             gig.status === GigStatus.AgreementPreparation) &&
             isOwner);
@@ -344,20 +341,22 @@ export function GigDetail({
                                             <Link href={agreement(gig)}>Lihat persetujuan</Link>
                                         </Button>
                                     )}
-                                    {(gig.status === GigStatus.PaymentPending ||
-                                        gig.status === GigStatus.Locked) && (
-                                            <Button
-                                                asChild
-                                                variant={
-                                                    gig.status === GigStatus.PaymentPending
-                                                        ? 'default'
-                                                        : 'outline'
-                                                }
-                                            >
-                                                <Link href={showPayment(gig)}>Lihat pembayaran</Link>
-                                            </Button>
-                                        )}
-                                    {workflowStatuses.includes(gig.status) && (
+                                    {hasCurrentAgreement &&
+                                        (gig.status === GigStatus.PaymentPending ||
+                                            gig.status === GigStatus.Locked) && (
+                                        <Button
+                                            asChild
+                                            variant={
+                                                gig.status === GigStatus.PaymentPending
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                        >
+                                            <Link href={showPayment(gig)}>Lihat pembayaran</Link>
+                                        </Button>
+                                    )}
+                                    {hasCurrentAgreement &&
+                                        workflowStatuses.includes(gig.status) && (
                                         <Button
                                             asChild
                                             variant={
@@ -369,7 +368,7 @@ export function GigDetail({
                                             <Link href={workflow(gig)}>Lihat workflow</Link>
                                         </Button>
                                     )}
-                                    {gig.dispute_id && (
+                                    {hasCurrentAgreement && gig.dispute_id && (
                                         <Button asChild variant="destructive">
                                             <Link href={showDispute.url({ dispute: gig.dispute_id })}>Lihat sengketa</Link>
                                         </Button>

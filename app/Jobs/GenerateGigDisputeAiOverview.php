@@ -3,11 +3,13 @@
 namespace App\Jobs;
 
 use App\Enums\GigDisputeAiOverviewStatus;
+use App\Enums\GigRealtimeChange;
 use App\Enums\NotificationTargetType;
 use App\Models\GigDisputeAiOverview;
 use App\Services\AiService;
 use App\Services\GigDisputeAiOverviewSnapshotBuilder;
 use App\Services\GigDisputeAiOverviewValidator;
+use App\Services\GigRealtimeService;
 use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -45,6 +47,7 @@ class GenerateGigDisputeAiOverview implements ShouldBeUnique, ShouldQueue
         GigDisputeAiOverviewSnapshotBuilder $snapshots,
         GigDisputeAiOverviewValidator $validator,
         NotificationService $notifications,
+        GigRealtimeService $realtime,
     ): void {
         $overview = DB::transaction(function (): ?GigDisputeAiOverview {
             $locked = GigDisputeAiOverview::query()->lockForUpdate()->findOrFail($this->overviewId);
@@ -66,6 +69,8 @@ class GenerateGigDisputeAiOverview implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        $realtime->stateChanged($overview->dispute->gig_id, GigRealtimeChange::Dispute, [$overview->requested_by]);
+
         try {
             $built = $snapshots->build($overview->dispute);
             $overview->forceFill([
@@ -83,7 +88,7 @@ class GenerateGigDisputeAiOverview implements ShouldBeUnique, ShouldQueue
                     $repair = $ai->chatMessages($this->repairMessages($response, $validated['errors'], $built['allowed_references']), $this->options($overview));
                 } catch (Throwable $exception) {
                     report($exception);
-                    $this->markFailed($overview, 'Ringkasan AI tidak dapat diperbaiki. Silakan coba lagi.', $notifications);
+                    $this->markFailed($overview, 'Ringkasan AI tidak dapat diperbaiki. Silakan coba lagi.', $notifications, $realtime);
 
                     return;
                 }
@@ -92,7 +97,7 @@ class GenerateGigDisputeAiOverview implements ShouldBeUnique, ShouldQueue
             }
 
             if (! $validated['valid']) {
-                $this->markFailed($overview, 'Format ringkasan AI tidak dapat divalidasi. Silakan coba lagi.', $notifications);
+                $this->markFailed($overview, 'Format ringkasan AI tidak dapat divalidasi. Silakan coba lagi.', $notifications, $realtime);
 
                 return;
             }
@@ -105,30 +110,34 @@ class GenerateGigDisputeAiOverview implements ShouldBeUnique, ShouldQueue
                 'result' => $validated['result'],
             ])->save();
 
+            $realtime->stateChanged($overview->dispute->gig_id, GigRealtimeChange::Dispute, [$overview->requested_by]);
             $this->notify($overview, $notifications, 'Ringkasan AI sengketa siap.', 'Ringkasan netral berbasis bukti sudah tersedia untuk ditinjau.');
         } catch (RequestException $exception) {
             if ($this->isTransient($exception)) {
                 throw $exception;
             }
 
-            $this->markFailed($overview, 'Permintaan ringkasan AI ditolak. Silakan coba lagi nanti.', $notifications);
+            $this->markFailed($overview, 'Permintaan ringkasan AI ditolak. Silakan coba lagi nanti.', $notifications, $realtime);
         } catch (ConnectionException $exception) {
             throw $exception;
         } catch (Throwable $exception) {
             report($exception);
-            $this->markFailed($overview, 'Ringkasan AI tidak dapat dibuat. Silakan coba lagi.', $notifications);
+            $this->markFailed($overview, 'Ringkasan AI tidak dapat dibuat. Silakan coba lagi.', $notifications, $realtime);
         }
     }
 
-    public function failed(?Throwable $exception, NotificationService $notifications): void
-    {
+    public function failed(
+        ?Throwable $exception,
+        NotificationService $notifications,
+        GigRealtimeService $realtime,
+    ): void {
         $overview = GigDisputeAiOverview::query()->find($this->overviewId);
 
         if ($overview === null || $overview->status === GigDisputeAiOverviewStatus::Completed) {
             return;
         }
 
-        $this->markFailed($overview, 'Ringkasan AI tidak dapat dibuat. Silakan coba lagi.', $notifications);
+        $this->markFailed($overview, 'Ringkasan AI tidak dapat dibuat. Silakan coba lagi.', $notifications, $realtime);
     }
 
     /**
@@ -192,13 +201,20 @@ class GenerateGigDisputeAiOverview implements ShouldBeUnique, ShouldQueue
         return in_array($exception->response->status(), [408, 409, 425, 429, 500, 502, 503, 504], true);
     }
 
-    private function markFailed(GigDisputeAiOverview $overview, string $message, NotificationService $notifications): void
-    {
+    private function markFailed(
+        GigDisputeAiOverview $overview,
+        string $message,
+        NotificationService $notifications,
+        GigRealtimeService $realtime,
+    ): void {
         $overview->forceFill([
             'status' => GigDisputeAiOverviewStatus::Failed,
             'failed_at' => now(),
             'failure_detail' => $message,
         ])->save();
+
+        $overview->loadMissing('dispute');
+        $realtime->stateChanged($overview->dispute->gig_id, GigRealtimeChange::Dispute, [$overview->requested_by]);
 
         try {
             $notifications->send(

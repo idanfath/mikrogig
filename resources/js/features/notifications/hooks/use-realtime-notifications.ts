@@ -9,6 +9,7 @@ import type {
 } from '@/features/notifications/types';
 import app from '@/routes/app';
 import { show as showConversation } from '@/routes/app/gig_conversations';
+import { NotificationCategory } from '@/types/enum';
 
 const OPEN_CONVERSATION_DATA_ATTRIBUTE = 'gigConversationAgreementId';
 
@@ -46,7 +47,9 @@ export function useRealtimeNotifications() {
       return;
     }
 
-    window.Echo.private(`App.Models.User.${userId}`).listen(
+    const channel = window.Echo.private(`App.Models.User.${userId}`);
+
+    channel.listen(
       '.notification.received',
       (event: NotificationReceivedEvent) => {
         if (
@@ -66,12 +69,21 @@ export function useRealtimeNotifications() {
           return;
         }
 
+        if (
+          event.category === NotificationCategory.Chat &&
+          window.location.pathname === app.home.url()
+        ) {
+          router.reload({ only: ['chat_notices', 'auth'] });
+
+          return;
+        }
+
         router.reload({ only: ['auth'] });
       },
     );
 
     return () => {
-      window.Echo.leaveChannel(`App.Models.User.${userId}`);
+      channel.stopListening('.notification.received');
     };
   }, [userId]);
 }

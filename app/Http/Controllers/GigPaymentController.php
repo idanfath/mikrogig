@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\MarkGigPaymentPaid;
-use App\Actions\PrepareGigPaymentCheckout;
+use App\Actions\Payment\MarkGigPaymentPaid;
+use App\Actions\Payment\PrepareGigPaymentCheckout;
 use App\Http\Resources\GigPaymentResource;
 use App\Models\Gig;
 use App\Models\GigPayment;
@@ -30,7 +30,7 @@ class GigPaymentController extends Controller
             ],
             'payment' => GigPaymentResource::make($payment)->resolve($request),
             'is_client' => $request->user()->id === $gig->client_id,
-            'conversation' => $conversations->present($request, $payment->agreement),
+            'conversation' => fn (): array => $conversations->present($request, $payment->agreement),
             'server_now' => now()->toISOString(),
         ]);
     }

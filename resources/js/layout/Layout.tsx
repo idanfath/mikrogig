@@ -3,9 +3,12 @@ import { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useAccountRealtime } from '@/features/auth/hooks/use-account-realtime';
 
 export default function Layout({ children }: PropsWithChildren) {
   const { flash } = usePage().props as any;
+  useAccountRealtime();
+
   useEffect(() => {
     if (flash?.success) {
       toast.success(flash.success, { position: 'top-center' });

@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\GigDisputeFinding;
+use App\Enums\GigSettlementOutcome;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ResolveGigDisputeRequest extends FormRequest
 {
@@ -22,6 +25,14 @@ class ResolveGigDisputeRequest extends FormRequest
      */
     public function rules(): array
     {
-        return ['finding' => ['required', 'string', 'in:client_at_fault,freelancer_at_fault,inconclusive'], 'inconclusive_outcome' => ['nullable', 'string', 'in:full_client_refund,thirty_seventy,full_freelancer_payout'], 'resolution_note' => ['required', 'string', 'max:5000']];
+        return [
+            'finding' => ['required', Rule::enum(GigDisputeFinding::class)],
+            'inconclusive_outcome' => [
+                'exclude_unless:finding,'.GigDisputeFinding::Inconclusive->value,
+                'required',
+                Rule::enum(GigSettlementOutcome::class),
+            ],
+            'resolution_note' => ['required', 'string', 'max:5000'],
+        ];
     }
 }

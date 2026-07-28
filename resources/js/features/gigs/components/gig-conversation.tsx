@@ -811,11 +811,11 @@ function GigConversationContent({
                         )}
                     >
                         {conversation.mode === 'focused' && (
-                            <div className="sticky top-0 z-10 flex justify-center border-b border-border/45 bg-background/90 p-2 backdrop-blur-sm">
+                            <div className="sticky top-0 z-10 flex justify-center  backdrop-blur-sm">
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    size="xs"
+                                    size="lg"
                                     onClick={() => {
                                         onFocusCleared?.();
                                         router.reload({

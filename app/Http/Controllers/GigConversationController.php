@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SendGigMessage;
+use App\Actions\Gig\SendGigMessage;
 use App\Http\Requests\StoreGigMessageRequest;
 use App\Models\GigAgreement;
 use App\Models\GigMessageMedia;
@@ -45,7 +45,10 @@ class GigConversationController extends Controller
 
         $this->authorize('viewConversation', $agreement);
 
-        return redirect()->to($conversations->destination($agreement));
+        return redirect()->to($conversations->destination(
+            $agreement,
+            $request->integer('chat_focus') ?: null,
+        ));
     }
 
     public function store(

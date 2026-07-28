@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\AccountRealtimeState;
 use App\Enums\NotificationTargetType;
+use App\Events\AccountStateChanged;
 use App\Models\User;
 use App\Models\UserBan;
 use Carbon\CarbonInterface;
@@ -36,6 +38,7 @@ class BanService
             'banned_until' => $until,
         ]);
 
+        AccountStateChanged::dispatch($target->id, AccountRealtimeState::Suspended, now()->toISOString());
         $this->notifySafely($ban, $admin?->id);
 
         return $ban;
@@ -60,6 +63,7 @@ class BanService
             'banned_until' => $startsAt->copy()->addDays($durationDays),
         ]);
 
+        AccountStateChanged::dispatch($target->id, AccountRealtimeState::Suspended, now()->toISOString());
         $notify = fn () => $this->notifySafely($ban);
 
         if (DB::transactionLevel() > 0) {
@@ -84,6 +88,7 @@ class BanService
             'unbanned_by' => $admin ? $admin->id : null,
         ]);
 
+        AccountStateChanged::dispatch($target->id, AccountRealtimeState::Active, now()->toISOString());
         $this->notifications->send(
             createdBy: $admin ? $admin->id : null,
             title: 'Suspensi Telah Dicabut',
@@ -106,6 +111,7 @@ class BanService
 
         $ban->update(['banned_until' => $newUntil]);
 
+        AccountStateChanged::dispatch($target->id, AccountRealtimeState::Suspended, now()->toISOString());
         $this->notifications->send(
             createdBy: $admin ? $admin->id : null,
             title: 'Masa Suspensi Diperpanjang',

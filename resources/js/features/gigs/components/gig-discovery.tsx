@@ -21,6 +21,7 @@ import {
 import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
 import { index } from '@/routes/app/gigs';
 import { getGigCategoryLabel } from '@/types/enum';
+import { useGigDiscoveryRealtime } from '../hooks/use-gig-discovery-realtime';
 import type { Gig, Paginated } from '../types';
 import { GigCard } from './gig-card';
 import { Pagination } from './pagination';
@@ -44,6 +45,7 @@ export function GigDiscovery({
   filters: Filters;
   categories: string[];
 }) {
+  useGigDiscoveryRealtime();
   const [data, setData] = useState<Filters>(filters);
   const { provinces, regencies } = useRegionSelect({
     provinceId: data.province_id ?? '',

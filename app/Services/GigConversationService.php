@@ -249,17 +249,67 @@ class GigConversationService
         return $updated;
     }
 
-    public function destination(GigAgreement $agreement): string
+    /**
+     * @return array{data: array<int, array<string, mixed>>, has_more: bool}
+     */
+    public function unreadNotices(User $user): array
+    {
+        $groups = GigMessage::query()
+            ->selectRaw('gig_agreement_id, MAX(id) as latest_message_id, COUNT(*) as unread_count')
+            ->where('recipient_id', $user->id)
+            ->whereNull('read_at')
+            ->where('kind', GigMessageKind::User)
+            ->groupBy('gig_agreement_id')
+            ->orderByDesc('latest_message_id')
+            ->limit(20)
+            ->get();
+        $messages = GigMessage::query()
+            ->whereKey($groups->pluck('latest_message_id'))
+            ->with(['sender', 'agreement.gig'])
+            ->get()
+            ->keyBy('id');
+        $notices = $groups
+            ->map(function ($group) use ($messages, $user): ?array {
+                $message = $messages->get((int) $group->latest_message_id);
+
+                if ($message === null || ! $this->canView($user, $message->agreement)) {
+                    return null;
+                }
+
+                return [
+                    'agreement_id' => $message->gig_agreement_id,
+                    'latest_message_id' => $message->id,
+                    'unread_count' => (int) $group->unread_count,
+                    'sender' => [
+                        'id' => $message->sender->id,
+                        'name' => $message->sender->name,
+                        'avatar_url' => $message->sender->avatar_url,
+                    ],
+                    'gig_title' => $message->agreement->gig->title,
+                    'created_at' => $message->created_at->toISOString(),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return [
+            'data' => $notices->take(5)->all(),
+            'has_more' => $notices->count() > 5,
+        ];
+    }
+
+    public function destination(GigAgreement $agreement, ?int $focus = null): string
     {
         $agreement->loadMissing(['gig.dispute']);
         $gig = $agreement->gig;
+        $query = $focus === null ? [] : ['chat_focus' => $focus];
 
         $route = match ($gig->status) {
-            GigStatus::AgreementPreparation, GigStatus::LockPending => route('app.gigs.agreement.show', $gig),
-            GigStatus::PaymentPending => route('app.gigs.payment.show', $gig),
-            GigStatus::Locked, GigStatus::InProgress, GigStatus::Review => route('app.gigs.workflow.show', $gig),
-            GigStatus::Disputed => route('app.gig_disputes.show', $gig->dispute),
-            GigStatus::Completed, GigStatus::Cancelled, GigStatus::DisputeResolved => route('app.history.show', $gig),
+            GigStatus::AgreementPreparation, GigStatus::LockPending => route('app.gigs.agreement.show', ['gig' => $gig, ...$query]),
+            GigStatus::PaymentPending => route('app.gigs.payment.show', ['gig' => $gig, ...$query]),
+            GigStatus::Locked, GigStatus::InProgress, GigStatus::Review => route('app.gigs.workflow.show', ['gig' => $gig, ...$query]),
+            GigStatus::Disputed => route('app.gig_disputes.show', ['dispute' => $gig->dispute, ...$query]),
+            GigStatus::Completed, GigStatus::Cancelled, GigStatus::DisputeResolved => route('app.history.show', ['gig' => $gig, ...$query]),
             default => route('app.home'),
         };
 

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Actions\ExpireGigDisputeCounterproof;
+use App\Actions\Dispute\ExpireGigDisputeCounterproof;
 use App\Models\GigDispute;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;

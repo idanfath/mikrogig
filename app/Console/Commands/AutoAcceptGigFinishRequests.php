@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Actions\AutoAcceptGigFinishRequest;
+use App\Actions\Workflow\AutoAcceptGigFinishRequest;
 use App\Models\GigFinishRequest;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;

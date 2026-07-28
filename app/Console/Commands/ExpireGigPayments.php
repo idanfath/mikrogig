@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Actions\ExpireGigPayment;
+use App\Actions\Payment\ExpireGigPayment;
 use App\Models\GigPayment;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;

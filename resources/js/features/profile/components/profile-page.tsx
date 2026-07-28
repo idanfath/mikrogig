@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useProfileEnhance } from '@/features/profile/hooks/use-profile-enhance';
+import { useProfileRealtime } from '@/features/profile/hooks/use-profile-realtime';
 import type { ProfileForm, ProfilePageProps } from '@/features/profile/types';
 import { useDetectLocation } from '@/features/regions/hooks/use-detect-location';
 import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
@@ -24,6 +25,8 @@ export function ProfilePage({
   has_custom_avatar,
   max_date_of_birth,
 }: ProfilePageProps) {
+  useProfileRealtime();
+
   const isFreelancer = profile.role === 'freelancer';
   const isAdmin = profile.role === 'admin';
   const [editing, setEditing] = useState(false);
