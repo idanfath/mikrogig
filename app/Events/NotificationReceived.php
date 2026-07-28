@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Enums\NotificationCategory;
 use App\Models\NotificationRecipient;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -40,6 +41,7 @@ class NotificationReceived implements ShouldBroadcast, ShouldDispatchAfterCommit
             'body' => $this->recipient->notification->body,
             'action_url' => $this->recipient->notification->action_url,
             'action_label' => $this->recipient->notification->action_label,
+            'category' => ($this->recipient->notification->category ?? NotificationCategory::System)->value,
             'created_at' => $this->recipient->created_at->diffForHumans(),
             'read_at' => $this->recipient->read_at,
         ];

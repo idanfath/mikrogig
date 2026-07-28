@@ -162,7 +162,7 @@ final class OpenGigDispute
         try {
             $this->notifications->send(
                 'Sengketa Gig Dibuka',
-                NotificationTargetType::User,
+                NotificationTargetType::Users,
                 $reporter->id,
                 'Sengketa gig telah dibuka dan dalam proses peninjauan.',
                 [$reporter->id, $respondentId],

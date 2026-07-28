@@ -8,6 +8,7 @@ type Props = {
   gig: GigPaymentSummary;
   payment: GigPayment;
   is_client: boolean;
+  server_now: string;
   conversation: GigConversation;
 };
 

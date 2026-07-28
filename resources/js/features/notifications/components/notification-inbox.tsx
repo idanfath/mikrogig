@@ -1,15 +1,18 @@
 import { router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { AppPage } from '@/components/layout/app-page';
+import { ListToolbar } from '@/components/ui/list-toolbar';
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '@/components/ui/input-group';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useNotificationInbox } from '@/features/notifications/hooks/use-notification-inbox';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import app from '@/routes/app';
+import { NotificationCategory } from '@/types/enum';
 import { NotificationDetailPanel } from './notification-detail-panel';
 import { NotificationList } from './notification-list';
 import { NotificationPagination } from './notification-pagination';
@@ -30,6 +33,7 @@ export function NotificationInbox() {
     isCompact,
     search,
     setSearch,
+    filterByCategory,
     unreadCount,
     toggleCompact,
     openMessage,
@@ -37,6 +41,7 @@ export function NotificationInbox() {
     markAllRead,
   } = useNotificationInbox();
   const filtersSearch = filters?.search ?? undefined;
+  const filtersCategory = filters?.category ?? undefined;
 
   useEffect(() => {
     if (previousDesktop.current === null) {
@@ -55,7 +60,10 @@ export function NotificationInbox() {
 
       router.get(
         app.notifications.url({
-          query: filtersSearch ? { search: filtersSearch } : {},
+          query: {
+            ...(filtersSearch ? { search: filtersSearch } : {}),
+            ...(filtersCategory ? { category: filtersCategory } : {}),
+          },
         }),
         {},
         {
@@ -69,7 +77,7 @@ export function NotificationInbox() {
     }, BREAKPOINT_CROSS_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [isDesktop, filtersSearch, closeDetail]);
+  }, [isDesktop, filtersSearch, filtersCategory, closeDetail]);
 
   return (
     <AppPage
@@ -88,18 +96,32 @@ export function NotificationInbox() {
             onMarkAllRead={markAllRead}
           />
 
-          <InputGroup mobileLarge>
-            <InputGroupAddon align="inline-start">
-              <Search />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="text"
-              placeholder="Cari notifikasi..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              mobileLarge
-            />
-          </InputGroup>
+          <ListToolbar
+            search={search}
+            onSearchChange={setSearch}
+            placeholder="Cari notifikasi..."
+            filterLabel="Filter notifikasi"
+            hasActiveFilters={Boolean(filtersCategory)}
+          >
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-foreground">Jenis Notifikasi</span>
+              <Select
+                value={filtersCategory ?? 'all'}
+                onValueChange={(value) =>
+                  filterByCategory(value === 'all' ? '' : (value as NotificationCategory))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Semua notifikasi" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua notifikasi</SelectItem>
+                  <SelectItem value={NotificationCategory.Chat}>Pesan</SelectItem>
+                  <SelectItem value={NotificationCategory.System}>Aktivitas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </ListToolbar>
         </div>
         <NotificationList
           inbox={inbox}

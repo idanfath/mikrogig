@@ -250,6 +250,11 @@ type Props = {
     conversation: GigConversationData | null;
     defaultExpanded?: boolean;
     mode?: 'inline' | 'page';
+    focusRequest?: {
+        messageId: number;
+        sequence: number;
+    } | null;
+    onFocusCleared?: () => void;
 };
 
 const CHAT_EXPANDED_STORAGE_KEY = 'gig_chat_is_expanded';
@@ -259,13 +264,21 @@ export function GigConversation({
     conversation,
     defaultExpanded,
     mode,
+    focusRequest,
+    onFocusCleared,
 }: Props) {
     return (
         <GigConversationContent
-            key={conversation?.agreement_id ?? 'empty'}
+            key={[
+                conversation?.agreement_id ?? 'empty',
+                conversation?.mode ?? 'empty',
+                conversation?.focused_message_id ?? 'none',
+            ].join(':')}
             conversation={conversation}
             defaultExpanded={defaultExpanded}
             mode={mode}
+            focusRequest={focusRequest}
+            onFocusCleared={onFocusCleared}
         />
     );
 }
@@ -274,6 +287,8 @@ function GigConversationContent({
     conversation,
     defaultExpanded = true,
     mode = 'inline',
+    focusRequest = null,
+    onFocusCleared,
 }: Props) {
     const isPage = mode === 'page';
     const isMobile = useIsMobile();
@@ -311,9 +326,11 @@ function GigConversationContent({
     const [oldestId, setOldestId] = useState<number | null>(conversation?.oldest_id ?? null);
     const [isLoadingOlder, setIsLoadingOlder] = useState(false);
     const [isConversationVisible, setIsConversationVisible] = useState(false);
+    const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
     const listRef = useRef<HTMLDivElement>(null);
     const nearBottom = useRef(true);
     const markedReadKey = useRef('');
+    const handledFocusSequence = useRef<number | null>(null);
     const form = useForm<{ body: string; images: File[] }>({
         body: '',
         images: [],
@@ -335,6 +352,40 @@ function GigConversationContent({
     });
     const imageError = form.errors.images ?? selectionError;
     const isConversationExpanded = isPage || (!isMobile && isExpanded);
+
+    const expandConversation = useCallback(() => {
+        if (isPage || isMobile) {
+            return;
+        }
+
+        setIsExpanded(true);
+
+        try {
+            localStorage.setItem(CHAT_EXPANDED_STORAGE_KEY, 'true');
+        } catch {
+            // fallback if localStorage is unavailable
+        }
+    }, [isMobile, isPage]);
+
+    const focusMessage = useCallback((messageId: number) => {
+        expandConversation();
+        setHighlightedMessageId(messageId);
+
+        window.setTimeout(() => {
+            document.getElementById('conversation')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+            document.getElementById(`conversation-message-${messageId}`)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+            });
+        });
+
+        window.setTimeout(() => {
+            setHighlightedMessageId((current) => current === messageId ? null : current);
+        }, 2500);
+    }, [expandConversation]);
 
     const mergeMessage = useCallback((message: ConversationMessage) => {
         setOlderMessages((current) => {
@@ -379,12 +430,66 @@ function GigConversationContent({
     }, [conversation?.messages, olderMessages]);
 
     useEffect(() => {
+        if (
+            focusRequest === null
+            || handledFocusSequence.current === focusRequest.sequence
+            || conversation === null
+        ) {
+            return;
+        }
+
+        handledFocusSequence.current = focusRequest.sequence;
+
+        const timeout = window.setTimeout(() => {
+            expandConversation();
+
+            if (messages.some(({ id }) => id === focusRequest.messageId)) {
+                focusMessage(focusRequest.messageId);
+
+                return;
+            }
+
+            router.reload({
+                data: { chat_focus: focusRequest.messageId },
+                only: ['conversation'],
+                preserveUrl: true,
+            });
+        });
+
+        return () => window.clearTimeout(timeout);
+    }, [conversation, expandConversation, focusMessage, focusRequest, messages]);
+
+    useEffect(() => {
         if (nearBottom.current) {
             listRef.current?.scrollTo({
                 top: listRef.current.scrollHeight,
             });
         }
     }, [messages.length]);
+
+    useEffect(() => {
+        const focusedConversation = conversation;
+        const focusedMessageId = focusedConversation?.focused_message_id;
+
+        if (
+            focusedConversation === null ||
+            focusedConversation.mode !== 'focused' ||
+            typeof focusedMessageId !== 'number'
+        ) {
+            return;
+        }
+
+        const timeout = window.setTimeout(() => {
+            setOlderMessages([]);
+            setHasOlder(focusedConversation.has_older);
+            setOldestId(focusedConversation.oldest_id);
+            focusMessage(focusedMessageId);
+        });
+
+        return () => {
+            window.clearTimeout(timeout);
+        };
+    }, [conversation, focusMessage]);
 
     const unreadKey = useMemo(
         () =>
@@ -422,14 +527,16 @@ function GigConversationContent({
                 preserveState: true,
             },
         );
-    }, [
-        conversation?.agreement_id,
-        shouldMarkRead,
-        unreadKey,
-    ]);
+    }, [conversation, shouldMarkRead, unreadKey]);
 
     const loadOlder = useCallback(() => {
-        if (!conversation || !hasOlder || oldestId === null || isLoadingOlder) {
+        if (
+            !conversation
+            || conversation.mode !== 'latest'
+            || !hasOlder
+            || oldestId === null
+            || isLoadingOlder
+        ) {
             return;
         }
 
@@ -703,6 +810,25 @@ function GigConversationContent({
                             isPage ? 'min-h-0 flex-1' : 'max-h-[32rem] min-h-[16rem]',
                         )}
                     >
+                        {conversation.mode === 'focused' && (
+                            <div className="sticky top-0 z-10 flex justify-center border-b border-border/45 bg-background/90 p-2 backdrop-blur-sm">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="xs"
+                                    onClick={() => {
+                                        onFocusCleared?.();
+                                        router.reload({
+                                            data: { chat_focus: null },
+                                            only: ['conversation'],
+                                            preserveUrl: true,
+                                        });
+                                    }}
+                                >
+                                    Kembali ke pesan terbaru
+                                </Button>
+                            </div>
+                        )}
                         {isLoadingOlder && (
                             <p className="py-1 text-center text-xs text-muted-foreground">
                                 Memuat pesan sebelumnya...
@@ -1069,8 +1195,19 @@ function GigConversationContent({
                                 }
                             }
 
+                            const isFocused = message.id === highlightedMessageId;
+
                             return (
-                                <Fragment key={message.id}>
+                                <div
+                                    id={`conversation-message-${message.id}`}
+                                    key={message.id}
+                                    className={cn(
+                                        isFocused && [
+                                            '[&_article]:ring-2 [&_article]:ring-primary/35 [&_article]:ring-offset-2 [&_article]:ring-offset-muted/15 [&_article]:shadow-md',
+                                            '[&_img]:ring-2 [&_img]:ring-primary/35 [&_img]:ring-offset-2 [&_img]:ring-offset-muted/15',
+                                        ],
+                                    )}
+                                >
                                     {showDateDivider && (
                                         <div className="my-2 flex w-full items-center justify-center self-stretch">
                                             <span className="rounded-full border border-border/40 bg-card/80 px-3 py-0.5 text-[11px] font-medium text-muted-foreground shadow-2xs select-none backdrop-blur-xs">
@@ -1081,7 +1218,7 @@ function GigConversationContent({
                                     {isGroupedWithPrevious ? (
                                         <div className="-mt-2">{messageElement}</div>
                                     ) : messageElement}
-                                </Fragment>
+                                </div>
                             );
                         })}
                     </div>

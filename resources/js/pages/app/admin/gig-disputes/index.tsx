@@ -5,6 +5,6 @@ const Page: InertiaPageWithLayout<
   Parameters<typeof AdminGigDisputeQueue>[0]
 > = (props) => <AdminGigDisputeQueue {...props} />;
 Page.layout = (page: ReactNode) => (
-  <AppLayout title="Antrean Sengketa">{page}</AppLayout>
+  <AppLayout title="Sengketa Admin">{page}</AppLayout>
 );
 export default Page;

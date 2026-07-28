@@ -29,8 +29,12 @@ export type GigConversation = {
   agreement_id: number;
   participants: ConversationPerson[];
   messages: ConversationMessage[];
+  mode: 'latest' | 'focused';
   has_older: boolean;
   oldest_id: number | null;
+  focused_message_id: number | null;
+  has_newer: boolean;
+  newest_id: number | null;
   capabilities: {
     canViewConversation: boolean;
     canSendMessage: boolean;

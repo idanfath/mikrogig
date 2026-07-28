@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -17,6 +17,7 @@ import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/hooks/use-confirm';
+import { useServerClock } from '@/hooks/use-server-clock';
 import { formatDate } from '@/lib/date';
 import { show as workflow } from '@/routes/app/gigs/workflow';
 import {
@@ -32,6 +33,7 @@ type Props = {
   gig: GigPaymentSummary;
   payment: GigPayment;
   is_client: boolean;
+  server_now: string;
   conversation: GigConversationData;
 };
 
@@ -39,28 +41,48 @@ export function GigPaymentPage({
   gig,
   payment,
   is_client: isClient,
+  server_now: serverNow,
   conversation,
 }: Props) {
   const [confirm, confirmDialog] = useConfirm();
   const retry = useForm({});
   const cancellation = useForm({});
 
-  const [now, setNow] = useState(() => Date.now());
+  const currentServerTime = useServerClock(serverNow);
+  const expiresMs =
+    new Date(payment.expires_at).getTime() -
+    new Date(currentServerTime).getTime();
+  const isExpired = expiresMs <= 0;
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
+    if (payment.status !== GigPaymentStatus.Pending) {
+      return;
+    }
+
+    const serverOffset = new Date(serverNow).getTime() - Date.now();
+    const delay =
+      new Date(payment.expires_at).getTime() - (Date.now() + serverOffset);
+
+    if (delay <= 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(
+      () => router.reload({ only: ['payment', 'server_now'] }),
+      delay + 50,
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [payment.expires_at, payment.status, serverNow]);
 
   const hasPaymentActions =
-    payment.capabilities.can_open_checkout ||
-    payment.capabilities.can_retry_checkout ||
-    payment.capabilities.can_cancel ||
+    (!isExpired &&
+      (payment.capabilities.can_open_checkout ||
+        payment.capabilities.can_retry_checkout ||
+        payment.capabilities.can_cancel)) ||
     payment.status === GigPaymentStatus.Paid;
 
-  const expiresMs = new Date(payment.expires_at).getTime() - now;
   const totalSecs = Math.max(0, Math.floor(expiresMs / 1000));
-  const isExpired = expiresMs <= 0;
   const isUrgent = !isExpired && totalSecs < 3600;
 
   let countdownText = '';
@@ -73,7 +95,8 @@ export function GigPaymentPage({
   } else {
     const hours = Math.floor(totalSecs / 3600);
     const mins = Math.floor((totalSecs % 3600) / 60);
-    countdownText = mins > 0 ? `${hours} jam ${mins} menit lagi` : `${hours} jam lagi`;
+    countdownText =
+      mins > 0 ? `${hours} jam ${mins} menit lagi` : `${hours} jam lagi`;
   }
 
   return (
@@ -84,14 +107,17 @@ export function GigPaymentPage({
       <div className="flex flex-col gap-6">
         <GigConversation conversation={conversation} />
         <AppPageCard className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/40">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3">
             <div className="flex items-center gap-2">
               <CreditCard className="size-5 text-muted-foreground" />
-              <span className="font-bold text-foreground text-sm sm:text-base">
+              <span className="text-sm font-bold text-foreground sm:text-base">
                 Status Pembayaran
               </span>
             </div>
-            <Badge variant={getGigPaymentStatusVariant(payment.status)} className="px-3 py-1 font-medium">
+            <Badge
+              variant={getGigPaymentStatusVariant(payment.status)}
+              className="px-3 py-1 font-medium"
+            >
               {getGigPaymentStatusLabel(payment.status)}
             </Badge>
           </div>
@@ -100,10 +126,10 @@ export function GigPaymentPage({
             <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
               <Coins className="mt-0.5 size-4 shrink-0 text-muted-foreground/80" />
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   Jumlah Pembayaran
                 </span>
-                <span className="font-bold text-foreground text-lg">
+                <span className="text-lg font-bold text-foreground">
                   Rp{payment.amount.toLocaleString('id-ID')}
                 </span>
               </div>
@@ -112,10 +138,10 @@ export function GigPaymentPage({
             <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
               <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground/80" />
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   Batas Waktu
                 </span>
-                <span className="font-medium text-foreground text-sm">
+                <span className="text-sm font-medium text-foreground">
                   {formatDate(payment.expires_at, 'dd MMMM yyyy · HH:mm')}
                 </span>
                 <span
@@ -160,20 +186,22 @@ export function GigPaymentPage({
           )}
 
           {hasPaymentActions && (
-            <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border/40">
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/40 pt-2">
               {payment.status === GigPaymentStatus.Paid && (
                 <Button asChild variant="outline">
                   <Link href={workflow(gig)}>Lihat workflow</Link>
                 </Button>
               )}
 
-              {payment.capabilities.can_open_checkout && (
+              {!isExpired && payment.capabilities.can_open_checkout && (
                 <Button asChild>
-                  <Link href={mockCheckout(gig)}>Lanjutkan pembayaran demo</Link>
+                  <Link href={mockCheckout(gig)}>
+                    Lanjutkan pembayaran demo
+                  </Link>
                 </Button>
               )}
 
-              {payment.capabilities.can_retry_checkout && (
+              {!isExpired && payment.capabilities.can_retry_checkout && (
                 <Button
                   onClick={() => retry.post(retryCheckout.url(gig))}
                   disabled={retry.processing}
@@ -182,14 +210,15 @@ export function GigPaymentPage({
                 </Button>
               )}
 
-              {payment.capabilities.can_cancel && (
+              {!isExpired && payment.capabilities.can_cancel && (
                 <Button
                   variant="destructive"
                   disabled={cancellation.processing}
                   onClick={() =>
                     confirm({
                       title: 'Batalkan gig ini?',
-                      description: 'Pembayaran dan proses gig akan dibatalkan secara permanen.',
+                      description:
+                        'Pembayaran dan proses gig akan dibatalkan secara permanen.',
                       confirmLabel: 'Ya, batalkan gig',
                       destructive: true,
                       onConfirm: () => cancellation.patch(cancel.url(gig)),

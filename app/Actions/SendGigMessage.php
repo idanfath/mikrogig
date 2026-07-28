@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\GigMessageKind;
+use App\Enums\NotificationCategory;
 use App\Enums\NotificationTargetType;
 use App\Events\GigMessageCreated;
 use App\Models\Gig;
@@ -120,6 +121,7 @@ class SendGigMessage
                 recipientIds: [$recipient->id],
                 action_url: route('app.gig_conversations.show', $persisted),
                 action_label: 'Buka Percakapan',
+                category: NotificationCategory::Chat,
             );
         } catch (Throwable $exception) {
             report($exception);

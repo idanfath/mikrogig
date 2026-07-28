@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationCategory;
 use App\Enums\NotificationTargetType;
 use App\Events\NotificationReceived;
 use App\Jobs\SendMailJob;
@@ -25,7 +26,8 @@ class NotificationService
         ?string $role = null,
         ?string $action_url = null,
         ?string $action_label = null,
-        ?bool $sendEmail = false
+        ?bool $sendEmail = false,
+        NotificationCategory $category = NotificationCategory::System,
     ): void {
         DB::transaction(function () use (
             $title,
@@ -36,7 +38,8 @@ class NotificationService
             $role,
             $action_url,
             $action_label,
-            $sendEmail
+            $sendEmail,
+            $category,
         ) {
             $notification = Notification::create([
                 'created_by' => $createdBy,
@@ -45,6 +48,7 @@ class NotificationService
                 'target_type' => $targetType->value,
                 'action_url' => $action_url,
                 'action_label' => $action_label,
+                'category' => $category,
             ]);
 
             $query = $this->recipientQuery($targetType, $recipientIds, $role);
@@ -84,7 +88,7 @@ class NotificationService
         });
     }
 
-    public function inbox(int $userId, int $perPage = 20, ?string $search = null)
+    public function inbox(int $userId, int $perPage = 20, ?string $search = null, ?NotificationCategory $category = null)
     {
         $query = Notification::query()
             ->join('notification_recipients', 'notifications.id', '=', 'notification_recipients.notification_id')
@@ -96,6 +100,16 @@ class NotificationService
                 ->orWhere('notifications.body', 'like', "%{$search}%"));
         }
 
+        if ($category) {
+            $query->where(function ($query) use ($category) {
+                $query->where('notifications.category', $category->value);
+
+                if ($category === NotificationCategory::System) {
+                    $query->orWhereNull('notifications.category');
+                }
+            });
+        }
+
         $notifications = $query
             ->select([
                 'notifications.*',
@@ -104,7 +118,8 @@ class NotificationService
             ])
             ->orderBy('notifications.created_at', 'desc')
             ->orderBy('notifications.id', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
 
         $notifications->getCollection()->transform(fn ($n) => [
             'id' => $n->id,
@@ -112,6 +127,7 @@ class NotificationService
             'body' => $n->body,
             'action_url' => $n->action_url,
             'action_label' => $n->action_label,
+            'category' => ($n->category ?? NotificationCategory::System)->value,
             'created_at' => $n->created_at,
             'read_at' => $n->read_at,
             'sent_at' => $n->created_at,

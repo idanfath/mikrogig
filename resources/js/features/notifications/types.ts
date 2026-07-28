@@ -4,6 +4,7 @@ export type InboxMessage = {
   body: string | null;
   action_url: string | null;
   action_label: string | null;
+  category: string;
   created_at: string;
   read_at: string | null;
 };
@@ -14,6 +15,7 @@ export type NotificationReceivedEvent = {
   body?: string | null;
   action_url?: string | null;
   action_label?: string | null;
+  category?: string;
 };
 
 export type PaginatedInbox = {
@@ -34,6 +36,7 @@ export type NotificationPageProps = {
   inbox: PaginatedInbox;
   filters?: {
     search?: string | null;
+    category?: string | null;
   };
   auth?: AuthProps;
 };

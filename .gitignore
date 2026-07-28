@@ -39,6 +39,9 @@ GEMINI.md
 /tests/Feature/*
 /tests/Feature/Auth/*
 /tests/Unit/*
+!/tests/Unit/GigDisputeAiOverviewValidatorTest.php
 /tests/Feature/*
+!/tests/Feature/GigConversationFocusTest.php
+!/tests/Feature/GigDisputeAiOverviewSnapshotTest.php
 database/seeders/RealAccountSeeder.php
 /LLM

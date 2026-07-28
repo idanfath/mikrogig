@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NotificationCategory;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,14 +13,16 @@ class NotificationController extends Controller
     {
         $user = $request->user();
         $search = $request->query('search');
+        $category = NotificationCategory::tryFrom((string) $request->query('category'));
 
         return Inertia::render('app/notifications', [
             'user' => $user,
             'inbox' => Inertia::scroll(
-                fn () => app(NotificationService::class)->inbox($user->id, 10, $search)
+                fn () => app(NotificationService::class)->inbox($user->id, 10, $search, $category)
             ),
             'filters' => [
                 'search' => $search,
+                'category' => $category?->value,
             ],
         ]);
     }

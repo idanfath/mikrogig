@@ -2,6 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import toast, { useToasterStore } from 'react-hot-toast';
 import { showNotificationToast } from '@/features/notifications/lib/notification-toast';
+import { areNotificationToastsEnabled } from '@/features/notifications/lib/notification-toast-preference';
 import type {
   AuthProps,
   NotificationReceivedEvent,
@@ -48,7 +49,10 @@ export function useRealtimeNotifications() {
     window.Echo.private(`App.Models.User.${userId}`).listen(
       '.notification.received',
       (event: NotificationReceivedEvent) => {
-        if (!isNotificationForOpenConversation(event)) {
+        if (
+          areNotificationToastsEnabled(event.category) &&
+          !isNotificationForOpenConversation(event)
+        ) {
           showNotificationToast(event);
         }
 

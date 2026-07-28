@@ -2,9 +2,12 @@ import { Link } from '@inertiajs/react';
 import { Bell, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { formatRelativeTime } from '@/lib/date';
 import { isInternalActionUrl, toInertiaHref } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  getNotificationCategoryLabel,
+} from '@/types/enum';
 import type { InboxMessage } from '../types';
 
 type NotificationItemProps = {
@@ -49,6 +52,9 @@ export function NotificationItem({
             >
               {message.title}
             </p>
+            <Badge variant="default" size="sm">
+              {getNotificationCategoryLabel(message.category)}
+            </Badge>
             {!isUnread && (
               <Badge variant="outline" size="sm">
                 Dibaca

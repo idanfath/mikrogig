@@ -1,6 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/hooks/use-confirm';
 import StatusLayout from '@/layout/StatusLayout';
@@ -21,6 +21,21 @@ const Notice: InertiaPageWithLayout = () => {
 
     return storedTime ? parseInt(storedTime) : null;
   });
+
+  useEffect(() => {
+    if (lastSentTime === null) {
+      return;
+    }
+
+    const timer = window.setTimeout(
+      () => setLastSentTime(null),
+      Math.max(0, 60000 - (Date.now() - lastSentTime)),
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [lastSentTime]);
+
+  const isCooldownActive = lastSentTime !== null;
 
   function handleResendVerification() {
     router.post(verification.send.url(), {
@@ -56,9 +71,7 @@ const Notice: InertiaPageWithLayout = () => {
               mobileLarge
               className="col-span-2 w-full sm:w-auto"
               onClick={handleResendVerification}
-              disabled={
-                lastSentTime !== null && Date.now() - lastSentTime < 60000
-              }
+              disabled={isCooldownActive}
             >
               Kirim Ulang Email Verifikasi
             </Button>

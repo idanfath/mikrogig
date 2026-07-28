@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +28,21 @@ const ForgotPassword = () => {
 
     return storedTime ? parseInt(storedTime) : null;
   });
+
+  useEffect(() => {
+    if (lastSentTime === null) {
+      return;
+    }
+
+    const timer = window.setTimeout(
+      () => setLastSentTime(null),
+      Math.max(0, 60000 - (Date.now() - lastSentTime)),
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [lastSentTime]);
+
+  const isCooldownActive = lastSentTime !== null;
 
   function handlePasswordResetRequest() {
     post(password.forgot.submit.url(), {
@@ -67,10 +82,7 @@ const ForgotPassword = () => {
           type="button"
           onClick={handlePasswordResetRequest}
           className="w-full"
-          disabled={
-            processing ||
-            (lastSentTime !== null && Date.now() - lastSentTime < 60000)
-          }
+          disabled={processing || isCooldownActive}
           mobileLarge
         >
           {processing ? 'Memproses...' : 'Kirim Link Reset'}

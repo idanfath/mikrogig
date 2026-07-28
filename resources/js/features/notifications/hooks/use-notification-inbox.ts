@@ -6,6 +6,7 @@ import type {
   NotificationPageProps,
 } from '@/features/notifications/types';
 import app from '@/routes/app';
+import type { NotificationCategory } from '@/types/enum';
 
 export function useNotificationInbox() {
   const { inbox, filters, auth } = usePage<NotificationPageProps>().props;
@@ -52,7 +53,7 @@ export function useNotificationInbox() {
       if (search !== currentSearch) {
         router.get(
           app.notifications(),
-          { search: search || '' },
+          { search: search || '', category: filters?.category ?? '' },
           {
             preserveState: true,
             replace: true,
@@ -64,7 +65,25 @@ export function useNotificationInbox() {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [search, filters?.search]);
+  }, [search, filters?.search, filters?.category]);
+
+  const filterByCategory = (category: NotificationCategory | '') => {
+    router.get(
+      app.notifications.url({
+        query: {
+          ...(search ? { search } : {}),
+          ...(category ? { category } : {}),
+        },
+      }),
+      {},
+      {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true,
+        reset: ['inbox'],
+      },
+    );
+  };
 
   const openMessage = (message: InboxMessage) => {
     setSelected(message);
@@ -192,6 +211,7 @@ export function useNotificationInbox() {
     isCompact,
     search,
     setSearch,
+    filterByCategory,
     unreadCount,
     toggleCompact,
     openMessage,

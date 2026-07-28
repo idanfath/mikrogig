@@ -97,6 +97,15 @@ export const GigDisputeStatus = {
 export type GigDisputeStatus =
   (typeof GigDisputeStatus)[keyof typeof GigDisputeStatus];
 
+export const GigDisputeAiOverviewStatus = {
+  Queued: 'queued',
+  Processing: 'processing',
+  Completed: 'completed',
+  Failed: 'failed',
+} as const;
+export type GigDisputeAiOverviewStatus =
+  (typeof GigDisputeAiOverviewStatus)[keyof typeof GigDisputeAiOverviewStatus];
+
 export const GigDisputeSubmissionType = {
   Report: 'report',
   Counterproof: 'counterproof',
@@ -135,6 +144,26 @@ export const GigMessageKind = {
 } as const;
 export type GigMessageKind =
   (typeof GigMessageKind)[keyof typeof GigMessageKind];
+
+export const NotificationCategory = {
+  System: 'system',
+  Chat: 'chat',
+} as const;
+export type NotificationCategory =
+  (typeof NotificationCategory)[keyof typeof NotificationCategory];
+
+export const NotificationCategoryFrontendLabel = {
+  system: 'Aktivitas',
+  chat: 'Pesan',
+} as const;
+
+export function getNotificationCategoryLabel(category?: string | null): string {
+  return (
+    NotificationCategoryFrontendLabel[
+      category as keyof typeof NotificationCategoryFrontendLabel
+    ] ?? category ?? ''
+  );
+}
 
 export const GigWorkflowEvent = {
   FreelancerSelected: 'freelancer_selected',
@@ -425,6 +454,23 @@ export function getGigDisputeStatusLabel(status?: string | null): string {
   );
 }
 
+export function getGigDisputeAiOverviewStatusLabel(
+  status?: string | null,
+): string {
+  return (
+    (
+      {
+        queued: 'Dalam antrean',
+        processing: 'Sedang dibuat',
+        completed: 'Selesai',
+        failed: 'Gagal',
+      } as Record<string, string>
+    )[status ?? ''] ??
+    status ??
+    ''
+  );
+}
+
 export function getGigDisputeStatusVariant(
   status?: string | null,
 ): 'default' | 'secondary' | 'outline' | 'destructive' {
@@ -533,7 +579,10 @@ export const GigWorkflowEventFrontendLabel = {
 } as const;
 
 export function getGigWorkflowEventLabel(event?: string | null): string {
-  if (!event) return '';
+  if (!event) {
+    return '';
+  }
+
   return (
     GigWorkflowEventFrontendLabel[
       event as keyof typeof GigWorkflowEventFrontendLabel

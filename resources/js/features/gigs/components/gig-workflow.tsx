@@ -43,6 +43,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useConfirm } from '@/hooks/use-confirm';
+import { useServerClock } from '@/hooks/use-server-clock';
 import { formatDate } from '@/lib/date';
 import { compressImage } from '@/lib/image_utility';
 import { capitalize } from '@/lib/utils';
@@ -97,8 +98,18 @@ export type GigWorkflowPageProps = {
   payment: { amount: number; status: GigPaymentStatus };
   agreement: { work_date: string; start_time: string; scheduled_at: string };
   participants: {
-    client: { id: number; name: string; avatar_url: string; location: string | null };
-    freelancer: { id: number; name: string; avatar_url: string; location: string | null };
+    client: {
+      id: number;
+      name: string;
+      avatar_url: string;
+      location: string | null;
+    };
+    freelancer: {
+      id: number;
+      name: string;
+      avatar_url: string;
+      location: string | null;
+    };
   };
   exit_request: {
     id: number;
@@ -108,7 +119,11 @@ export type GigWorkflowPageProps = {
     response: GigExitDecision | null;
   } | null;
   finish_request?: GigFinishRequestData | null;
-  dispute?: { id: number; status: GigDisputeStatus; type: GigDisputeType } | null;
+  dispute?: {
+    id: number;
+    status: GigDisputeStatus;
+    type: GigDisputeType;
+  } | null;
   settlement?: GigSettlementData | null;
   server_now: string;
   capabilities: {
@@ -169,7 +184,13 @@ export function GigWorkflowPage({
     ([key]) => key === 'photos' || key.startsWith('photos.'),
   )?.[1];
   const scheduledAt = new Date(agreement.scheduled_at).getTime();
-  const reportsOpen = new Date(serverNow).getTime() >= scheduledAt;
+  const currentServerTime = useServerClock(serverNow);
+  const reportsOpen = new Date(currentServerTime).getTime() >= scheduledAt;
+  const finishReviewExpired =
+    capabilities.finishReviewExpired ||
+    (finishRequest?.status === GigFinishRequestStatus.Pending &&
+      new Date(currentServerTime).getTime() >=
+        new Date(finishRequest.review_due_at).getTime());
   const disputeType = capabilities.canReportNoShow
     ? GigDisputeType.NoShow
     : capabilities.canReportStartBlocked
@@ -234,17 +255,17 @@ export function GigWorkflowPage({
       <div className="flex flex-col gap-6">
         <GigConversation conversation={conversation} />
         <AppPageCard className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/40">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3">
             <div className="flex items-center gap-2">
               <Briefcase className="size-5 text-primary" />
-              <span className="font-bold text-foreground text-sm sm:text-base">
+              <span className="text-sm font-bold text-foreground sm:text-base">
                 Status Execution Workflow
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Badge
                 variant={getGigStatusVariant(gig.status)}
-                className="px-3 py-1 font-medium text-xs"
+                className="px-3 py-1 text-xs font-medium"
               >
                 {getGigStatusLabel(gig.status)}
               </Badge>
@@ -261,14 +282,18 @@ export function GigWorkflowPage({
             <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
               <Coins className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   Escrow Pembayaran
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-foreground text-base">
-                    Rp{payment.amount.toLocaleString('id-ID')}
+                  <span className="text-base font-bold text-foreground">
+                    Rp
+                    {payment.amount.toLocaleString('id-ID')}
                   </span>
-                  <Badge variant={getGigPaymentStatusVariant(payment.status)} className="text-[10px] px-2 py-0.5">
+                  <Badge
+                    variant={getGigPaymentStatusVariant(payment.status)}
+                    className="px-2 py-0.5 text-[10px]"
+                  >
                     {getGigPaymentStatusLabel(payment.status)}
                   </Badge>
                 </div>
@@ -278,10 +303,10 @@ export function GigWorkflowPage({
             <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
               <Clock className="mt-0.5 size-4 shrink-0 text-primary" />
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   Jadwal Pekerjaan
                 </span>
-                <span className="font-medium text-foreground text-sm">
+                <span className="text-sm font-medium text-foreground">
                   {agreement.scheduled_at
                     ? formatDate(agreement.scheduled_at, 'dd MMMM yyyy · HH:mm')
                     : `${agreement.work_date} pukul ${agreement.start_time}`}
@@ -306,7 +331,7 @@ export function GigWorkflowPage({
                   <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                     Klien (Pemberi Kerja)
                   </span>
-                  <span className="truncate text-xs font-semibold sm:text-sm text-foreground">
+                  <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
                     {participants.client.name}
                   </span>
                   {participants.client.location && (
@@ -316,11 +341,15 @@ export function GigWorkflowPage({
                   )}
                 </div>
               </div>
-              <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
 
             <Link
-              href={showProfile({ user: participants.freelancer.id }).url}
+              href={
+                showProfile({
+                  user: participants.freelancer.id,
+                }).url
+              }
               className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-secondary/50 p-3 transition-colors hover:bg-secondary"
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -336,7 +365,7 @@ export function GigWorkflowPage({
                   <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                     Pekerja (Freelancer)
                   </span>
-                  <span className="truncate text-xs font-semibold sm:text-sm text-foreground">
+                  <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
                     {participants.freelancer.name}
                   </span>
                   {participants.freelancer.location && (
@@ -346,7 +375,7 @@ export function GigWorkflowPage({
                   )}
                 </div>
               </div>
-              <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
           </div>
 
@@ -354,26 +383,39 @@ export function GigWorkflowPage({
             <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-200">
               <Clock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>
-                Pelaporan tidak hadir atau mulai kerja terhalang tersedia setelah jadwal mulai, dalam{' '}
-                <strong>{getServerCountdown(agreement.scheduled_at, serverNow)}</strong>.
+                Pelaporan tidak hadir atau mulai kerja terhalang tersedia
+                setelah jadwal mulai, dalam{' '}
+                <strong>
+                  {getServerCountdown(
+                    agreement.scheduled_at,
+                    currentServerTime,
+                  )}
+                </strong>
+                .
               </span>
             </div>
           )}
 
           {activeDispute && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-foreground">
+            <div className="flex flex-col justify-between gap-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-foreground sm:flex-row sm:items-center">
               <div className="flex items-start gap-3">
-                <ShieldAlert className="size-5 text-destructive shrink-0 mt-0.5" />
+                <ShieldAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
                 <div className="flex flex-col gap-0.5">
-                  <h3 className="font-bold text-foreground text-sm sm:text-base">
+                  <h3 className="text-sm font-bold text-foreground sm:text-base">
                     Pekerjaan Ini Sedang Dalam Sengketa
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Sengketa sedang ditinjau. Anda dapat melihat detail pernyataan dan bukti pada halaman sengketa.
+                    Sengketa sedang ditinjau. Anda dapat melihat detail
+                    pernyataan dan bukti pada halaman sengketa.
                   </p>
                 </div>
               </div>
-              <Button asChild variant="destructive" size="sm" className="shrink-0 self-start sm:self-auto">
+              <Button
+                asChild
+                variant="destructive"
+                size="sm"
+                className="shrink-0 self-start sm:self-auto"
+              >
                 <Link href={showDispute.url(activeDispute)}>
                   <ShieldAlert className="mr-1.5 size-4" />
                   Lihat Sengketa
@@ -383,13 +425,14 @@ export function GigWorkflowPage({
           )}
 
           {capabilities.canStart && (
-            <div className="pt-2 border-t border-border/40 flex justify-end">
+            <div className="flex justify-end border-t border-border/40 pt-2">
               <Button
                 disabled={startForm.processing}
                 onClick={() =>
                   confirm({
                     title: 'Mulai pekerjaan gig?',
-                    description: 'Status gig akan diubah menjadi Sedang Berjalan.',
+                    description:
+                      'Status gig akan diubah menjadi Sedang Berjalan.',
                     confirmLabel: 'Ya, mulai sekarang',
                     onConfirm: () => startForm.post(start.url(gig)),
                   })
@@ -407,14 +450,17 @@ export function GigWorkflowPage({
           <AppPageCard className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <AlertTriangle className="size-4 text-amber-500" />
-              <h3 className="font-bold text-foreground text-sm">Minta Keluar dari Gig</h3>
+              <h3 className="text-sm font-bold text-foreground">
+                Minta Keluar dari Gig
+              </h3>
             </div>
             <form
               onSubmit={(event) => {
                 event.preventDefault();
                 confirm({
                   title: 'Kirim permintaan keluar gig?',
-                  description: 'Pihak lawan akan diminta untuk menyetujui permintaan keluar ini.',
+                  description:
+                    'Pihak lawan akan diminta untuk menyetujui permintaan keluar ini.',
                   confirmLabel: 'Ya, kirim permintaan',
                   destructive: true,
                   onConfirm: () => exitForm.post(storeExit.url(gig)),
@@ -436,7 +482,11 @@ export function GigWorkflowPage({
                 </p>
               )}
               <div className="flex justify-end">
-                <Button type="submit" variant="destructive" disabled={exitForm.processing}>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  disabled={exitForm.processing}
+                >
                   Minta keluar gig
                 </Button>
               </div>
@@ -446,27 +496,30 @@ export function GigWorkflowPage({
 
         {exitRequest && (
           <AppPageCard className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-2 pb-2 border-b border-border/40">
+            <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2">
               <div className="flex items-center gap-2">
                 <AlertCircle className="size-4 text-amber-500" />
-                <h3 className="font-bold text-foreground text-sm">Permintaan Keluar Gig</h3>
+                <h3 className="text-sm font-bold text-foreground">
+                  Permintaan Keluar Gig
+                </h3>
               </div>
               <Badge variant="outline" className="text-xs">
                 {getGigExitStatusLabel(exitRequest.status)}
               </Badge>
             </div>
-            <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap bg-secondary/30 p-3 rounded-xl border border-border/40">
+            <p className="rounded-xl border border-border/40 bg-secondary/30 p-3 text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
               "{exitRequest.reason}"
             </p>
 
             {capabilities.canRespondToExitRequest && (
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border/40">
+              <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/40 pt-2">
                 <Button
                   disabled={responseForm.processing}
                   onClick={() =>
                     confirm({
                       title: 'Setujui permintaan keluar?',
-                      description: 'Gig akan dibatalkan dan settlement akan diproses.',
+                      description:
+                        'Gig akan dibatalkan dan settlement akan diproses.',
                       confirmLabel: 'Ya, setuju',
                       onConfirm: () => {
                         responseForm.transform(() => ({
@@ -504,16 +557,18 @@ export function GigWorkflowPage({
             )}
 
             {capabilities.canWithdrawExitRequest && (
-              <div className="flex justify-end pt-2 border-t border-border/40">
+              <div className="flex justify-end border-t border-border/40 pt-2">
                 <Button
                   variant="outline"
                   disabled={responseForm.processing}
                   onClick={() =>
                     confirm({
                       title: 'Tarik permintaan keluar?',
-                      description: 'Permintaan keluar yang diajukan akan ditarik.',
+                      description:
+                        'Permintaan keluar yang diajukan akan ditarik.',
                       confirmLabel: 'Ya, tarik',
-                      onConfirm: () => responseForm.patch(withdraw.url(exitRequest)),
+                      onConfirm: () =>
+                        responseForm.patch(withdraw.url(exitRequest)),
                     })
                   }
                 >
@@ -523,15 +578,17 @@ export function GigWorkflowPage({
             )}
 
             {capabilities.canProceedUnilaterally && (
-              <div className="flex justify-end pt-2 border-t border-border/40">
+              <div className="flex justify-end border-t border-border/40 pt-2">
                 <Button
                   disabled={responseForm.processing}
                   onClick={() =>
                     confirm({
                       title: 'Lanjutkan secara sepihak?',
-                      description: 'Proses keluar gig akan dilanjutkan sepihak karena batas waktu terlewati.',
+                      description:
+                        'Proses keluar gig akan dilanjutkan sepihak karena batas waktu terlewati.',
                       confirmLabel: 'Ya, lanjutkan',
-                      onConfirm: () => responseForm.post(proceed.url(exitRequest)),
+                      onConfirm: () =>
+                        responseForm.post(proceed.url(exitRequest)),
                     })
                   }
                 >
@@ -544,30 +601,33 @@ export function GigWorkflowPage({
 
         {finishRequest && (
           <AppPageCard className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
+            <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-3">
               <div className="flex items-center gap-2">
                 <FileCheck className="size-5 text-primary" />
-                <h3 className="font-bold text-foreground text-sm sm:text-base">
+                <h3 className="text-sm font-bold text-foreground sm:text-base">
                   Bukti Penyelesaian Pekerjaan
                 </h3>
               </div>
-              <Badge variant="outline" className="px-3 py-1 font-medium text-xs">
+              <Badge
+                variant="outline"
+                className="px-3 py-1 text-xs font-medium"
+              >
                 {getGigFinishRequestStatusLabel(finishRequest.status)}
               </Badge>
             </div>
 
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                 Catatan Pekerja
               </span>
-              <div className="rounded-xl bg-secondary/30 p-3.5 border border-border/40 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+              <div className="rounded-xl border border-border/40 bg-secondary/30 p-3.5 text-xs leading-relaxed whitespace-pre-wrap text-foreground">
                 {finishRequest.completion_note}
               </div>
             </div>
 
             {finishRequest.rejection_reason && (
               <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3.5 text-xs text-destructive">
-                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
                 <div className="flex flex-col gap-0.5">
                   <span className="font-bold">Alasan Penolakan Klien</span>
                   <span>{finishRequest.rejection_reason}</span>
@@ -577,49 +637,65 @@ export function GigWorkflowPage({
 
             {finishRequest.media.length > 0 && (
               <div className="flex flex-col gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   Foto Bukti Hasil Pekerjaan ({finishRequest.media.length})
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {finishRequest.media.map((media: FinishRequestMedia, index: number) => (
-                    <a
-                      key={media.id}
-                      href={media.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-card px-3 py-2 text-xs font-medium text-primary hover:bg-secondary transition-colors"
-                    >
-                      <Image className="size-3.5" />
-                      <span>Bukti Foto #{index + 1}</span>
-                    </a>
-                  ))}
+                  {finishRequest.media.map(
+                    (media: FinishRequestMedia, index: number) => (
+                      <a
+                        key={media.id}
+                        href={media.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-card px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-secondary"
+                      >
+                        <Image className="size-3.5" />
+                        <span>Bukti Foto #{index + 1}</span>
+                      </a>
+                    ),
+                  )}
                 </div>
               </div>
             )}
 
             {finishRequest.status === GigFinishRequestStatus.Pending &&
-              !capabilities.finishReviewExpired && (
+              !finishReviewExpired && (
                 <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
                   <Clock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span>
                     Batas waktu tinjauan klien:{' '}
-                    <strong>{formatDate(finishRequest.review_due_at, 'dd MMMM yyyy · HH:mm')}</strong> · Sisa waktu{' '}
-                    <strong>{getServerCountdown(finishRequest.review_due_at, serverNow)}</strong>.
+                    <strong>
+                      {formatDate(
+                        finishRequest.review_due_at,
+                        'dd MMMM yyyy · HH:mm',
+                      )}
+                    </strong>{' '}
+                    · Sisa waktu{' '}
+                    <strong>
+                      {getServerCountdown(
+                        finishRequest.review_due_at,
+                        currentServerTime,
+                      )}
+                    </strong>
+                    .
                   </span>
                 </div>
               )}
 
-            {capabilities.finishReviewExpired && (
+            {finishReviewExpired && (
               <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 p-3 text-xs text-primary">
                 <Info className="size-4 shrink-0" />
-                <span>Batas waktu tinjauan berakhir. Menunggu penyelesaian otomatis.</span>
+                <span>
+                  Batas waktu tinjauan berakhir. Menunggu penyelesaian otomatis.
+                </span>
               </div>
             )}
 
             {gig.status === GigStatus.Review &&
               finishRequest.status === GigFinishRequestStatus.Pending &&
               !capabilities.canAcceptFinishRequest &&
-              !capabilities.finishReviewExpired && (
+              !finishReviewExpired && (
                 <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-secondary/30 p-3 text-xs text-muted-foreground">
                   <Clock className="size-4 shrink-0" />
                   <span>Menunggu peninjauan dari klien.</span>
@@ -628,11 +704,14 @@ export function GigWorkflowPage({
           </AppPageCard>
         )}
 
-        {(capabilities.canAcceptFinishRequest ||
-          capabilities.canRejectFinishRequest) &&
+        {!finishReviewExpired &&
+          (capabilities.canAcceptFinishRequest ||
+            capabilities.canRejectFinishRequest) &&
           finishRequest && (
             <AppPageCard className="flex flex-col gap-4">
-              <h3 className="font-bold text-foreground text-sm">Tinjauan Hasil Pekerjaan</h3>
+              <h3 className="text-sm font-bold text-foreground">
+                Tinjauan Hasil Pekerjaan
+              </h3>
               <div className="flex flex-col gap-3">
                 {capabilities.canAcceptFinishRequest && (
                   <div className="flex justify-end">
@@ -641,9 +720,11 @@ export function GigWorkflowPage({
                       onClick={() =>
                         confirm({
                           title: 'Terima hasil penyelesaian?',
-                          description: 'Pekerjaan dianggap selesai dan dana escrow akan dicairkan ke pekerja.',
+                          description:
+                            'Pekerjaan dianggap selesai dan dana escrow akan dicairkan ke pekerja.',
                           confirmLabel: 'Ya, terima & selesaikan',
-                          onConfirm: () => reviewForm.patch(acceptFinish.url(finishRequest)),
+                          onConfirm: () =>
+                            reviewForm.patch(acceptFinish.url(finishRequest)),
                         })
                       }
                     >
@@ -659,13 +740,15 @@ export function GigWorkflowPage({
                       event.preventDefault();
                       confirm({
                         title: 'Tolak hasil penyelesaian?',
-                        description: 'Alasan penolakan akan dikirimkan kepada pekerja.',
+                        description:
+                          'Alasan penolakan akan dikirimkan kepada pekerja.',
                         confirmLabel: 'Ya, tolak penyelesaian',
                         destructive: true,
-                        onConfirm: () => reviewForm.patch(rejectFinish.url(finishRequest)),
+                        onConfirm: () =>
+                          reviewForm.patch(rejectFinish.url(finishRequest)),
                       });
                     }}
-                    className="flex flex-col gap-3 pt-3 border-t border-border/40"
+                    className="flex flex-col gap-3 border-t border-border/40 pt-3"
                   >
                     <Textarea
                       value={reviewForm.data.reason}
@@ -700,7 +783,7 @@ export function GigWorkflowPage({
           <AppPageCard className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <FileCheck className="size-5 text-primary" />
-              <h3 className="font-bold text-foreground text-sm sm:text-base">
+              <h3 className="text-sm font-bold text-foreground sm:text-base">
                 Kirim Bukti Penyelesaian Pekerjaan
               </h3>
             </div>
@@ -756,10 +839,12 @@ export function GigWorkflowPage({
               />
 
               {finishForm.progress && (
-                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                   <div
-                    className="bg-primary h-2 transition-all duration-300"
-                    style={{ width: `${finishForm.progress.percentage}%` }}
+                    className="h-2 bg-primary transition-all duration-300"
+                    style={{
+                      width: `${finishForm.progress.percentage}%`,
+                    }}
                   />
                 </div>
               )}
@@ -779,7 +864,7 @@ export function GigWorkflowPage({
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
               <div className="flex items-center gap-2">
                 <ShieldAlert className="size-5 text-destructive" />
-                <h3 className="font-bold text-foreground text-sm sm:text-base">
+                <h3 className="text-sm font-bold text-foreground sm:text-base">
                   {disputeType === GigDisputeType.WorkObstruction
                     ? 'Laporkan Hambatan Penyelesaian'
                     : disputeType === GigDisputeType.FinishRejected
@@ -798,7 +883,8 @@ export function GigWorkflowPage({
                 event.preventDefault();
                 confirm({
                   title: 'Buka sengketa pekerjaan?',
-                  description: 'Tim admin akan meninjau pernyataan dan bukti yang diserahkan.',
+                  description:
+                    'Tim admin akan meninjau pernyataan dan bukti yang diserahkan.',
                   confirmLabel: 'Ya, buka sengketa',
                   destructive: true,
                   onConfirm: () => {
@@ -807,7 +893,9 @@ export function GigWorkflowPage({
                       type: disputeType,
                       photos: disputePhotos,
                     }));
-                    disputeForm.post(dispute.url(gig), { forceFormData: true });
+                    disputeForm.post(dispute.url(gig), {
+                      forceFormData: true,
+                    });
                   },
                 });
               }}
@@ -852,16 +940,22 @@ export function GigWorkflowPage({
               />
 
               {disputeForm.progress && (
-                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                   <div
-                    className="bg-destructive h-2 transition-all duration-300"
-                    style={{ width: `${disputeForm.progress.percentage}%` }}
+                    className="h-2 bg-destructive transition-all duration-300"
+                    style={{
+                      width: `${disputeForm.progress.percentage}%`,
+                    }}
                   />
                 </div>
               )}
 
               <div className="flex justify-end pt-2">
-                <Button type="submit" variant="destructive" disabled={disputeForm.processing}>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  disabled={disputeForm.processing}
+                >
                   <ShieldAlert className="mr-1.5 size-4" />
                   Buka sengketa
                 </Button>
@@ -872,14 +966,17 @@ export function GigWorkflowPage({
 
         {settlement && (
           <AppPageCard className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
+            <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-3">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="size-5 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="font-bold text-foreground text-sm sm:text-base">
+                <h3 className="text-sm font-bold text-foreground sm:text-base">
                   Hasil Penyelesaian (Settlement)
                 </h3>
               </div>
-              <Badge variant="default" className="px-3 py-1 font-medium text-xs">
+              <Badge
+                variant="default"
+                className="px-3 py-1 text-xs font-medium"
+              >
                 {getGigSettlementOutcomeLabel(settlement.outcome)}
               </Badge>
             </div>
@@ -888,11 +985,12 @@ export function GigWorkflowPage({
               <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
                 <Coins className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-200">
+                  <span className="text-[10px] font-bold tracking-wider text-emerald-900 uppercase dark:text-emerald-200">
                     Pencairan Pekerja
                   </span>
-                  <span className="font-bold text-emerald-700 dark:text-emerald-300 text-base">
-                    Rp{settlement.freelancer_payout.toLocaleString('id-ID')}
+                  <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">
+                    Rp
+                    {settlement.freelancer_payout.toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
@@ -900,11 +998,12 @@ export function GigWorkflowPage({
               <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3">
                 <Coins className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                     Refund Klien
                   </span>
-                  <span className="font-bold text-foreground text-base">
-                    Rp{settlement.client_refund.toLocaleString('id-ID')}
+                  <span className="text-base font-bold text-foreground">
+                    Rp
+                    {settlement.client_refund.toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>

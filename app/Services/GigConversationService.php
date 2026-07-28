@@ -104,10 +104,16 @@ class GigConversationService
         abort_unless($this->canView($request->user(), $agreement), 403);
 
         $before = $request->integer('chat_before') ?: null;
+        $focus = $request->integer('chat_focus') ?: null;
+
+        if ($focus !== null) {
+            return $this->presentFocused($request, $agreement, $focus);
+        }
+
         $query = $agreement->messages()
             ->with(['sender', 'media'])
             ->when($before !== null, fn ($messages) => $messages->where('id', '<', $before))
-            ->orderByDesc('id')
+            ->reorder('id', 'desc')
             ->limit(51)
             ->get();
         $hasOlder = $query->count() > 50;
@@ -119,8 +125,60 @@ class GigConversationService
             'agreement_id' => $agreement->id,
             'participants' => $participants->map(fn (User $user): array => $this->publicUser($user))->values(),
             'messages' => GigMessageResource::collection($messages)->resolve($request),
+            'mode' => 'latest',
             'has_older' => $hasOlder,
+            'has_newer' => false,
             'oldest_id' => $messages->first()?->id,
+            'newest_id' => $messages->last()?->id,
+            'focused_message_id' => null,
+            'capabilities' => [
+                'canViewConversation' => true,
+                'canSendMessage' => $canSend,
+                'canViewMedia' => true,
+                'canMarkRead' => $canSend,
+                'isReadOnly' => ! $canSend,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function presentFocused(Request $request, GigAgreement $agreement, int $focus): array
+    {
+        $target = $agreement->messages()
+            ->with(['sender', 'media'])
+            ->findOrFail($focus);
+        $beforeWindow = $agreement->messages()
+            ->with(['sender', 'media'])
+            ->where('id', '<', $target->id)
+            ->reorder('id', 'desc')
+            ->limit(26)
+            ->get();
+        $hasOlder = $beforeWindow->count() > 25;
+        $before = $beforeWindow->take(25)->reverse()->values();
+        $afterWindow = $agreement->messages()
+            ->with(['sender', 'media'])
+            ->where('id', '>', $target->id)
+            ->reorder('id')
+            ->limit(25)
+            ->get();
+        $hasNewer = $afterWindow->count() > 24;
+        $after = $afterWindow->take(24)->values();
+        $messages = $before->push($target)->concat($after)->values();
+        $participants = $this->participants($agreement);
+        $canSend = $this->canSend($request->user(), $agreement);
+
+        return [
+            'agreement_id' => $agreement->id,
+            'participants' => $participants->map(fn (User $user): array => $this->publicUser($user))->values(),
+            'messages' => GigMessageResource::collection($messages)->resolve($request),
+            'mode' => 'focused',
+            'has_older' => $hasOlder,
+            'has_newer' => $hasNewer,
+            'oldest_id' => $messages->first()?->id,
+            'newest_id' => $messages->last()?->id,
+            'focused_message_id' => $target->id,
             'capabilities' => [
                 'canViewConversation' => true,
                 'canSendMessage' => $canSend,

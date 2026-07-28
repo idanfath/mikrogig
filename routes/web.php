@@ -124,6 +124,7 @@ Route::middleware(['auth', 'verified', 'must_onboard'])
             Route::post('/gig-disputes/{dispute}/counterproof', [GigDisputeController::class, 'counterproof'])->name('gig_disputes.counterproof.store');
             Route::get('/admin/gig-disputes', [AdminGigDisputeController::class, 'index'])->name('admin.gig_disputes.index');
             Route::get('/admin/gig-disputes/{dispute}', [AdminGigDisputeController::class, 'show'])->name('admin.gig_disputes.show');
+            Route::post('/admin/gig-disputes/{dispute}/ai-overview', [AdminGigDisputeController::class, 'generateAiOverview'])->name('admin.gig_disputes.ai_overview.generate');
             Route::patch('/admin/gig-disputes/{dispute}/resolve', [AdminGigDisputeController::class, 'resolve'])->name('admin.gig_disputes.resolve');
             Route::get('/client/gigs', [GigController::class, 'owned'])->name('client.gigs.index');
             Route::get('/client/gigs/{gig}/applicants', [GigController::class, 'applicants'])->name('client.gigs.applicants.index');

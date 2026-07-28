@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\RequestGigDisputeAiOverview;
 use App\Actions\ResolveGigDispute;
 use App\Enums\GigDisputeFinding;
 use App\Enums\GigDisputeStatus;
 use App\Enums\GigDisputeType;
 use App\Enums\GigSettlementOutcome;
 use App\Http\Requests\ResolveGigDisputeRequest;
+use App\Http\Resources\GigDisputeAiOverviewResource;
 use App\Http\Resources\GigDisputeResource;
 use App\Http\Resources\GigSettlementResource;
 use App\Models\GigDispute;
 use App\Services\GigConversationService;
+use App\Services\GigDisputeAiOverviewEvidenceService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,29 +30,42 @@ class AdminGigDisputeController extends Controller
         $type = GigDisputeType::tryFrom((string) $r->query('type'));
         $disputes = GigDispute::query()
             ->with(['gig', 'reporter', 'respondent'])
-            ->when($status !== null, fn ($query) => $query->where('status', $status), fn ($query) => $query->whereIn('status', [GigDisputeStatus::AwaitingAdmin, GigDisputeStatus::AwaitingCounterproof]))
+            ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->when($type !== null, fn ($query) => $query->where('type', $type))
-            ->orderBy('counterproof_due_at')
-            ->orderBy('opened_at')
+            ->orderByRaw('case when status = ? then 1 else 0 end', [GigDisputeStatus::Resolved->value])
+            ->orderByRaw('case when status = ? then null else counterproof_due_at end', [GigDisputeStatus::Resolved->value])
+            ->orderByRaw('case when status = ? then null else opened_at end', [GigDisputeStatus::Resolved->value])
+            ->orderByDesc('resolved_at')
+            ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('app/admin/gig-disputes/index', ['disputes' => GigDisputeResource::collection($disputes), 'filters' => ['status' => $status?->value, 'type' => $type?->value]]);
+        return Inertia::render('app/admin/gig-disputes/index', [
+            'disputes' => GigDisputeResource::collection($disputes),
+            'filters' => ['status' => $status?->value, 'type' => $type?->value],
+            'server_now' => now()->toISOString(),
+        ]);
     }
 
-    public function show(Request $r, GigDispute $dispute, GigConversationService $conversations): Response
+    public function show(Request $r, GigDispute $dispute, GigConversationService $conversations, GigDisputeAiOverviewEvidenceService $evidence): Response
     {
         $this->authorize('resolve', $dispute);
 
-        $dispute->load(['gig', 'reporter', 'respondent', 'submissions.media', 'finishRequest.media', 'settlement']);
+        $dispute->load(['gig', 'reporter', 'respondent', 'submissions.media', 'finishRequest.media', 'settlement', 'aiOverview']);
+        $overview = $dispute->aiOverview;
 
         return Inertia::render('app/admin/gig-disputes/show', [
             'dispute' => GigDisputeResource::make($dispute)->resolve($r),
             'settlement' => $dispute->settlement === null ? null : GigSettlementResource::make($dispute->settlement)->resolve($r),
-            'conversation' => $conversations->present($r, $dispute->agreement),
+            'ai_overview' => fn (): ?array => $overview === null
+                ? null
+                : (new GigDisputeAiOverviewResource($overview, $evidence->present($overview)))->resolve($r),
+            'conversation' => fn (): array => $conversations->present($r, $dispute->agreement),
             'capabilities' => [
                 'canResolveDispute' => $dispute->status === GigDisputeStatus::AwaitingAdmin,
+                'canGenerateAiOverview' => $dispute->status === GigDisputeStatus::AwaitingAdmin,
             ],
+            'server_now' => now()->toISOString(),
         ]);
     }
 
@@ -64,5 +80,18 @@ class AdminGigDisputeController extends Controller
         }
 
         return back()->with('success', 'Sengketa diselesaikan.');
+    }
+
+    public function generateAiOverview(Request $request, GigDispute $dispute, RequestGigDisputeAiOverview $action): RedirectResponse
+    {
+        $this->authorize('resolve', $dispute);
+
+        try {
+            $overview = $action->execute($request->user(), $dispute);
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Permintaan ringkasan AI diterima.');
     }
 }

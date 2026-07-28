@@ -24,6 +24,7 @@ import { ImagePicker } from '@/components/ui/image-picker';
 import { Textarea } from '@/components/ui/textarea';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useConfirm } from '@/hooks/use-confirm';
+import { useServerClock } from '@/hooks/use-server-clock';
 import { formatDate } from '@/lib/date';
 import { capitalize } from '@/lib/utils';
 import { show as showProfile } from '@/routes/app/profile';
@@ -70,8 +71,20 @@ type Dispute = {
   status: string;
   gig_id?: number;
   gig?: { id: number; title: string };
-  reporter: { id: number; name: string; role?: string | null; avatar_url?: string; location?: string | null };
-  respondent: { id: number; name: string; role?: string | null; avatar_url?: string; location?: string | null };
+  reporter: {
+    id: number;
+    name: string;
+    role?: string | null;
+    avatar_url?: string;
+    location?: string | null;
+  };
+  respondent: {
+    id: number;
+    name: string;
+    role?: string | null;
+    avatar_url?: string;
+    location?: string | null;
+  };
   counterproof_due_at: string;
   finding: string | null;
   resolution_note: string | null;
@@ -96,8 +109,15 @@ export function GigDisputeDetailPage({
   const [confirm, confirmDialog] = useConfirm();
   const [photos, setPhotos] = useState<File[]>([]);
   const form = useForm({ statement: '' });
+  const currentServerTime = useServerClock(serverNow);
+  const isAwaitingCounterproof =
+    dispute.status === GigDisputeStatus.AwaitingCounterproof;
 
   useEffect(() => {
+    if (!isAwaitingCounterproof) {
+      return;
+    }
+
     const serverOffset = new Date(serverNow).getTime() - Date.now();
     const delay =
       new Date(dispute.counterproof_due_at).getTime() -
@@ -108,18 +128,24 @@ export function GigDisputeDetailPage({
     }
 
     const timer = window.setTimeout(
-      () => router.reload({ only: ['dispute', 'capabilities', 'server_now'] }),
+      () =>
+        router.reload({
+          only: ['dispute', 'capabilities', 'server_now'],
+        }),
       delay + 50,
     );
 
     return () => window.clearTimeout(timer);
-  }, [dispute.counterproof_due_at, serverNow]);
+  }, [dispute.counterproof_due_at, isAwaitingCounterproof, serverNow]);
 
   const photoError = Object.entries(form.errors).find(
     ([key]) => key === 'photos' || key.startsWith('photos.'),
   )?.[1];
 
-  const isExpired = capabilities.counterproofExpired;
+  const isExpired =
+    capabilities.counterproofExpired ||
+    new Date(currentServerTime).getTime() >=
+      new Date(dispute.counterproof_due_at).getTime();
   const gigId = dispute.gig_id ?? dispute.gig?.id;
 
   return (
@@ -130,14 +156,14 @@ export function GigDisputeDetailPage({
       <PhotoProvider>
         <GigConversation conversation={conversation} />
         <AppPageCard className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
+          <div className="flex flex-col justify-between gap-3 border-b border-border/40 pb-4 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
                 <ShieldAlert className="size-5" />
               </div>
               <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-base sm:text-lg font-bold text-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base font-bold text-foreground sm:text-lg">
                     Sengketa Pekerjaan
                   </h2>
                   <Badge variant={getGigDisputeStatusVariant(dispute.status)}>
@@ -151,7 +177,12 @@ export function GigDisputeDetailPage({
             </div>
 
             {gigId && (
-              <Button asChild variant="outline" size="sm" className="self-start sm:self-auto">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="self-start sm:self-auto"
+              >
                 <Link href={showWorkflow.url({ gig: gigId })}>
                   <ArrowLeft className="mr-1.5 size-4" />
                   Lihat Workflow
@@ -176,9 +207,12 @@ export function GigDisputeDetailPage({
                 />
                 <div className="flex min-w-0 flex-col">
                   <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Pelapor{dispute.reporter.role ? ` · ${getUserRoleLabel(dispute.reporter.role)}` : ''}
+                    Pelapor
+                    {dispute.reporter.role
+                      ? ` · ${getUserRoleLabel(dispute.reporter.role)}`
+                      : ''}
                   </span>
-                  <span className="truncate text-xs font-semibold sm:text-sm text-foreground">
+                  <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
                     {dispute.reporter.name}
                   </span>
                   {dispute.reporter.location && (
@@ -188,7 +222,7 @@ export function GigDisputeDetailPage({
                   )}
                 </div>
               </div>
-              <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
 
             <Link
@@ -206,9 +240,12 @@ export function GigDisputeDetailPage({
                 />
                 <div className="flex min-w-0 flex-col">
                   <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Responden{dispute.respondent.role ? ` · ${getUserRoleLabel(dispute.respondent.role)}` : ''}
+                    Responden
+                    {dispute.respondent.role
+                      ? ` · ${getUserRoleLabel(dispute.respondent.role)}`
+                      : ''}
                   </span>
-                  <span className="truncate text-xs font-semibold sm:text-sm text-foreground">
+                  <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
                     {dispute.respondent.name}
                   </span>
                   {dispute.respondent.location && (
@@ -218,29 +255,36 @@ export function GigDisputeDetailPage({
                   )}
                 </div>
               </div>
-              <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
 
-            <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3 sm:col-span-2 lg:col-span-1">
-              <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Batas Waktu Counterproof
-                </span>
-                <span className="font-semibold text-foreground text-xs sm:text-sm">
-                  {formatDate(dispute.counterproof_due_at, 'dd MMMM yyyy · HH:mm')}
-                </span>
-                <span
-                  className={`text-xs ${
-                    isExpired ? 'text-destructive font-medium' : 'text-muted-foreground'
-                  }`}
-                >
-                  {isExpired
-                    ? 'Batas waktu counterproof telah berakhir'
-                    : `Sisa waktu: ${getServerCountdown(dispute.counterproof_due_at, serverNow)}`}
-                </span>
+            {isAwaitingCounterproof && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3 sm:col-span-2 lg:col-span-1">
+                <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                    Batas Waktu Counterproof
+                  </span>
+                  <span className="text-xs font-semibold text-foreground sm:text-sm">
+                    {formatDate(
+                      dispute.counterproof_due_at,
+                      'dd MMMM yyyy · HH:mm',
+                    )}
+                  </span>
+                  <span
+                    className={`text-xs ${
+                      isExpired
+                        ? 'font-medium text-destructive'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {isExpired
+                      ? 'Batas waktu counterproof telah berakhir'
+                      : `Sisa waktu: ${getServerCountdown(dispute.counterproof_due_at, currentServerTime)}`}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </AppPageCard>
 
@@ -249,7 +293,7 @@ export function GigDisputeDetailPage({
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
               <div className="flex items-center gap-2">
                 <FileCheck className="size-4 text-primary" />
-                <h3 className="font-bold text-foreground text-sm">
+                <h3 className="text-sm font-bold text-foreground">
                   Bukti Hasil Pekerjaan Terbaru
                 </h3>
               </div>
@@ -258,13 +302,13 @@ export function GigDisputeDetailPage({
               </Badge>
             </div>
 
-            <div className="rounded-xl border border-border/40 bg-muted/30 p-3.5 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+            <div className="rounded-xl border border-border/40 bg-muted/30 p-3.5 text-xs leading-relaxed whitespace-pre-wrap text-foreground">
               {dispute.finish_request.completion_note}
             </div>
 
             {dispute.finish_request.rejection_reason && (
               <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
-                <Info className="size-4 shrink-0 mt-0.5" />
+                <Info className="mt-0.5 size-4 shrink-0" />
                 <div>
                   <span className="font-bold">Alasan Penolakan Klien:</span>{' '}
                   {dispute.finish_request.rejection_reason}
@@ -274,8 +318,9 @@ export function GigDisputeDetailPage({
 
             {dispute.finish_request.media.length > 0 && (
               <div className="flex flex-col gap-2 pt-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Lampiran Foto Bukti Hasil ({dispute.finish_request.media.length})
+                <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                  Lampiran Foto Bukti Hasil (
+                  {dispute.finish_request.media.length})
                 </span>
                 <div className="flex flex-wrap gap-3">
                   {dispute.finish_request.media.map((media, index) => (
@@ -304,7 +349,7 @@ export function GigDisputeDetailPage({
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <FileText className="size-4 text-primary" />
-                  <h3 className="font-bold text-foreground text-sm">
+                  <h3 className="text-sm font-bold text-foreground">
                     {getGigDisputeSubmissionTypeLabel(submission.type)}
                   </h3>
                   <Badge variant="outline" className="text-xs font-semibold">
@@ -316,37 +361,37 @@ export function GigDisputeDetailPage({
                 </span>
               </div>
 
-            <div className="rounded-xl border border-border/40 bg-muted/30 p-3.5 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
-              {submission.statement}
-            </div>
-
-            {submission.media.length > 0 && (
-              <div className="flex flex-col gap-2 pt-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Foto Lampiran Bukti ({submission.media.length})
-                </span>
-                <div className="flex flex-wrap gap-3">
-                  {submission.media.map((media, index) => (
-                    <PhotoView key={media.id} src={media.url}>
-                      <img
-                        src={media.url}
-                        alt={`Bukti #${index + 1}`}
-                        className="size-20 shrink-0 cursor-pointer rounded-xl border border-border/60 object-cover transition-opacity hover:opacity-90"
-                      />
-                    </PhotoView>
-                  ))}
-                </div>
+              <div className="rounded-xl border border-border/40 bg-muted/30 p-3.5 text-xs leading-relaxed whitespace-pre-wrap text-foreground">
+                {submission.statement}
               </div>
-            )}
+
+              {submission.media.length > 0 && (
+                <div className="flex flex-col gap-2 pt-1">
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                    Foto Lampiran Bukti ({submission.media.length})
+                  </span>
+                  <div className="flex flex-wrap gap-3">
+                    {submission.media.map((media, index) => (
+                      <PhotoView key={media.id} src={media.url}>
+                        <img
+                          src={media.url}
+                          alt={`Bukti #${index + 1}`}
+                          className="size-20 shrink-0 cursor-pointer rounded-xl border border-border/60 object-cover transition-opacity hover:opacity-90"
+                        />
+                      </PhotoView>
+                    ))}
+                  </div>
+                </div>
+              )}
             </AppPageCard>
           );
         })}
 
-        {capabilities.canSubmitCounterproof && (
+        {capabilities.canSubmitCounterproof && !isExpired && (
           <AppPageCard className="flex flex-col gap-4">
             <div className="flex items-center gap-2 border-b border-border/40 pb-2">
               <ShieldAlert className="size-5 text-destructive" />
-              <h3 className="font-bold text-foreground text-sm sm:text-base">
+              <h3 className="text-sm font-bold text-foreground sm:text-base">
                 Kirim Counterproof Sengketa
               </h3>
             </div>
@@ -356,7 +401,8 @@ export function GigDisputeDetailPage({
                 event.preventDefault();
                 confirm({
                   title: 'Kirim counterproof sengketa?',
-                  description: 'Pernyataan dan bukti foto akan diserahkan kepada tim admin.',
+                  description:
+                    'Pernyataan dan bukti foto akan diserahkan kepada tim admin.',
                   confirmLabel: 'Ya, kirim counterproof',
                   onConfirm: () => {
                     form.transform((data) => ({
@@ -410,10 +456,12 @@ export function GigDisputeDetailPage({
               />
 
               {form.progress && (
-                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                   <div
-                    className="bg-primary h-2 transition-all duration-300"
-                    style={{ width: `${form.progress.percentage}%` }}
+                    className="h-2 bg-primary transition-all duration-300"
+                    style={{
+                      width: `${form.progress.percentage}%`,
+                    }}
                   />
                 </div>
               )}
@@ -428,13 +476,18 @@ export function GigDisputeDetailPage({
           </AppPageCard>
         )}
 
-        {capabilities.counterproofExpired &&
+        {isExpired &&
           dispute.status === GigDisputeStatus.AwaitingCounterproof && (
             <AppPageCard className="flex items-center gap-3 border-amber-500/30 bg-amber-500/5 text-amber-900 dark:text-amber-200">
-              <Clock className="size-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <Clock className="size-5 shrink-0 text-amber-600 dark:text-amber-400" />
               <div className="flex flex-col gap-0.5 text-xs">
-                <span className="font-bold">Batas Waktu Tanggapan Berakhir</span>
-                <span>Masa pengiriman counterproof telah habis. Sengketa kini menunggu resolusi dan keputusan dari tim admin.</span>
+                <span className="font-bold">
+                  Batas Waktu Tanggapan Berakhir
+                </span>
+                <span>
+                  Masa pengiriman counterproof telah habis. Sengketa kini
+                  menunggu resolusi dan keputusan dari tim admin.
+                </span>
               </div>
             </AppPageCard>
           )}
@@ -443,22 +496,24 @@ export function GigDisputeDetailPage({
           <AppPageCard className="flex flex-col gap-3 border-emerald-500/30 bg-emerald-500/5">
             <div className="flex items-center gap-2 border-b border-emerald-500/20 pb-2">
               <Scale className="size-5 text-emerald-600 dark:text-emerald-400" />
-              <h3 className="font-bold text-foreground text-sm sm:text-base">
+              <h3 className="text-sm font-bold text-foreground sm:text-base">
                 Hasil Keputusan Sengketa
               </h3>
             </div>
 
             {dispute.finding && (
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-muted-foreground">Temuan:</span>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  Temuan:
+                </span>
                 <Badge variant="outline">
                   {getGigDisputeFindingLabel(dispute.finding)}
                 </Badge>
               </div>
             )}
 
-            <div className="rounded-xl border border-emerald-500/20 bg-background/60 p-3.5 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
-              <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 mb-1">
+            <div className="rounded-xl border border-emerald-500/20 bg-background/60 p-3.5 text-xs leading-relaxed whitespace-pre-wrap text-foreground">
+              <div className="mb-1 flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
                 <CheckCircle2 className="size-4" /> Catatan Keputusan Admin:
               </div>
               {dispute.resolution_note}

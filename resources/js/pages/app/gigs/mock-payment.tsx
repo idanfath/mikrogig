@@ -6,6 +6,7 @@ import AppLayout from '@/layout/AppLayout';
 type Props = {
   gig: GigPaymentSummary;
   payment: GigPayment;
+  server_now: string;
 };
 
 const Page: InertiaPageWithLayout<Props> = (props) => (

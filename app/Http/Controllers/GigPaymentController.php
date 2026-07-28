@@ -31,6 +31,7 @@ class GigPaymentController extends Controller
             'payment' => GigPaymentResource::make($payment)->resolve($request),
             'is_client' => $request->user()->id === $gig->client_id,
             'conversation' => $conversations->present($request, $payment->agreement),
+            'server_now' => now()->toISOString(),
         ]);
     }
 
@@ -67,6 +68,7 @@ class GigPaymentController extends Controller
                 'status' => $gig->status->value,
             ],
             'payment' => GigPaymentResource::make($payment)->resolve($request),
+            'server_now' => now()->toISOString(),
         ]);
     }
 
