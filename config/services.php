@@ -20,7 +20,7 @@ return [
         'domain' => env('RESEND_MAIL_DOMAIN'),
         'connect_timeout' => env('RESEND_CONNECT_TIMEOUT', 3),
         'timeout' => env('RESEND_TIMEOUT', 10),
-        'allow_send' => env('RESEND_SEND_MAIL', true),
+        'allow_send' => env('RESEND_SENDMAIL', true),
     ],
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
