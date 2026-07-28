@@ -6,6 +6,8 @@ use App\Enums\GigMessageKind;
 use App\Enums\GigStatus;
 use App\Enums\GigWorkflowEvent;
 use App\Enums\UserRole;
+use App\Events\GigMessageCreated;
+use App\Events\GigMessagesRead;
 use App\Http\Resources\GigMessageResource;
 use App\Models\GigAgreement;
 use App\Models\GigMessage;
@@ -157,6 +159,8 @@ class GigConversationService
             $message->agreement()->associate($agreement);
             $message->save();
 
+            broadcast(new GigMessageCreated($message));
+
             return $message;
         } catch (QueryException $exception) {
             if (! in_array((string) $exception->getCode(), ['19', '23000'], true)) {
@@ -174,11 +178,17 @@ class GigConversationService
     {
         abort_unless(! $user->activeBan()->exists() && $this->canView($user, $agreement), 403);
 
-        return GigMessage::query()
+        $updated = GigMessage::query()
             ->where('gig_agreement_id', $agreement->id)
             ->where('recipient_id', $user->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        if ($updated > 0) {
+            broadcast(new GigMessagesRead($agreement, $user->id));
+        }
+
+        return $updated;
     }
 
     public function destination(GigAgreement $agreement): string

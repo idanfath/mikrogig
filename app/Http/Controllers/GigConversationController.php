@@ -66,7 +66,7 @@ class GigConversationController extends Controller
             return back()->with('error', $exception->getMessage());
         }
 
-        return back()->with('success', 'Pesan berhasil dikirim.');
+        return back();
     }
 
     public function markRead(

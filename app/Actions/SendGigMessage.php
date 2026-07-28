@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Enums\GigMessageKind;
 use App\Enums\NotificationTargetType;
+use App\Events\GigMessageCreated;
 use App\Models\Gig;
 use App\Models\GigAgreement;
 use App\Models\GigMessage;
@@ -107,6 +108,8 @@ class SendGigMessage
 
             throw $exception;
         }
+
+        broadcast(new GigMessageCreated($message));
 
         try {
             $this->notifications->send(

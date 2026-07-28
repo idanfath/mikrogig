@@ -7,6 +7,22 @@ import type {
   NotificationReceivedEvent,
 } from '@/features/notifications/types';
 import app from '@/routes/app';
+import { show as showConversation } from '@/routes/app/gig_conversations';
+
+const OPEN_CONVERSATION_DATA_ATTRIBUTE = 'gigConversationAgreementId';
+
+function isNotificationForOpenConversation(event: NotificationReceivedEvent): boolean {
+  const agreementId = document.documentElement.dataset[OPEN_CONVERSATION_DATA_ATTRIBUTE];
+
+  if (!agreementId || !event.action_url) {
+    return false;
+  }
+
+  return (
+    new URL(event.action_url, window.location.origin).pathname ===
+    new URL(showConversation.url(Number(agreementId)), window.location.origin).pathname
+  );
+}
 
 export function useRealtimeNotifications() {
   const { auth } = usePage<{ auth?: AuthProps }>().props;
@@ -32,7 +48,9 @@ export function useRealtimeNotifications() {
     window.Echo.private(`App.Models.User.${userId}`).listen(
       '.notification.received',
       (event: NotificationReceivedEvent) => {
-        showNotificationToast(event);
+        if (!isNotificationForOpenConversation(event)) {
+          showNotificationToast(event);
+        }
 
         const notificationPath = app.notifications.url().split('?')[0];
         const onNotificationsPage =

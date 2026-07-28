@@ -1,4 +1,4 @@
-import { Link, router, useForm, usePage, usePoll } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ChevronDown,
     ChevronLeft,
@@ -8,7 +8,7 @@ import {
     SendHorizontal,
 } from 'lucide-react';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     markRead,
     store,
@@ -40,6 +40,7 @@ import type {
     ConversationMessage,
     GigConversation as GigConversationData,
 } from '../conversation-types';
+import { useGigConversationRealtime } from '../hooks/use-gig-conversation-realtime';
 
 function getDateKey(dateString: string): string {
     try {
@@ -49,6 +50,35 @@ function getDateKey(dateString: string): string {
     } catch {
         return dateString;
     }
+}
+
+const MESSAGE_GROUP_WINDOW_MS = 5 * 60 * 1000;
+
+function isGroupedMessage(
+    previous: ConversationMessage,
+    current: ConversationMessage,
+): boolean {
+    if (
+        previous.kind !== GigMessageKind.User
+        || current.kind !== GigMessageKind.User
+        || previous.sender?.id !== current.sender?.id
+        || getDateKey(previous.created_at) !== getDateKey(current.created_at)
+    ) {
+        return false;
+    }
+
+    const previousTime = new Date(previous.created_at).getTime();
+    const currentTime = new Date(current.created_at).getTime();
+    const gap = currentTime - previousTime;
+
+    return Number.isFinite(gap) && gap >= 0 && gap <= MESSAGE_GROUP_WINDOW_MS;
+}
+
+function isMessageGroupTail(messages: ConversationMessage[], index: number): boolean {
+    const current = messages[index];
+    const next = messages[index + 1];
+
+    return current === undefined || next === undefined || !isGroupedMessage(current, next);
 }
 
 
@@ -223,8 +253,24 @@ type Props = {
 };
 
 const CHAT_EXPANDED_STORAGE_KEY = 'gig_chat_is_expanded';
+const OPEN_CONVERSATION_DATA_ATTRIBUTE = 'gigConversationAgreementId';
 
 export function GigConversation({
+    conversation,
+    defaultExpanded,
+    mode,
+}: Props) {
+    return (
+        <GigConversationContent
+            key={conversation?.agreement_id ?? 'empty'}
+            conversation={conversation}
+            defaultExpanded={defaultExpanded}
+            mode={mode}
+        />
+    );
+}
+
+function GigConversationContent({
     conversation,
     defaultExpanded = true,
     mode = 'inline',
@@ -256,10 +302,15 @@ export function GigConversation({
     };
     const { auth } = usePage<{ auth?: Auth }>().props;
     const currentUserId = auth?.user?.id;
+    const currentUserName = auth?.user?.name;
     const viewerRole = auth?.user?.role;
     const isAdmin = viewerRole === 'admin';
     const isClientViewer = viewerRole === 'client';
     const [olderMessages, setOlderMessages] = useState<ConversationMessage[]>([]);
+    const [hasOlder, setHasOlder] = useState(conversation?.has_older ?? false);
+    const [oldestId, setOldestId] = useState<number | null>(conversation?.oldest_id ?? null);
+    const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+    const [isConversationVisible, setIsConversationVisible] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
     const nearBottom = useRef(true);
     const markedReadKey = useRef('');
@@ -283,6 +334,38 @@ export function GigConversation({
         disabled: form.processing,
     });
     const imageError = form.errors.images ?? selectionError;
+    const isConversationExpanded = isPage || (!isMobile && isExpanded);
+
+    const mergeMessage = useCallback((message: ConversationMessage) => {
+        setOlderMessages((current) => {
+            if (current.some(({ id }) => id === message.id)) {
+                return current;
+            }
+
+            return [...current, message];
+        });
+    }, []);
+
+    const refreshConversation = useCallback(() => {
+        router.reload({
+            only: ['conversation'],
+        });
+    }, []);
+
+    const {
+        onlineParticipantIds,
+        typingParticipant,
+        notifyTyping,
+        clearTyping,
+    } = useGigConversationRealtime({
+        agreementId: conversation?.agreement_id ?? null,
+        currentUserId,
+        currentUserName,
+        canViewConversation: conversation?.capabilities.canViewConversation,
+        onMessage: mergeMessage,
+        onSystemMessage: refreshConversation,
+        onReconnect: refreshConversation,
+    });
 
     const messages = useMemo<ConversationMessage[]>(() => {
         const merged = new Map<number, ConversationMessage>(
@@ -307,15 +390,22 @@ export function GigConversation({
         () =>
             messages
                 .filter((message) => message.recipient_id !== null && !message.read_at)
+                .filter((message) => message.recipient_id === currentUserId)
                 .map((message) => message.id)
                 .join(','),
-        [messages],
+        [currentUserId, messages],
     );
     const recentMessages = useMemo(() => messages.slice(-5), [messages]);
+    const shouldMarkRead = Boolean(
+        conversation?.capabilities.canMarkRead
+        && isConversationExpanded
+        && isConversationVisible,
+    );
 
     useEffect(() => {
         if (
-            !conversation?.capabilities.canMarkRead ||
+            !conversation ||
+            !shouldMarkRead ||
             unreadKey === '' ||
             unreadKey === markedReadKey.current
         ) {
@@ -334,38 +424,87 @@ export function GigConversation({
         );
     }, [
         conversation?.agreement_id,
-        conversation?.capabilities.canMarkRead,
+        shouldMarkRead,
         unreadKey,
     ]);
 
-    const { start, stop } = usePoll(
-        3000,
-        {
+    const loadOlder = useCallback(() => {
+        if (!conversation || !hasOlder || oldestId === null || isLoadingOlder) {
+            return;
+        }
+
+        const element = listRef.current;
+        const previousHeight = element?.scrollHeight ?? 0;
+        const previousTop = element?.scrollTop ?? 0;
+        setIsLoadingOlder(true);
+
+        router.reload({
+            data: { chat_before: oldestId },
             only: ['conversation'],
-        },
-        { keepAlive: false },
-    );
+            onSuccess: (page) => {
+                const batch = page.props.conversation as GigConversationData;
+                setOlderMessages((current) => {
+                    const merged = new Map(current.map((message) => [message.id, message]));
+                    batch.messages.forEach((message) => merged.set(message.id, message));
+
+                    return [...merged.values()].sort((left, right) => left.id - right.id);
+                });
+                setHasOlder(batch.has_older);
+                setOldestId(batch.oldest_id);
+                window.history.replaceState({}, '', window.location.pathname);
+                requestAnimationFrame(() => {
+                    if (element) {
+                        element.scrollTop = previousTop + element.scrollHeight - previousHeight;
+                    }
+                });
+            },
+            onFinish: () => setIsLoadingOlder(false),
+        });
+    }, [conversation, hasOlder, isLoadingOlder, oldestId]);
 
     useEffect(() => {
-        const updatePolling = () => {
-            if (document.visibilityState === 'hidden') {
-                stop();
-            } else {
-                start();
+        if (!conversation?.capabilities.canViewConversation) {
+            return;
+        }
+
+        const agreementId = String(conversation.agreement_id);
+        const element = document.getElementById('conversation');
+
+        if (element === null) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(([entry]) => {
+            const isVisible = entry?.isIntersecting ?? false;
+            setIsConversationVisible(isVisible);
+
+            if (isVisible) {
+                document.documentElement.dataset[OPEN_CONVERSATION_DATA_ATTRIBUTE] = agreementId;
+
+                return;
+            }
+
+            if (document.documentElement.dataset[OPEN_CONVERSATION_DATA_ATTRIBUTE] === agreementId) {
+                delete document.documentElement.dataset[OPEN_CONVERSATION_DATA_ATTRIBUTE];
+            }
+        }, { threshold: 0.01 });
+
+        observer.observe(element);
+
+        return () => {
+            observer.disconnect();
+            setIsConversationVisible(false);
+
+            if (document.documentElement.dataset[OPEN_CONVERSATION_DATA_ATTRIBUTE] === agreementId) {
+                delete document.documentElement.dataset[OPEN_CONVERSATION_DATA_ATTRIBUTE];
             }
         };
-
-        document.addEventListener('visibilitychange', updatePolling);
-
-        return () =>
-            document.removeEventListener('visibilitychange', updatePolling);
-    }, [start, stop]);
+    }, [conversation?.agreement_id, conversation?.capabilities.canViewConversation]);
 
     if (!conversation?.capabilities.canViewConversation) {
         return null;
     }
 
-    const isConversationExpanded = isPage || (!isMobile && isExpanded);
     const ConversationContainer = isPage ? 'main' : AppPageCard;
 
     const leftPerson = isClientViewer
@@ -375,10 +514,23 @@ export function GigConversation({
     const rightPerson = isClientViewer
         ? conversation.participants[0]
         : conversation.participants[1] ?? conversation.participants[0];
+    const isCounterpartOnline = conversation.participants.some(
+        (participant) => participant.id !== currentUserId && onlineParticipantIds.has(participant.id),
+    );
+    const submitMessage = () => {
+        clearTyping();
+        form.post(store.url(conversation.agreement_id), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset();
+            },
+        });
+    };
 
     return (
         <ConversationContainer
-            id={isPage ? undefined : 'conversation'}
+            id="conversation"
             className={cn(
                 'flex flex-col overflow-hidden',
                 isPage ? 'h-dvh min-h-dvh bg-background' : 'p-0',
@@ -410,44 +562,6 @@ export function GigConversation({
                     </div>
 
                     <div className="flex items-center gap-2">
-                        {isConversationExpanded && conversation.has_older && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="xs"
-                                className="text-xs"
-                                onClick={() => {
-                                    router.get(
-                                        window.location.pathname,
-                                        { chat_before: conversation.oldest_id },
-                                        {
-                                            only: ['conversation'],
-                                            preserveScroll: true,
-                                            preserveState: true,
-                                            replace: true,
-                                            onSuccess: (page) => {
-                                                const batch = page.props.conversation as GigConversationData;
-                                                setOlderMessages((current) => {
-                                                    const merged = new Map(
-                                                        current.map((message) => [message.id, message]),
-                                                    );
-                                                    batch.messages.forEach((message) =>
-                                                        merged.set(message.id, message),
-                                                    );
-
-                                                    return [...merged.values()].sort(
-                                                        (left, right) => left.id - right.id,
-                                                    );
-                                                });
-                                                window.history.replaceState({}, '', window.location.pathname);
-                                            },
-                                        },
-                                    );
-                                }}
-                            >
-                                Muat pesan sebelumnya
-                            </Button>
-                        )}
                         {!isPage && (
                             isMobile ? (
                                 <Button asChild variant="outline" size="xs" className="gap-1.5">
@@ -479,7 +593,25 @@ export function GigConversation({
                 </div>
 
                 <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground font-medium">
-                    <span>{leftPerson?.name}</span>
+                    <div className="flex flex-col gap-0.5">
+                        <span className="flex items-center gap-1.5">
+                            {!isAdmin && (
+                                <span
+                                    className={cn(
+                                        'size-2 rounded-full',
+                                        isCounterpartOnline ? 'bg-emerald-500' : 'bg-muted-foreground/40',
+                                    )}
+                                    aria-label={isCounterpartOnline ? 'Peserta lain online' : 'Peserta lain offline'}
+                                />
+                            )}
+                            {leftPerson?.name}
+                        </span>
+                        {typingParticipant && conversation.capabilities.canSendMessage && (
+                            <span className="shimmer shimmer-duration-2000 text-[11px] text-muted-foreground">
+                                Mengetik...
+                            </span>
+                        )}
+                    </div>
                     <span>{rightPerson?.name}</span>
                 </div>
 
@@ -561,12 +693,21 @@ export function GigConversation({
                             nearBottom.current =
                                 element.scrollHeight - element.scrollTop - element.clientHeight <
                                 80;
+
+                            if (element.scrollTop < 96) {
+                                loadOlder();
+                            }
                         }}
                         className={cn(
                             'flex w-full min-w-0 flex-col gap-3 overflow-x-hidden overflow-y-auto bg-muted/15 p-4 sm:p-6',
                             isPage ? 'min-h-0 flex-1' : 'max-h-[32rem] min-h-[16rem]',
                         )}
                     >
+                        {isLoadingOlder && (
+                            <p className="py-1 text-center text-xs text-muted-foreground">
+                                Memuat pesan sebelumnya...
+                            </p>
+                        )}
                         {messages.length === 0 && (
                             <p className="py-8 text-center text-sm text-muted-foreground">
                                 Belum ada pesan.
@@ -577,6 +718,8 @@ export function GigConversation({
                             const prevMessage = index > 0 ? messages[index - 1] : null;
                             const prevDateKey = prevMessage ? getDateKey(prevMessage.created_at) : null;
                             const showDateDivider = currentDateKey !== prevDateKey;
+                            const isGroupedWithPrevious = prevMessage !== null && isGroupedMessage(prevMessage, message);
+                            const isGroupTail = isMessageGroupTail(messages, index);
 
                             let messageElement;
 
@@ -736,11 +879,14 @@ export function GigConversation({
                                     ? conversation.participants.length > 1 && message.sender?.id === conversation.participants[1]?.id
                                     : isOwn;
 
-                                const timeElement = (
-                                    <time className="text-[10px] text-muted-foreground select-none shrink-0 pb-0.5">
-                                        {formatDate(message.created_at, 'HH:mm')}
-                                    </time>
-                                );
+                                const timeElement = isGroupTail ? (
+                                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground select-none shrink-0 pb-0.5">
+                                        <time>{formatDate(message.created_at, 'HH:mm')}</time>
+                                        {isOwn && message.recipient_id !== null && (
+                                            <span>{message.read_at ? 'Dibaca' : 'Terkirim'}</span>
+                                        )}
+                                    </span>
+                                ) : null;
 
                                 const mediaCount = message.media.length;
                                 const mediaGrid = mediaCount > 0 ? (
@@ -793,9 +939,11 @@ export function GigConversation({
                                                     </p>
                                                 </article>
                                             )}
-                                            <div className="mt-1 px-1">
-                                                {timeElement}
-                                            </div>
+                                            {timeElement && (
+                                                <div className="mt-1 px-1">
+                                                    {timeElement}
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 } else {
@@ -930,7 +1078,9 @@ export function GigConversation({
                                             </span>
                                         </div>
                                     )}
-                                    {messageElement}
+                                    {isGroupedWithPrevious ? (
+                                        <div className="-mt-2">{messageElement}</div>
+                                    ) : messageElement}
                                 </Fragment>
                             );
                         })}
@@ -953,13 +1103,7 @@ export function GigConversation({
                             )}
                             onSubmit={(event) => {
                                 event.preventDefault();
-                                form.post(store.url(conversation.agreement_id), {
-                                    forceFormData: true,
-                                    preserveScroll: true,
-                                    onSuccess: () => {
-                                        form.reset();
-                                    },
-                                });
+                                submitMessage();
                             }}
                         >
                             <ImagePickerPreviewList
@@ -997,18 +1141,20 @@ export function GigConversation({
                                         maxLength={2000}
                                         placeholder="Tulis pesan..."
                                         value={form.data.body}
-                                        onChange={(event) => form.setData('body', event.target.value)}
+                                        onChange={(event) => {
+                                            form.setData('body', event.target.value);
+
+                                            if (event.target.value.trim()) {
+                                                notifyTyping();
+                                            }
+                                        }}
+                                        onBlur={clearTyping}
                                         onKeyDown={(event) => {
                                             if (event.key === 'Enter' && !event.shiftKey) {
                                                 event.preventDefault();
+
                                                 if (form.data.body.trim() || form.data.images.length > 0) {
-                                                    form.post(store.url(conversation.agreement_id), {
-                                                        forceFormData: true,
-                                                        preserveScroll: true,
-                                                        onSuccess: () => {
-                                                            form.reset();
-                                                        },
-                                                    });
+                                                    submitMessage();
                                                 }
                                             }
                                         }}
