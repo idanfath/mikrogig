@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\UserRole;
+use App\Models\FreelancerProfile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -67,5 +68,40 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'role' => UserRole::Client,
         ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (): array => [
+            'role' => UserRole::Admin,
+        ]);
+    }
+
+    public function onboarded(): static
+    {
+        return $this->state(fn (): array => [
+            'date_of_birth' => fake()->dateTimeBetween('-55 years', '-18 years')->format('Y-m-d'),
+            'province_id' => '51',
+            'regency_id' => '5171',
+            'province_name' => 'BALI',
+            'regency_name' => 'KOTA DENPASAR',
+            'onboarding_step' => null,
+        ]);
+    }
+
+    public function withFreelancerProfile(): static
+    {
+        return $this->freelancer()
+            ->onboarded()
+            ->afterCreating(function (User $user): void {
+                FreelancerProfile::query()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'title' => fake()->randomElement(['Pekerja Harian', 'Petugas Kebersihan', 'Tukang Serbaguna']),
+                        'bio' => fake()->sentence(12),
+                        'skills' => fake()->randomElements(['Angkut Barang', 'Kebersihan', 'Perbaikan Ringan', 'Penataan'], 2),
+                    ],
+                );
+            });
     }
 }

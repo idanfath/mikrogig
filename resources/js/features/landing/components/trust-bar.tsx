@@ -21,18 +21,18 @@ const defaultItems: TrustItem[] = [
         icon: <MailCheck />,
     },
     {
-        title: 'Biaya transparan',
-        label: 'Biaya awal, penawaran, dan total akhir terlihat sebelum pekerjaan dimulai.',
+        title: 'Bayaran jelas',
+        label: 'Bayaran awal, tawaran, dan total akhir terlihat sebelum pekerjaan dimulai.',
         icon: <Scale />,
     },
     {
-        title: 'Kesepakatan tercatat',
+        title: 'Kesepakatan tersimpan',
         label: 'Ruang lingkup dan total akhir harus diterima oleh kedua pihak.',
         icon: <FileCheck2 />,
     },
     {
-        title: 'Koordinasi realtime',
-        label: 'Chat, notifikasi, dan perubahan status langsung diperbarui.',
+        title: 'Pesan langsung',
+        label: 'Pesan, notifikasi, dan perubahan status langsung diperbarui.',
         icon: <MessageCircleMore />,
     },
 ];
@@ -52,7 +52,7 @@ function TrustBar({
         >
             <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <p className="text-xs font-extrabold tracking-[0.12em] text-primary uppercase">
-                    Transparan dari penawaran sampai selesai
+                    Jelas dari tawaran sampai selesai
                 </p>
             </div>
             <div className="grid divide-y divide-white/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">

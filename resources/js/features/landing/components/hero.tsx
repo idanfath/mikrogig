@@ -16,9 +16,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { register } from '@/routes';
+import app from '@/routes/app';
 import { Card } from './ui/card';
 import { FloatingCard } from './ui/floating-card';
-import app from '@/routes/app';
 
 interface HeroProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
     badge?: React.ReactNode;
@@ -27,15 +27,15 @@ interface HeroProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
 }
 
 function Hero({
-    badge = 'Portal gig lokal untuk kerja informal',
+    badge = 'Kerja lokal dengan kesepakatan jelas',
     title = (
         <>
             Temukan kerja lokal.{' '}
-            <span className="text-primary">Sepakati biaya.</span> Jalani dengan
-            bukti.
+            <span className="text-primary">Sepakati bayaran.</span> Jalani
+            dengan bukti.
         </>
     ),
-    description = 'MikroGig mempertemukan freelancer lokal dan pemberi kerja dalam satu alur yang jelas, mulai dari penawaran, kesepakatan, chat realtime, penyelesaian kerja, hingga sengketa.',
+    description = 'MikroGig mempertemukan orang yang mencari kerja dengan orang yang membutuhkan bantuan. Sepakati pekerjaan, bicara langsung, selesaikan pekerjaan, dan simpan bukti bila ada masalah.',
     className,
     ...props
 }: HeroProps) {
@@ -58,7 +58,7 @@ function Hero({
                     <div className="max-w-2xl">
                         <Badge variant="accent" size="xl">
                             <span
-                                className="size-1.5 mr-1 rounded-full bg-primary"
+                                className="mr-1 size-1.5 rounded-full bg-primary"
                                 aria-hidden="true"
                             />
                             {badge}
@@ -77,8 +77,12 @@ function Hero({
                                 size="lg"
                                 className="h-14 rounded-2xl px-7 text-base"
                             >
-                                <Link href={isLoggedIn ? app.home() : register.url()}>
-                                    Mulai cari gig
+                                <Link
+                                    href={
+                                        isLoggedIn ? app.home() : register.url()
+                                    }
+                                >
+                                    {isLoggedIn ? 'Masuk ke Aplikasi' : 'Buat akun untuk mulai'}
                                     <ArrowRight
                                         className="size-4"
                                         aria-hidden="true"
@@ -94,8 +98,6 @@ function Hero({
                                 <a href="#how-it-works">Lihat cara kerjanya</a>
                             </Button>
                         </div>
-
-
                     </div>
 
                     <ProductPreview />
@@ -107,7 +109,7 @@ function Hero({
 
 function ProductPreview() {
     return (
-        <div className="relative mx-auto w-full max-w-140 max-lg:hidden lg:ml-auto">
+        <div className="relative mx-auto w-full max-w-140 lg:ml-auto">
             <div className="absolute -inset-5 -z-10 rounded-[2.4rem] bg-accent/75 blur-2xl" />
             <div className="rounded-[2rem] border border-white/70 bg-white/55 p-2.5 shadow-lg backdrop-blur-sm sm:p-3">
                 <Card
@@ -122,7 +124,7 @@ function ProductPreview() {
                             <span className="size-2.5 rounded-full bg-border" />
                         </div>
                         <span className="text-[10px] font-extrabold tracking-widest text-muted-foreground uppercase">
-                            Contoh alur aplikasi
+                            Contoh kesepakatan kerja
                         </span>
                     </div>
 
@@ -134,7 +136,7 @@ function ProductPreview() {
                                         className="size-3.5"
                                         aria-hidden="true"
                                     />
-                                    Biaya terbuka
+                                    Bayaran jelas
                                 </Badge>
                                 <h2 className="mt-4 text-xl font-extrabold tracking-[-0.035em] sm:text-2xl">
                                     Bantu pindahan kios
@@ -174,7 +176,7 @@ function ProductPreview() {
                                         className="size-4 text-primary"
                                         aria-hidden="true"
                                     />
-                                    Kesepakatan gig
+                                    Kesepakatan kerja
                                 </div>
                                 <span className="text-xs font-bold text-success">
                                     Disetujui
@@ -193,14 +195,14 @@ function ProductPreview() {
                         variant="success"
                         size="sm"
                         icon={<MessageCircleMore className="size-4" />}
-                        heading="Chat realtime"
+                        heading="Pesan langsung"
                         subtitle="Pesan dan status langsung tersinkron"
                     />
                     <FloatingCard
                         variant="dark"
                         size="sm"
                         icon={<ShieldCheck className="size-4" />}
-                        heading="Alur terlindungi"
+                        heading="Pekerjaan terlindungi"
                         subtitle="Bukti tersimpan jika terjadi sengketa"
                     />
                 </div>

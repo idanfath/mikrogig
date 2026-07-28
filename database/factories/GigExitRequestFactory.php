@@ -4,9 +4,10 @@ namespace Database\Factories;
 
 use App\Enums\GigExitStatus;
 use App\Enums\GigExitType;
+use App\Enums\GigStatus;
 use App\Models\Gig;
 use App\Models\GigExitRequest;
-use App\Models\User;
+use App\Models\GigPayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,9 +22,17 @@ class GigExitRequestFactory extends Factory
      */
     public function definition(): array
     {
-        $gig = Gig::factory();
-        $requester = User::factory()->client();
+        $payment = GigPayment::factory()
+            ->paid()
+            ->state(['gig_id' => Gig::factory()->state(['status' => GigStatus::Locked])]);
 
-        return ['gig_id' => $gig, 'requester_id' => $requester, 'responder_id' => User::factory()->freelancer(), 'type' => GigExitType::ClientCancellation, 'reason' => fake()->sentence(), 'status' => GigExitStatus::Pending];
+        return [
+            'gig_id' => fn (): int => $payment->create()->gig_id,
+            'requester_id' => fn (array $attributes): int => Gig::query()->findOrFail($attributes['gig_id'])->client_id,
+            'responder_id' => fn (array $attributes): int => Gig::query()->findOrFail($attributes['gig_id'])->acceptedOffer->freelancer_id,
+            'type' => GigExitType::ClientCancellation,
+            'reason' => fake()->sentence(),
+            'status' => GigExitStatus::Pending,
+        ];
     }
 }

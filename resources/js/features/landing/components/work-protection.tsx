@@ -25,14 +25,14 @@ interface WorkProtectionProps extends Omit<
 
 const agreementStages = [
     {
-        label: 'Biaya awal gig',
+        label: 'Bayaran awal pekerjaan',
         value: 'Rp350.000',
-        description: 'Terlihat saat freelancer menilai pekerjaan.',
+        description: 'Terlihat saat pencari kerja menilai pekerjaan.',
     },
     {
-        label: 'Penawaran freelancer',
+        label: 'Tawaran pencari kerja',
         value: 'Rp375.000',
-        description: 'Freelancer bebas mengajukan biaya yang sesuai.',
+        description: 'Pencari kerja bebas mengajukan bayaran yang sesuai.',
     },
     {
         label: 'Total akhir',
@@ -42,14 +42,14 @@ const agreementStages = [
     {
         label: 'Pembayaran demo',
         value: 'Terkonfirmasi',
-        description: 'Gig baru dapat masuk tahap kerja setelah dikonfirmasi.',
+        description: 'Pekerjaan dapat dimulai setelah dikonfirmasi.',
     },
 ];
 
 function WorkProtection({
     badge = 'Perlindungan upah yang benar-benar tersedia',
     title = 'Upah lebih adil dan tidak berubah diam-diam.',
-    description = 'MikroGig tidak mengarang harga pasar. Platform membuat biaya awal, penawaran freelancer, dan total akhir terlihat serta tercatat sebelum pekerjaan dimulai.',
+    description = 'MikroGig tidak menentukan harga pasar. Bayaran awal, tawaran pencari kerja, dan total akhir terlihat serta tercatat sebelum pekerjaan dimulai.',
     className,
     ...props
 }: WorkProtectionProps) {
@@ -120,15 +120,15 @@ function WorkProtection({
                                 </h3>
                                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                                     Total akhir mencakup seluruh biaya yang
-                                    disepakati. Client dan freelancer harus
-                                    menerima versi kesepakatan yang sama.
+                                    disepakati. Kedua pihak harus menerima versi
+                                    kesepakatan yang sama.
                                 </p>
                             </div>
                         </div>
                         <ul className="mt-6 space-y-3">
                             {[
                                 'Biaya awal terlihat sebelum melamar',
-                                'Penawaran freelancer disimpan',
+                                'Tawaran pencari kerja disimpan',
                                 'Total akhir mengikuti kesepakatan aktif',
                             ].map((benefit) => (
                                 <li

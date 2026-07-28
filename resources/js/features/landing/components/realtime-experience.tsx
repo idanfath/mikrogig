@@ -31,29 +31,29 @@ interface RealtimeExperienceProps extends Omit<
 
 const defaultItems: RealtimeItem[] = [
     {
-        title: 'Kehadiran dan status mengetik',
+        title: 'Status online dan sedang mengetik',
         description:
             'Peserta percakapan dapat melihat siapa yang sedang online dan kapan lawan bicara sedang mengetik.',
         icon: <Radio className="size-4" />,
     },
     {
-        title: 'Perubahan gig langsung tersinkron',
+        title: 'Perubahan pekerjaan langsung terlihat',
         description:
-            'Penawaran, kesepakatan, pembayaran, pekerjaan, sengketa, dan rating memperbarui layar yang relevan.',
+            'Tawaran, kesepakatan, pembayaran, pekerjaan, masalah, dan rating memperbarui layar yang relevan.',
         icon: <RefreshCw className="size-4" />,
     },
     {
         title: 'Pesan baru muncul di Beranda',
         description:
-            'Pesan yang terlewat muncul sebagai tindakan prioritas dan membuka percakapan pada konteks gig yang tepat.',
+            'Pesan yang terlewat muncul sebagai tindakan prioritas dan membuka percakapan pada pekerjaan yang tepat.',
         icon: <BellRing className="size-4" />,
     },
 ];
 
 function RealtimeExperience({
-    badge = 'Realtime tanpa kehilangan konteks',
-    title = 'Percakapan dan status gig bergerak bersama.',
-    description = 'MikroGig menjaga peserta tetap melihat keadaan terbaru tanpa polling berkala atau membuka kotak masuk terpisah.',
+    badge = 'Informasi terbaru tanpa menyegarkan halaman',
+    title = 'Percakapan dan status pekerjaan bergerak bersama.',
+    description = 'MikroGig membantu kedua pihak melihat kabar terbaru tanpa bolak-balik membuka halaman lain.',
     items = defaultItems,
     className,
     ...props
@@ -75,7 +75,7 @@ function RealtimeExperience({
                     <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-6">
                         <div>
                             <p className="text-sm font-extrabold text-white">
-                                Percakapan gig
+                                Percakapan pekerjaan
                             </p>
                             <p className="mt-1 text-xs text-white/45">
                                 Bantu pindahan kios
@@ -92,11 +92,11 @@ function RealtimeExperience({
 
                     <div className="flex min-h-80 flex-col gap-4 p-5 sm:p-7">
                         <ChatBubble
-                            role="Freelancer"
+                            role="Pencari kerja"
                             message="Saya sudah tiba dan siap mulai."
                         />
                         <ChatBubble
-                            role="Client"
+                            role="Pemberi kerja"
                             message="Baik, saya buka tahap pekerjaan sekarang."
                             own
                         />
@@ -106,7 +106,7 @@ function RealtimeExperience({
                             <span className="h-px flex-1 bg-white/10" />
                         </div>
                         <ChatBubble
-                            role="Freelancer"
+                            role="Pencari kerja"
                             message="Barang utama sudah dipindahkan. Saya kirim fotonya di sini."
                         />
                         <p className="flex items-center gap-2 text-xs text-primary">
@@ -114,7 +114,7 @@ function RealtimeExperience({
                                 className="size-3.5"
                                 aria-hidden="true"
                             />
-                            Client sedang mengetik
+                            Pemberi kerja sedang mengetik
                         </p>
                     </div>
                 </Card>

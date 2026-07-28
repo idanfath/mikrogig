@@ -22,21 +22,20 @@ class GigAgreementFactory extends Factory
      */
     public function definition(): array
     {
-        $gig = Gig::factory()->state(['status' => GigStatus::AgreementPreparation]);
-        $offer = GigOffer::factory()
-            ->for($gig, 'gig')
-            ->state(['status' => GigOfferStatus::ACCEPTED]);
-
         return [
-            'gig_id' => $gig,
-            'gig_offer_id' => $offer,
-            'accepted_fee' => fake()->numberBetween(50_000, 1_000_000),
+            'gig_id' => Gig::factory()->state(['status' => GigStatus::AgreementPreparation]),
+            'gig_offer_id' => fn (array $attributes): int => GigOffer::factory()
+                ->for(Gig::query()->findOrFail($attributes['gig_id']), 'gig')
+                ->state(['status' => GigOfferStatus::ACCEPTED])
+                ->create()
+                ->id,
+            'accepted_fee' => fn (array $attributes): int => GigOffer::query()->findOrFail($attributes['gig_offer_id'])->offered_fee,
             'final_scope' => fake()->paragraph(),
             'work_date' => fake()->dateTimeBetween('+1 day', '+1 year')->format('Y-m-d'),
             'start_time' => fake()->time(),
             'location_arrangement' => fake()->address(),
             'delivery_expectations' => fake()->sentence(),
-            'final_total_price' => fake()->numberBetween(50_000, 1_000_000),
+            'final_total_price' => fn (array $attributes): int => GigOffer::query()->findOrFail($attributes['gig_offer_id'])->offered_fee,
             'terms_version' => 0,
             'submitted_at' => null,
             'change_requested_at' => null,

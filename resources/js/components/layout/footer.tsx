@@ -29,14 +29,13 @@ const defaultColumns: FooterColumn[] = [
         title: 'Jelajahi',
         links: [
             { label: 'Cara kerja', href: '#how-it-works' },
-            { label: 'Kategori pekerjaan', href: '#categories' },
-            { label: 'Pengalaman realtime', href: '#realtime' },
+            { label: 'Pesan langsung', href: '#realtime' },
         ],
     },
     {
         title: 'Perlindungan',
         links: [
-            { label: 'Kesepakatan gig', href: '#protection' },
+            { label: 'Kesepakatan kerja', href: '#protection' },
             { label: 'Pembayaran demo', href: '#protection' },
             { label: 'Sengketa berbasis bukti', href: '#protection' },
         ],
@@ -52,7 +51,7 @@ const defaultColumns: FooterColumn[] = [
 ];
 
 function Footer({
-    description = 'Platform gig lokal untuk mempertemukan freelancer informal dan pemberi kerja melalui biaya transparan, kesepakatan tercatat, komunikasi realtime, dan penyelesaian berbasis bukti.',
+    description = 'Tempat untuk mempertemukan orang yang mencari kerja dengan orang yang membutuhkan bantuan, melalui bayaran yang jelas, kesepakatan tercatat, pesan langsung, dan penyelesaian berbasis bukti.',
     columns = defaultColumns,
     className,
 }: FooterProps) {

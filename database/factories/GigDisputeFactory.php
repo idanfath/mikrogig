@@ -4,9 +4,10 @@ namespace Database\Factories;
 
 use App\Enums\GigDisputeStatus;
 use App\Enums\GigDisputeType;
+use App\Enums\GigStatus;
+use App\Models\Gig;
 use App\Models\GigDispute;
 use App\Models\GigPayment;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,8 +22,27 @@ class GigDisputeFactory extends Factory
      */
     public function definition(): array
     {
-        $payment = GigPayment::factory()->paid();
+        $payment = GigPayment::factory()
+            ->paid()
+            ->state(['gig_id' => Gig::factory()->state(['status' => GigStatus::Disputed])]);
 
-        return ['gig_id' => fn (array $a) => GigPayment::findOrFail($a['gig_payment_id'])->gig_id, 'gig_agreement_id' => fn (array $a) => GigPayment::findOrFail($a['gig_payment_id'])->gig_agreement_id, 'gig_payment_id' => $payment, 'reporter_id' => User::factory(), 'respondent_id' => User::factory(), 'type' => GigDisputeType::NoShow, 'status' => GigDisputeStatus::AwaitingCounterproof, 'opened_at' => now(), 'counterproof_due_at' => now()->addDay()];
+        return [
+            'gig_payment_id' => $payment,
+            'gig_id' => fn (array $attributes): int => GigPayment::query()->findOrFail($attributes['gig_payment_id'])->gig_id,
+            'gig_agreement_id' => fn (array $attributes): int => GigPayment::query()->findOrFail($attributes['gig_payment_id'])->gig_agreement_id,
+            'reporter_id' => fn (array $attributes): int => GigPayment::query()->findOrFail($attributes['gig_payment_id'])->gig->client_id,
+            'respondent_id' => fn (array $attributes): int => GigPayment::query()->findOrFail($attributes['gig_payment_id'])->agreement->acceptedOffer->freelancer_id,
+            'type' => GigDisputeType::NoShow,
+            'status' => GigDisputeStatus::AwaitingCounterproof,
+            'opened_at' => now(),
+            'counterproof_due_at' => now()->addDay(),
+        ];
+    }
+
+    public function awaitingAdmin(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => GigDisputeStatus::AwaitingAdmin,
+        ]);
     }
 }

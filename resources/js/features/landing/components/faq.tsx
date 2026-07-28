@@ -18,33 +18,33 @@ interface FAQProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
 const defaultItems: FAQItem[] = [
     {
         question: 'Siapa yang dapat menggunakan MikroGig?',
-        answer: 'MikroGig dirancang untuk freelancer informal dan pemberi kerja lokal. Client membuat gig, sedangkan freelancer mencari pekerjaan dan mengajukan penawaran. Kategori saat ini mencakup tenaga kerja, pembersihan, pindahan, konstruksi, dan keamanan.',
+        answer: 'MikroGig dirancang untuk orang yang mencari kerja dan orang yang membutuhkan bantuan di sekitar mereka. Kamu dapat memasang pekerjaan atau mencari pekerjaan lalu mengajukan bayaran. Saat ini, pekerjaan mencakup tenaga kerja, pembersihan, pindahan, konstruksi, dan keamanan.',
     },
     {
         question: 'Bagaimana MikroGig mendukung upah yang lebih adil?',
-        answer: 'MikroGig tidak menentukan harga pasar atau upah minimum. Biaya awal, penawaran freelancer, ruang lingkup, dan total akhir ditampilkan serta harus disepakati sebelum pekerjaan dimulai. Riwayat ini mencegah perubahan sepihak tanpa jejak.',
+        answer: 'MikroGig tidak menentukan harga pasar atau upah minimum. Bayaran awal, tawaran dari pencari kerja, ruang lingkup, dan total akhir ditampilkan serta harus disepakati sebelum pekerjaan dimulai. Riwayat ini mencegah perubahan sepihak tanpa jejak.',
     },
     {
         question: 'Apakah pembayaran di aplikasi memindahkan uang asli?',
-        answer: 'Belum. Checkout saat ini adalah simulasi untuk hackathon dan tidak memindahkan uang asli. Alur status pembayaran, penguncian gig, payout, serta refund sudah disiapkan di balik antarmuka gateway agar integrasi penyedia pembayaran dapat ditambahkan kemudian.',
+        answer: 'Belum. Pembayaran di aplikasi saat ini masih contoh alur dan belum memindahkan uang asli. Tahap pembayaran ditampilkan agar alur pekerjaan mudah dipahami. Pembayaran sungguhan dapat ditambahkan kemudian.',
     },
     {
         question: 'Apa yang terjadi jika muncul sengketa?',
-        answer: 'Pelapor mengunggah bukti privat, pihak lain mendapat kesempatan mengirim bukti tandingan, lalu admin meninjau kesepakatan, chat, foto, dan riwayat gig. Ringkasan AI hanya membantu menyusun bukti. Putusan dan penyelesaian tetap dibuat admin.',
+        answer: 'Orang yang melapor dapat mengunggah bukti privat, lalu pihak lain mendapat kesempatan mengirim bukti tandingan. Tim peninjau melihat kesepakatan, pesan, foto, dan riwayat pekerjaan. Ringkasan AI hanya membantu menyusun bukti, sedangkan keputusan tetap dibuat manusia.',
     },
     {
         question: 'Apa yang dapat dilakukan AI MikroGig?',
-        answer: 'AI dapat meningkatkan judul dan bio freelancer, menyarankan keahlian, memperjelas judul serta deskripsi gig, dan membuat ringkasan bukti sengketa untuk admin. AI tidak menentukan upah atau pihak yang bersalah.',
+        answer: 'AI dapat membantu merapikan judul dan profil pencari kerja, menyarankan keahlian, memperjelas kebutuhan pekerjaan, dan membuat ringkasan bukti untuk tim peninjau. AI tidak menentukan upah atau pihak yang bersalah.',
     },
     {
-        question: 'Apakah chat dan status diperbarui secara realtime?',
-        answer: 'Ya. Pesan, status online, indikator mengetik, tanda baca, notifikasi, perubahan gig, dan tindakan Beranda menggunakan pembaruan realtime. Sistem menyinkronkan ulang data saat koneksi kembali.',
+        question: 'Apakah pesan dan status diperbarui langsung?',
+        answer: 'Ya. Pesan, status online, indikator sedang mengetik, notifikasi, perubahan pekerjaan, dan tindakan di Beranda diperbarui saat ada perubahan. Saat koneksi kembali, data diperbarui lagi.',
     },
 ];
 
 function FAQ({
-    title = 'Kemampuan dan batas produk dijelaskan sejak awal.',
-    description = 'MikroGig menunjukkan alur yang sudah dapat dicoba sekaligus membedakan fitur produksi dari simulasi hackathon.',
+    title = 'Yang bisa dilakukan MikroGig, dijelaskan dengan jelas.',
+    description = 'Lihat alur yang sudah dapat dicoba dan bagian yang masih berupa contoh.',
     items = defaultItems,
     className,
     ...props
@@ -94,7 +94,7 @@ function FAQ({
                                             className={cn(
                                                 'grid size-9 shrink-0 place-items-center rounded-full bg-secondary transition-transform',
                                                 isOpen &&
-                                                    'rotate-180 bg-accent text-primary',
+                                                'rotate-180 bg-accent text-primary',
                                             )}
                                         >
                                             <ChevronDown

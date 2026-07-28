@@ -21,9 +21,8 @@ interface NavbarProps {
 
 const defaultItems: NavItem[] = [
     { label: 'Cara kerja', href: '#how-it-works' },
-    { label: 'Pilihan pekerjaan', href: '#categories' },
     { label: 'Perlindungan kerja', href: '#protection' },
-    { label: 'Realtime', href: '#realtime' },
+    { label: 'Pesan langsung', href: '#realtime' },
     { label: 'Akses AI', href: '#ai-features' },
     { label: 'Tanya jawab', href: '#faq' },
 ];

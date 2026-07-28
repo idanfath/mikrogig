@@ -24,8 +24,8 @@ const floatingCardVariants = cva('rounded-2xl border', {
 
 export interface FloatingCardProps
     extends
-    React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof floatingCardVariants> {
+        React.HTMLAttributes<HTMLDivElement>,
+        VariantProps<typeof floatingCardVariants> {
     icon?: React.ReactNode;
     heading?: React.ReactNode;
     subtitle?: React.ReactNode;
@@ -61,7 +61,11 @@ function FloatingCard({
                             </div>
                         )}
                         <div>
-                            {heading && <h4 className="text-sm font-extrabold">{heading}</h4>}
+                            {heading && (
+                                <h4 className="text-sm font-extrabold">
+                                    {heading}
+                                </h4>
+                            )}
                             {subtitle && (
                                 <p className="mt-1 text-xs leading-5 opacity-50">
                                     {subtitle}

@@ -18,7 +18,7 @@ use function Pest\Laravel\mock;
 uses(LazilyRefreshDatabase::class);
 
 test('snapshot catalogs every message and excludes images the ai did not process', function () {
-    Storage::fake('local');
+    Storage::fake('cos-private');
     Storage::fake('cos');
     mock(ImageCompressionService::class)
         ->shouldReceive('compress')
@@ -45,7 +45,7 @@ test('snapshot catalogs every message and excludes images the ai did not process
         ['path' => 'gig-messages/readable.jpg', 'mime_type' => 'image/jpeg', 'display_order' => 0],
         ['path' => 'gig-messages/missing.jpg', 'mime_type' => 'image/jpeg', 'display_order' => 1],
     ]);
-    Storage::disk('local')->put('gig-messages/readable.jpg', 'image-bytes');
+    Storage::disk('cos-private')->put('gig-messages/readable.jpg', 'image-bytes');
 
     $built = app(GigDisputeAiOverviewSnapshotBuilder::class)->build($dispute);
     $catalog = $built['evidence_catalog'];

@@ -102,12 +102,17 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            $disk = Storage::disk('cos');
+            foreach ([
+                'cos' => ['avatars', 'gigs'],
+                'cos-private' => ['gig-messages', 'gig-workflow'],
+            ] as $diskName => $directories) {
+                $disk = Storage::disk($diskName);
 
-            foreach (['avatars', 'gigs'] as $directory) {
-                foreach ($disk->allFiles($directory) as $file) {
-                    if (! $disk->delete($file)) {
-                        throw new RuntimeException("Failed to delete COS {$file}.");
+                foreach ($directories as $directory) {
+                    foreach ($disk->allFiles($directory) as $file) {
+                        if (! $disk->delete($file)) {
+                            throw new RuntimeException("Failed to delete COS {$file}.");
+                        }
                     }
                 }
             }

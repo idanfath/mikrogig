@@ -7,12 +7,11 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { login, register } from '@/routes';
-import { Badge } from '../ui/badge';
 import { Section } from './ui/section';
-import app from '@/routes/app';
 
 interface CTAAction {
     label: string;
@@ -28,12 +27,15 @@ interface CTAProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
 }
 
 function CTA({
-    badge = 'Pilih peran setelah mendaftar',
-    title = 'Mulai dari kebutuhan atau keahlian yang sudah kamu punya.',
-    description = 'Satu akun membawa client dan freelancer ke alur onboarding, Beranda, dan tindakan yang sesuai dengan perannya.',
-    primaryAction = { label: 'Saya ingin mencari gig', href: register.url() },
+    badge = 'Pilih cara menggunakan MikroGig setelah membuat akun',
+    title = 'Mulai dengan satu akun, lalu pilih cara kamu menggunakan MikroGig.',
+    description = 'Setelah membuat akun, kamu dapat memilih untuk mencari pekerjaan atau mencari bantuan sesuai kebutuhanmu.',
+    primaryAction = {
+        label: 'Buat akun dan cari pekerjaan',
+        href: register.url(),
+    },
     secondaryAction = {
-        label: 'Saya ingin mencari pekerja',
+        label: 'Buat akun dan cari bantuan',
         href: register.url(),
     },
     className,
@@ -81,15 +83,15 @@ function CTA({
                     <div className="grid gap-3 sm:grid-cols-2">
                         <RoleAction
                             icon={<Search className="size-5" />}
-                            title="Untuk freelancer"
-                            description="Bangun profil, cari gig lokal, ajukan biaya, dan simpan seluruh riwayat kerja."
+                            title="Cari pekerjaan"
+                            description="Lengkapi profil, cari pekerjaan lokal, ajukan bayaran, dan simpan riwayat kerja."
                             action={primaryAction}
                             primary
                         />
                         <RoleAction
                             icon={<BriefcaseBusiness className="size-5" />}
-                            title="Untuk client"
-                            description="Terbitkan kebutuhan, pilih penawaran, sepakati pekerjaan, dan pantau penyelesaiannya."
+                            title="Cari bantuan"
+                            description="Pasang kebutuhan, pilih penawaran, sepakati pekerjaan, dan pantau penyelesaiannya."
                             action={secondaryAction}
                         />
                     </div>

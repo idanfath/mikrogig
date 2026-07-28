@@ -47,7 +47,7 @@ class GigPrivateImageService
                     'maxHeight' => 1920,
                 ]);
 
-                if (! Storage::disk('local')->put($path, $compressed)) {
+                if (! Storage::disk('cos-private')->put($path, $compressed)) {
                     throw new RuntimeException("Failed to store {$label}.");
                 }
 
@@ -66,7 +66,7 @@ class GigPrivateImageService
     public function delete(array $paths): void
     {
         foreach ($paths as $path) {
-            Storage::disk('local')->delete($path);
+            Storage::disk('cos-private')->delete($path);
         }
     }
 

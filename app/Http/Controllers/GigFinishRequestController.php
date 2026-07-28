@@ -60,8 +60,8 @@ class GigFinishRequestController extends Controller
     public function media(Request $request, GigFinishRequestMedia $media): StreamedResponse
     {
         $this->authorize('view', $media->finishRequest);
-        abort_unless(Storage::disk('local')->exists($media->path), 404);
+        abort_unless(Storage::disk('cos-private')->exists($media->path), 404);
 
-        return Storage::disk('local')->response($media->path);
+        return Storage::disk('cos-private')->response($media->path);
     }
 }

@@ -35,11 +35,11 @@ interface AIFeaturesProps extends Omit<
 
 const defaultFeatures: AIFeature[] = [
     {
-        title: 'Profil freelancer lebih mudah dirapikan',
+        title: 'Profil pencari kerja lebih mudah dirapikan',
         description:
-            'AI membantu memperbaiki judul dan bio yang sudah ditulis, lalu menyarankan keahlian berdasarkan pengalaman pengguna.',
+            'AI membantu memperbaiki judul dan profil yang sudah ditulis, lalu menyarankan keahlian berdasarkan pengalaman pengguna.',
         icon: <UserRoundPen className="size-5" />,
-        eyebrow: 'Profil freelancer',
+        eyebrow: 'Profil pencari kerja',
         tone: 'orange',
         visual: (
             <div className="flex flex-wrap gap-2" aria-hidden="true">
@@ -58,11 +58,11 @@ const defaultFeatures: AIFeature[] = [
         ),
     },
     {
-        title: 'Gig lebih jelas sebelum diterbitkan',
+        title: 'Pekerjaan lebih jelas sebelum dipasang',
         description:
-            'Client dapat memperbaiki judul dan deskripsi gig agar kebutuhan pekerjaan lebih mudah dipahami freelancer.',
+            'Orang yang membutuhkan bantuan dapat memperbaiki judul dan deskripsi agar pekerjaan lebih mudah dipahami.',
         icon: <FilePenLine className="size-5" />,
-        eyebrow: 'Penulisan gig',
+        eyebrow: 'Menulis pekerjaan',
         tone: 'dark',
         visual: (
             <div
@@ -101,7 +101,7 @@ const defaultFeatures: AIFeature[] = [
 function AIFeatures({
     badge = 'AI sesuai kebutuhan nyata',
     title = 'AI membantu menulis dan merangkum. Manusia tetap memutuskan.',
-    description = 'Fitur AI MikroGig bekerja pada teks yang diberikan pengguna dan bukti sengketa yang dapat diakses admin. Semua hasil tetap harus ditinjau manusia.',
+    description = 'Fitur AI MikroGig membantu mengolah teks yang diberikan pengguna dan bukti masalah yang dapat diakses tim peninjau. Semua hasil tetap harus ditinjau manusia.',
     features = defaultFeatures,
     className,
     ...props

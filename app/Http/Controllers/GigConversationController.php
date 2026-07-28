@@ -95,8 +95,8 @@ class GigConversationController extends Controller
         }
 
         $this->authorize('viewConversation', $agreement);
-        abort_unless(Storage::disk('local')->exists($media->path), 404);
+        abort_unless(Storage::disk('cos-private')->exists($media->path), 404);
 
-        return Storage::disk('local')->response($media->path);
+        return Storage::disk('cos-private')->response($media->path);
     }
 }

@@ -31,16 +31,16 @@ interface HowItWorksProps extends Omit<
 const defaultSteps: StepItem[] = [
     {
         number: '01',
-        title: 'Client membuat gig',
+        title: 'Pasang pekerjaan',
         description:
-            'Client mencatat kebutuhan, lokasi, jadwal, biaya awal, dan foto pekerjaan.',
+            'Orang yang membutuhkan bantuan mencatat kebutuhan, lokasi, jadwal, bayaran awal, dan foto pekerjaan.',
         icon: <BriefcaseBusiness />,
     },
     {
         number: '02',
-        title: 'Freelancer mengajukan penawaran',
+        title: 'Ajukan bayaran',
         description:
-            'Freelancer mencari gig berdasarkan lokasi dan kategori, lalu mengirim biaya yang diajukan.',
+            'Orang yang mencari kerja menemukan pekerjaan berdasarkan lokasi dan jenisnya, lalu mengajukan bayaran.',
         icon: <HandCoins />,
     },
     {
@@ -54,7 +54,7 @@ const defaultSteps: StepItem[] = [
         number: '04',
         title: 'Kerjakan dengan perlindungan',
         description:
-            'Chat, bukti kerja, penyelesaian, rating, dan sengketa berada dalam satu riwayat gig.',
+            'Pesan, bukti kerja, penyelesaian, rating, dan masalah berada dalam satu riwayat pekerjaan.',
         icon: <ShieldCheck />,
     },
 ];
@@ -62,7 +62,7 @@ const defaultSteps: StepItem[] = [
 function HowItWorks({
     badge = 'Satu alur untuk dua peran',
     title = 'Dari kebutuhan lokal menjadi kerja yang disepakati bersama.',
-    description = 'Client dan freelancer melihat tahap yang sama, menerima tindakan sesuai perannya, dan menyimpan riwayat dari awal sampai selesai.',
+    description = 'Kedua pihak melihat tahap yang sama, menerima tindakan sesuai kebutuhannya, dan menyimpan riwayat dari awal sampai selesai.',
     steps = defaultSteps,
     className,
     ...props

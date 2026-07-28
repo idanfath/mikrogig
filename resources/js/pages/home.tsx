@@ -1,20 +1,20 @@
 import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
-import { AIFeatures } from '@/components/landing/ai-features';
-import { CTA } from '@/components/landing/cta';
-import { FAQ } from '@/components/landing/faq';
-import { Hero } from '@/components/landing/hero';
-import { HowItWorks } from '@/components/landing/how-it-works';
-import { RealtimeExperience } from '@/components/landing/realtime-experience';
-import { TrustBar } from '@/components/landing/trust-bar';
-import { WorkProtection } from '@/components/landing/work-protection';
 import { Footer } from '@/components/layout/footer';
 import { Navbar } from '@/components/layout/navbar';
+import { CTA } from '@/features/landing/components/cta';
+import { FAQ } from '@/features/landing/components/faq';
+import { Hero } from '@/features/landing/components/hero';
+import { AIFeatures } from '@/features/landing/components/ai-features';
+import { HowItWorks } from '@/features/landing/components/how-it-works';
+import { RealtimeExperience } from '@/features/landing/components/realtime-experience';
+import { TrustBar } from '@/features/landing/components/trust-bar';
+import { WorkProtection } from '@/features/landing/components/work-protection';
 
 const description =
-    'Temukan atau buat gig lokal, sepakati biaya, chat secara realtime, selesaikan pekerjaan dengan bukti, dan tangani sengketa dalam satu alur.';
-const title = 'MikroGig - Gig Lokal dengan Kesepakatan Jelas';
+    'Temukan atau pasang pekerjaan lokal, sepakati bayaran, selesaikan pekerjaan dengan bukti, dan tangani masalah dalam satu alur.';
+const title = 'Kerja Lokal dengan Kesepakatan Jelas';
 
 function LandingPage() {
     return (

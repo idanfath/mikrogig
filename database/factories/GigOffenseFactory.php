@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\GigStatus;
 use App\Models\Gig;
 use App\Models\GigOffense;
-use App\Models\User;
+use App\Models\GigPayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,6 +20,15 @@ class GigOffenseFactory extends Factory
      */
     public function definition(): array
     {
-        return ['user_id' => User::factory(), 'gig_id' => Gig::factory(), 'sequence' => 1, 'duration_days' => 3];
+        $payment = GigPayment::factory()
+            ->paid()
+            ->state(['gig_id' => Gig::factory()->state(['status' => GigStatus::DisputeResolved])]);
+
+        return [
+            'gig_id' => fn (): int => $payment->create()->gig_id,
+            'user_id' => fn (array $attributes): int => Gig::query()->findOrFail($attributes['gig_id'])->acceptedOffer->freelancer_id,
+            'sequence' => 1,
+            'duration_days' => 3,
+        ];
     }
 }
