@@ -60,6 +60,8 @@ class GigAgreementPolicy
 
     public function markMessagesRead(User $user, GigAgreement $agreement): Response
     {
-        return $this->sendMessage($user, $agreement);
+        return $this->conversations->canMarkRead($user, $agreement)
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 }

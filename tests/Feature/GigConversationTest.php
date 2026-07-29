@@ -352,6 +352,35 @@ test('conversation routes enforce participants mark only incoming messages and e
         ->assertNotFound();
 });
 
+test('participants can mark incoming messages read in a terminal read-only conversation', function () {
+    [$client, $freelancer, $gig, $offer, $agreement] = conversationAttempt(GigStatus::Completed);
+    $incoming = GigMessage::factory()
+        ->for($agreement, 'agreement')
+        ->for($freelancer, 'sender')
+        ->for($client, 'recipient')
+        ->create(['read_at' => null]);
+    Event::fake([GigMessagesRead::class]);
+
+    $this->actingAs($client)
+        ->get(route('app.history.show', $gig))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('conversation.capabilities.canSendMessage', false)
+            ->where('conversation.capabilities.canMarkRead', true)
+            ->where('conversation.capabilities.isReadOnly', true));
+
+    $this->actingAs($client)
+        ->post(route('app.gig_conversations.messages.read', $agreement))
+        ->assertRedirect();
+
+    expect($incoming->fresh()->read_at)->not->toBeNull();
+    Event::assertDispatched(
+        GigMessagesRead::class,
+        fn (GigMessagesRead $event): bool => $event->agreement->is($agreement)
+            && $event->readerId === $client->id,
+    );
+});
+
 test('banned participants may read terminal conversation and media but cannot read active chat', function () {
     [$client, $freelancer, $gig, $offer, $agreement] = conversationAttempt(GigStatus::Completed);
     $message = GigMessage::factory()

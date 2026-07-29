@@ -91,6 +91,12 @@ class GigConversationService
             && $agreement->gig->currentAgreement()->whereKey($agreement->id)->exists();
     }
 
+    public function canMarkRead(User $user, GigAgreement $agreement): bool
+    {
+        return ! $user->activeBan()->exists()
+            && $this->canView($user, $agreement);
+    }
+
     public function isWritableStatus(GigStatus $status): bool
     {
         return in_array($status, self::WRITABLE_STATUSES, true);
@@ -120,6 +126,7 @@ class GigConversationService
         $messages = $query->take(50)->reverse()->values();
         $participants = $this->participants($agreement);
         $canSend = $this->canSend($request->user(), $agreement);
+        $canMarkRead = $this->canMarkRead($request->user(), $agreement);
 
         return [
             'agreement_id' => $agreement->id,
@@ -135,7 +142,7 @@ class GigConversationService
                 'canViewConversation' => true,
                 'canSendMessage' => $canSend,
                 'canViewMedia' => true,
-                'canMarkRead' => $canSend,
+                'canMarkRead' => $canMarkRead,
                 'isReadOnly' => ! $canSend,
             ],
         ];
@@ -168,6 +175,7 @@ class GigConversationService
         $messages = $before->push($target)->concat($after)->values();
         $participants = $this->participants($agreement);
         $canSend = $this->canSend($request->user(), $agreement);
+        $canMarkRead = $this->canMarkRead($request->user(), $agreement);
 
         return [
             'agreement_id' => $agreement->id,
@@ -183,7 +191,7 @@ class GigConversationService
                 'canViewConversation' => true,
                 'canSendMessage' => $canSend,
                 'canViewMedia' => true,
-                'canMarkRead' => $canSend,
+                'canMarkRead' => $canMarkRead,
                 'isReadOnly' => ! $canSend,
             ],
         ];
@@ -234,7 +242,7 @@ class GigConversationService
 
     public function markRead(User $user, GigAgreement $agreement): int
     {
-        abort_unless(! $user->activeBan()->exists() && $this->canView($user, $agreement), 403);
+        abort_unless($this->canMarkRead($user, $agreement), 403);
 
         $updated = GigMessage::query()
             ->where('gig_agreement_id', $agreement->id)
