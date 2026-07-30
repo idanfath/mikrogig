@@ -28,12 +28,19 @@ import { useRegionSelect } from '@/features/regions/hooks/use-region-select';
 import { compressImage } from '@/lib/image_utility';
 import { CompressionProfiles } from '@/types/client_enum';
 import { getGigCategoryLabel } from '@/types/enum';
+import type { GigEstimatedDuration } from '@/types/enum';
+import type { WageBenchmarkContext } from '../types';
+import {
+  WageBenchmark,
+  classifyWageBenchmark,
+} from './wage-benchmark';
 
 type CreateGigFormProps = {
   categories: string[];
   today: string;
   default_province_id?: string | null;
   default_regency_id?: string | null;
+  wage_benchmark_context: WageBenchmarkContext;
 };
 
 export function CreateGigForm({
@@ -41,6 +48,7 @@ export function CreateGigForm({
   today,
   default_province_id,
   default_regency_id,
+  wage_benchmark_context: wageBenchmarkContext,
 }: CreateGigFormProps) {
   const form = useForm({
     title: '',
@@ -55,6 +63,7 @@ export function CreateGigForm({
     work_date: today,
     start_time: '',
     posted_fee: '',
+    estimated_duration: '' as GigEstimatedDuration | '',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
   // photos stay out of the inertia form. setData deep-clones the whole form on every keystroke,
@@ -99,6 +108,20 @@ export function CreateGigForm({
     form.errors[key] && (
       <p className="text-sm text-destructive">{form.errors[key]}</p>
     );
+
+  const wageRange =
+    form.data.province_id && form.data.estimated_duration
+      ? wageBenchmarkContext.provinces[form.data.province_id]?.[
+          form.data.estimated_duration
+        ]
+      : undefined;
+  const wageStatus =
+    wageRange && form.data.posted_fee !== ''
+      ? classifyWageBenchmark(Number(form.data.posted_fee), wageRange)
+      : undefined;
+  const isWageBenchmarkUnavailable =
+    Boolean(form.data.province_id && form.data.estimated_duration) &&
+    !wageRange;
 
   const {
     enhancingTitle,
@@ -261,7 +284,7 @@ export function CreateGigForm({
             name="location_accuracy_meters"
             value={form.data.location_accuracy_meters}
           />
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <div className="mb-1.5">
                 <span className="text-sm font-medium">Tanggal Kerja</span>
@@ -291,6 +314,35 @@ export function CreateGigForm({
 
             <div>
               <div className="mb-1.5">
+                <span className="text-sm font-medium">
+                  Estimasi Durasi Pekerjaan
+                </span>
+              </div>
+              <Select
+                value={form.data.estimated_duration}
+                onValueChange={(value) =>
+                  form.setData(
+                    'estimated_duration',
+                    value as GigEstimatedDuration,
+                  )
+                }
+              >
+                <SelectTrigger className="w-full" mobileLarge>
+                  <SelectValue placeholder="Pilih estimasi durasi" />
+                </SelectTrigger>
+                <SelectContent>
+                  {wageBenchmarkContext.durations.map((duration) => (
+                    <SelectItem key={duration.value} value={duration.value}>
+                      {duration.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {error('estimated_duration')}
+            </div>
+
+            <div>
+              <div className="mb-1.5">
                 <span className="text-sm font-medium">Biaya Pekerjaan</span>
               </div>
               <InputGroup mobileLarge>
@@ -314,6 +366,21 @@ export function CreateGigForm({
               {error('posted_fee')}
             </div>
           </div>
+          {wageRange && form.data.estimated_duration && (
+            <WageBenchmark
+              duration={form.data.estimated_duration}
+              range={wageRange}
+              context={wageBenchmarkContext}
+              status={wageStatus}
+              showDisclaimer
+            />
+          )}
+          {isWageBenchmarkUnavailable && (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3.5 text-xs text-destructive">
+              Acuan upah untuk provinsi ini belum tersedia. Pilih provinsi lain
+              atau coba lagi nanti.
+            </div>
+          )}
           <ImagePicker
             files={photos}
             onFilesChange={setPhotos}

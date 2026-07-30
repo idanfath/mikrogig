@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GigAgreementClosureReason;
+use App\Enums\GigEstimatedDuration;
 use Database\Factories\GigAgreementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,12 +15,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'accepted_fee',
+    'estimated_duration',
     'final_scope',
     'work_date',
     'start_time',
     'location_arrangement',
     'delivery_expectations',
     'final_total_price',
+    'wage_benchmark_minimum',
+    'wage_benchmark_maximum',
+    'wage_benchmark_year',
     'terms_version',
     'submitted_at',
     'change_requested_at',
@@ -37,7 +42,11 @@ class GigAgreement extends Model
     {
         return [
             'accepted_fee' => 'integer',
+            'estimated_duration' => GigEstimatedDuration::class,
             'final_total_price' => 'integer',
+            'wage_benchmark_minimum' => 'integer',
+            'wage_benchmark_maximum' => 'integer',
+            'wage_benchmark_year' => 'integer',
             'terms_version' => 'integer',
             'work_date' => 'date',
             'submitted_at' => 'datetime',

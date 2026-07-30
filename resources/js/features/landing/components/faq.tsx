@@ -22,7 +22,7 @@ const defaultItems: FAQItem[] = [
     },
     {
         question: 'Bagaimana MikroGig mendukung upah yang lebih adil?',
-        answer: 'MikroGig tidak menentukan harga pasar atau upah minimum. Bayaran awal, tawaran dari pencari kerja, ruang lingkup, dan total akhir ditampilkan serta harus disepakati sebelum pekerjaan dimulai. Riwayat ini mencegah perubahan sepihak tanpa jejak.',
+        answer: 'MikroGig menampilkan Acuan Upah berdasarkan UMP provinsi dan estimasi durasi pekerjaan. Acuan ini membantu membandingkan bayaran awal, tawaran pencari kerja, dan total akhir, tetapi tidak menggantikan ketentuan upah minimum legal. Seluruh angka dan kesepakatan tetap tercatat agar tidak berubah sepihak tanpa jejak.',
     },
     {
         question: 'Apakah pembayaran di aplikasi memindahkan uang asli?',

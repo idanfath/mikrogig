@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/date';
 import { show } from '@/routes/app/gigs';
 import {
+  getGigEstimatedDurationLabel,
   getGigCategoryLabel,
   getGigStatusLabel,
   getGigStatusVariant,
 } from '@/types/enum';
 import type { Gig } from '../types';
+import { WageBenchmarkBadge } from './wage-benchmark';
 
 type GigCardProps = {
   gig: Gig;
@@ -70,6 +72,10 @@ export function GigCard({ gig, children }: GigCardProps) {
               <Badge variant="outline" className="text-xs font-normal">
                 {getGigCategoryLabel(gig.category)}
               </Badge>
+              <Badge variant="outline" size="sm">
+                {getGigEstimatedDurationLabel(gig.estimated_duration)}
+              </Badge>
+              <WageBenchmarkBadge status={gig.wage_benchmark.status} />
             </div>
 
             <div className="flex items-center gap-1.5">

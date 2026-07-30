@@ -2,6 +2,7 @@
 
 namespace App\Actions\Agreement;
 
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigRealtimeChange;
 use App\Enums\GigStatus;
@@ -13,6 +14,7 @@ use App\Models\GigOffer;
 use App\Models\User;
 use App\Services\GigRealtimeService;
 use App\Services\NotificationService;
+use App\Services\WageBenchmarkService;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -24,9 +26,10 @@ final class SubmitGigAgreementTerms
     public function __construct(
         private NotificationService $notificationService,
         private GigRealtimeService $realtime,
+        private WageBenchmarkService $wageBenchmark,
     ) {}
 
-    /** @param array{final_scope:string,work_date:string,start_time:string,location_arrangement:string,delivery_expectations:string,final_total_price:int} $attributes */
+    /** @param array{final_scope:string,work_date:string,start_time:string,location_arrangement:string,delivery_expectations:string,estimated_duration:string,final_total_price:int} $attributes */
     public function execute(User $client, Gig $gig, array $attributes): GigAgreement
     {
         $persistedAgreement = GigAgreement::query()->forGig($gig)->open()->latest('id')->first(['id', 'gig_offer_id']);
@@ -61,7 +64,16 @@ final class SubmitGigAgreementTerms
                 throw new DomainException('Agreement requires a future schedule and valid final total.');
             }
 
-            $agreement->fill($attributes);
+            $duration = GigEstimatedDuration::from($attributes['estimated_duration']);
+            $benchmark = $this->wageBenchmark->calculate($lockedGig->province_id, $duration);
+
+            $agreement->fill([
+                ...$attributes,
+                'estimated_duration' => $duration,
+                'wage_benchmark_minimum' => $benchmark['minimum'],
+                'wage_benchmark_maximum' => $benchmark['maximum'],
+                'wage_benchmark_year' => $benchmark['year'],
+            ]);
             $agreement->terms_version++;
             $agreement->submitted_at = now();
             $agreement->freelancer_confirmed_at = null;

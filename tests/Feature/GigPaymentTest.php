@@ -1,13 +1,13 @@
 <?php
 
 use App\Actions\Agreement\AcceptGigAgreement;
+use App\Actions\Agreement\RequestGigAgreementChanges;
+use App\Actions\Agreement\SubmitGigAgreementTerms;
 use App\Actions\Gig\AcceptGigOffer;
 use App\Actions\Gig\ApplyToGig;
 use App\Actions\Gig\CancelGig;
 use App\Actions\Payment\ExpireGigPayment;
 use App\Actions\Payment\MarkGigPaymentPaid;
-use App\Actions\Agreement\RequestGigAgreementChanges;
-use App\Actions\Agreement\SubmitGigAgreementTerms;
 use App\Enums\GigAgreementClosureReason;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigPaymentStatus;
@@ -21,6 +21,7 @@ use App\Services\NotificationService;
 use App\Services\Payments\PaymentGateway;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+
 use function Pest\Laravel\mock;
 
 uses(LazilyRefreshDatabase::class);
@@ -34,7 +35,7 @@ beforeEach(function () {
         ->andReturn(0);
 });
 
-function paymentTerms(): array
+function paymentTerms(Gig $gig): array
 {
     return [
         'final_scope' => 'Selesaikan seluruh pekerjaan sesuai foto gig.',
@@ -42,6 +43,7 @@ function paymentTerms(): array
         'start_time' => '10:00',
         'location_arrangement' => 'Temui klien di alamat gig.',
         'delivery_expectations' => 'Pekerjaan selesai dan diuji.',
+        'estimated_duration' => $gig->estimated_duration->value,
         'final_total_price' => 275_000,
     ];
 }
@@ -57,7 +59,7 @@ function paymentAgreementWorkflow(bool $acceptAgreement = true): array
         ->create(['offered_fee' => 250_000]);
 
     app(AcceptGigOffer::class)->execute($client, $offer);
-    app(SubmitGigAgreementTerms::class)->execute($client, $gig, paymentTerms());
+    app(SubmitGigAgreementTerms::class)->execute($client, $gig, paymentTerms($gig));
     $agreement = GigAgreement::query()->where('gig_id', $gig->id)->firstOrFail();
 
     if (! $acceptAgreement) {
@@ -275,7 +277,7 @@ test('expiry command path expires payments in deadline order and prevents late s
 
 test('checkout and notification failures preserve committed payment transitions', function () {
     $gateway = mock(PaymentGateway::class);
-    $gateway->shouldReceive('createCheckout')->once()->andThrow(new \RuntimeException('Gateway unavailable'));
+    $gateway->shouldReceive('createCheckout')->once()->andThrow(new RuntimeException('Gateway unavailable'));
     $this->app->instance(PaymentGateway::class, $gateway);
 
     [, , $gig, , $agreement] = paymentAgreementWorkflow(acceptAgreement: false);
@@ -287,7 +289,7 @@ test('checkout and notification failures preserve committed payment transitions'
         ->and($payment->status)->toBe(GigPaymentStatus::Pending)
         ->and($payment->checkout_url)->toBeNull();
 
-    mock(NotificationService::class)->shouldReceive('send')->once()->andThrow(new \RuntimeException('Notification failed'));
+    mock(NotificationService::class)->shouldReceive('send')->once()->andThrow(new RuntimeException('Notification failed'));
     app(MarkGigPaymentPaid::class)->execute(
         $payment,
         $payment->local_reference,

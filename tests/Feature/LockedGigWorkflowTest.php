@@ -45,7 +45,7 @@ function lockedWorkflow(): array
     $gig = Gig::factory()->for($client, 'client')->create();
     $offer = GigOffer::factory()->for($gig)->for($freelancer, 'freelancer')->create();
     app(AcceptGigOffer::class)->execute($client, $offer);
-    app(SubmitGigAgreementTerms::class)->execute($client, $gig, ['final_scope' => 'Scope', 'work_date' => now()->addDay()->toDateString(), 'start_time' => '10:00', 'location_arrangement' => 'Lokasi', 'delivery_expectations' => 'Selesai', 'final_total_price' => 100_000]);
+    app(SubmitGigAgreementTerms::class)->execute($client, $gig, ['final_scope' => 'Scope', 'work_date' => now()->addDay()->toDateString(), 'start_time' => '10:00', 'location_arrangement' => 'Lokasi', 'delivery_expectations' => 'Selesai', 'estimated_duration' => $gig->estimated_duration->value, 'final_total_price' => 100_000]);
     app(AcceptGigAgreement::class)->execute($freelancer, $gig);
     $payment = GigPayment::query()->where('gig_id', $gig->id)->firstOrFail();
     app(MarkGigPaymentPaid::class)->execute($payment, $payment->local_reference, $payment->amount, now());
@@ -87,7 +87,7 @@ test('freelancer unilateral abandonment records the 3 7 30 offense ladder', func
         $gig = Gig::factory()->for($client, 'client')->create();
         $offer = GigOffer::factory()->for($gig)->for($freelancer, 'freelancer')->create();
         app(AcceptGigOffer::class)->execute($client, $offer);
-        app(SubmitGigAgreementTerms::class)->execute($client, $gig, ['final_scope' => 'Scope', 'work_date' => now()->addDay()->toDateString(), 'start_time' => '10:00', 'location_arrangement' => 'Lokasi', 'delivery_expectations' => 'Selesai', 'final_total_price' => 100_000]);
+        app(SubmitGigAgreementTerms::class)->execute($client, $gig, ['final_scope' => 'Scope', 'work_date' => now()->addDay()->toDateString(), 'start_time' => '10:00', 'location_arrangement' => 'Lokasi', 'delivery_expectations' => 'Selesai', 'estimated_duration' => $gig->estimated_duration->value, 'final_total_price' => 100_000]);
         app(AcceptGigAgreement::class)->execute($freelancer, $gig);
         $payment = GigPayment::query()->where('gig_id', $gig->id)->firstOrFail();
         app(MarkGigPaymentPaid::class)->execute($payment, $payment->local_reference, $payment->amount, now());

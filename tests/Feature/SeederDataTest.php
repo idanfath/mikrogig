@@ -53,6 +53,11 @@ test('normal seed creates realistic terminal history without pending work', func
         ->and(UserBan::query()->active()->count())->toBe(0)
         ->and(GigRating::query()->count())->toBe(12);
 
+    expect(Gig::query()->whereNull('estimated_duration')->count())->toBe(0)
+        ->and(Gig::query()->whereNull('wage_benchmark_minimum')->count())->toBe(0)
+        ->and(GigAgreement::query()->whereNull('estimated_duration')->count())->toBe(0)
+        ->and(GigAgreement::query()->whereNull('wage_benchmark_minimum')->count())->toBe(0);
+
     $freelancer = User::query()->where('email', 'freelancer@example.com')->firstOrFail();
     $client = User::query()->where('email', 'client@example.com')->firstOrFail();
 

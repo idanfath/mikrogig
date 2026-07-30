@@ -16,6 +16,7 @@ use App\Http\Resources\GigResource;
 use App\Models\Gig;
 use App\Models\GigAgreement;
 use App\Services\GigConversationService;
+use App\Services\WageBenchmarkService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,8 +25,12 @@ use Inertia\Response;
 
 class GigAgreementController extends Controller
 {
-    public function show(Request $request, Gig $gig, GigConversationService $conversations): Response
-    {
+    public function show(
+        Request $request,
+        Gig $gig,
+        GigConversationService $conversations,
+        WageBenchmarkService $wageBenchmark,
+    ): Response {
         $agreement = $this->currentAgreement($gig);
         $this->authorize('view', $agreement);
         $isClient = $request->user()->id === $gig->client_id;
@@ -41,6 +46,7 @@ class GigAgreementController extends Controller
             'is_client' => $isClient,
             'is_selected_freelancer' => $isSelectedFreelancer,
             'conversation' => fn (): array => $conversations->present($request, $agreement),
+            'wage_benchmark_context' => $wageBenchmark->context([$gig->province_id]),
             'capabilities' => [
                 'can_submit_terms' => $isClient && $gig->status === GigStatus::AgreementPreparation,
                 'can_accept' => $canRespond,

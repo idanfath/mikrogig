@@ -26,6 +26,42 @@ export const GigCategoryFrontendLabel = {
 export type GigCategoryFrontendLabel =
   (typeof GigCategoryFrontendLabel)[keyof typeof GigCategoryFrontendLabel];
 
+export const GigEstimatedDuration = {
+  UnderOneHour: 'under_1_hour',
+  OneToTwoHours: '1_2_hours',
+  TwoToFourHours: '2_4_hours',
+  FourToSixHours: '4_6_hours',
+  SixToEightHours: '6_8_hours',
+  OneToTwoDays: '1_2_days',
+  ThreeToFiveDays: '3_5_days',
+} as const;
+export type GigEstimatedDuration =
+  (typeof GigEstimatedDuration)[keyof typeof GigEstimatedDuration];
+
+export const GigEstimatedDurationFrontendLabel = {
+  under_1_hour: 'Kurang dari 1 jam',
+  '1_2_hours': '1–2 jam',
+  '2_4_hours': '2–4 jam',
+  '4_6_hours': '4–6 jam',
+  '6_8_hours': '6–8 jam',
+  '1_2_days': '1–2 hari',
+  '3_5_days': '3–5 hari',
+} as const;
+
+export const WageBenchmarkStatus = {
+  Below: 'below',
+  Within: 'within',
+  Meets: 'meets',
+} as const;
+export type WageBenchmarkStatus =
+  (typeof WageBenchmarkStatus)[keyof typeof WageBenchmarkStatus];
+
+export const WageBenchmarkStatusFrontendLabel = {
+  below: 'Di bawah acuan',
+  within: 'Dalam rentang',
+  meets: 'Acuan terpenuhi',
+} as const;
+
 export const GigOfferStatus = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
@@ -294,6 +330,49 @@ export function getGigCategoryLabel(category?: string | null): string {
       category as keyof typeof GigCategoryFrontendLabel
     ] ?? category
   );
+}
+
+export function getGigEstimatedDurationLabel(
+  duration?: string | null,
+): string {
+  if (!duration) {
+    return '';
+  }
+
+  return (
+    GigEstimatedDurationFrontendLabel[
+      duration as keyof typeof GigEstimatedDurationFrontendLabel
+    ] ?? duration
+  );
+}
+
+export function getWageBenchmarkStatusLabel(
+  status?: string | null,
+): string {
+  if (!status) {
+    return '';
+  }
+
+  return (
+    WageBenchmarkStatusFrontendLabel[
+      status as keyof typeof WageBenchmarkStatusFrontendLabel
+    ] ?? status
+  );
+}
+
+export function getWageBenchmarkStatusVariant(
+  status?: string | null,
+): 'success' | 'warning' | 'destructive' | 'secondary' {
+  switch (status) {
+    case WageBenchmarkStatus.Meets:
+      return 'success';
+    case WageBenchmarkStatus.Within:
+      return 'warning';
+    case WageBenchmarkStatus.Below:
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
 }
 
 export function getGigStatusLabel(status?: string | null): string {

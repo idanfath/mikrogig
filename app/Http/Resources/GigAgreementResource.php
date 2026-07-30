@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\WageBenchmarkStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,6 +15,7 @@ class GigAgreementResource extends JsonResource
         return [
             'id' => $this->id,
             'accepted_fee' => $this->accepted_fee,
+            'estimated_duration' => $this->estimated_duration->value,
             'final_scope' => $this->final_scope,
             'work_date' => $this->work_date?->toDateString(),
             'start_time' => $this->start_time === null ? null : substr($this->start_time, 0, 5),
@@ -23,6 +25,16 @@ class GigAgreementResource extends JsonResource
             'location_arrangement' => $this->location_arrangement,
             'delivery_expectations' => $this->delivery_expectations,
             'final_total_price' => $this->final_total_price,
+            'wage_benchmark' => [
+                'minimum' => $this->wage_benchmark_minimum,
+                'maximum' => $this->wage_benchmark_maximum,
+                'year' => $this->wage_benchmark_year,
+                'status' => WageBenchmarkStatus::forAmount(
+                    $this->final_total_price ?? $this->accepted_fee,
+                    $this->wage_benchmark_minimum,
+                    $this->wage_benchmark_maximum,
+                )->value,
+            ],
             'terms_version' => $this->terms_version,
             'submitted_at' => $this->submitted_at?->toISOString(),
             'change_requested_at' => $this->change_requested_at?->toISOString(),

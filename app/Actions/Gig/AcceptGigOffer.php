@@ -96,11 +96,15 @@ final class AcceptGigOffer
                     'gig_id' => $lockedGig->id,
                     'gig_offer_id' => $selectedOffer->id,
                     'accepted_fee' => $selectedOffer->offered_fee,
+                    'estimated_duration' => $lockedGig->estimated_duration,
                     'final_scope' => $lockedGig->description,
                     'work_date' => $lockedGig->work_date,
                     'start_time' => $lockedGig->start_time,
                     'location_arrangement' => $lockedGig->location_address,
                     'final_total_price' => $selectedOffer->offered_fee,
+                    'wage_benchmark_minimum' => $lockedGig->wage_benchmark_minimum,
+                    'wage_benchmark_maximum' => $lockedGig->wage_benchmark_maximum,
+                    'wage_benchmark_year' => $lockedGig->wage_benchmark_year,
                 ]);
                 $agreement->gig()->associate($lockedGig);
                 $agreement->acceptedOffer()->associate($selectedOffer);

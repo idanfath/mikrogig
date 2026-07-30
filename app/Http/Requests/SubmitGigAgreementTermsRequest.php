@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\GigEstimatedDuration;
 use App\Models\Gig;
 use App\Models\GigAgreement;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SubmitGigAgreementTermsRequest extends FormRequest
 {
@@ -21,7 +23,7 @@ class SubmitGigAgreementTermsRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
@@ -31,6 +33,7 @@ class SubmitGigAgreementTermsRequest extends FormRequest
             'start_time' => ['required', 'date_format:H:i'],
             'location_arrangement' => ['required', 'string', 'max:1000'],
             'delivery_expectations' => ['required', 'string', 'max:5000'],
+            'estimated_duration' => ['required', Rule::enum(GigEstimatedDuration::class)],
             'final_total_price' => ['required', 'integer', 'min:1000', 'max:1000000000'],
             'timezone' => ['nullable', 'string', 'timezone'],
         ];

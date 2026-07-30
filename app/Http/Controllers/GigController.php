@@ -17,6 +17,7 @@ use App\Models\Gig;
 use App\Models\GigOffer;
 use App\Services\GigConversationService;
 use App\Services\GigEnhancementService;
+use App\Services\WageBenchmarkService;
 use DomainException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -61,6 +62,7 @@ class GigController extends Controller
                     ->when($request->filled('date_to'), fn (Builder $query) => $query->whereDate('work_date', '<=', $filters['date_to']))
                     ->when($request->filled('minimum_fee'), fn (Builder $query) => $query->where('posted_fee', '>=', $filters['minimum_fee']))
                     ->when($request->filled('maximum_fee'), fn (Builder $query) => $query->where('posted_fee', '<=', $filters['maximum_fee']))
+                    ->orderByRaw('CASE WHEN posted_fee >= wage_benchmark_maximum THEN 0 WHEN posted_fee >= wage_benchmark_minimum THEN 1 ELSE 2 END')
                     ->orderBy('work_date')
                     ->orderBy('start_time')
                     ->orderBy('id')
@@ -72,7 +74,7 @@ class GigController extends Controller
         ]);
     }
 
-    public function create(Request $request): Response
+    public function create(Request $request, WageBenchmarkService $wageBenchmark): Response
     {
         $this->authorize('create', Gig::class);
         $user = $request->user();
@@ -82,6 +84,7 @@ class GigController extends Controller
             'today' => now(config('app.timezone'))->toDateString(),
             'default_province_id' => $user?->province_id,
             'default_regency_id' => $user?->regency_id,
+            'wage_benchmark_context' => $wageBenchmark->context(),
         ]);
     }
 
@@ -117,7 +120,7 @@ class GigController extends Controller
         return to_route('app.gigs.show', $gig)->with('success', 'Gig berhasil dibuat.');
     }
 
-    public function show(Request $request, Gig $gig): Response
+    public function show(Request $request, Gig $gig, WageBenchmarkService $wageBenchmark): Response
     {
         $this->authorize('view', $gig);
 
@@ -147,6 +150,7 @@ class GigController extends Controller
             'has_current_agreement' => $hasCurrentAgreement,
             'has_reached_pending_limit' => $hasReachedPendingLimit,
             'has_active_accepted_work' => $hasActiveAcceptedWork,
+            'wage_benchmark_context' => $wageBenchmark->context([$gig->province_id]),
         ]);
     }
 

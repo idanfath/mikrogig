@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GigCategory;
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigStatus;
 use Carbon\CarbonInterface;
@@ -29,7 +30,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'location_accuracy_meters',
     'work_date',
     'start_time',
+    'estimated_duration',
     'posted_fee',
+    'wage_benchmark_minimum',
+    'wage_benchmark_maximum',
+    'wage_benchmark_year',
 ])]
 class Gig extends Model
 {
@@ -40,9 +45,13 @@ class Gig extends Model
     {
         return [
             'category' => GigCategory::class,
+            'estimated_duration' => GigEstimatedDuration::class,
             'status' => GigStatus::class,
             'work_date' => 'date',
             'posted_fee' => 'integer',
+            'wage_benchmark_minimum' => 'integer',
+            'wage_benchmark_maximum' => 'integer',
+            'wage_benchmark_year' => 'integer',
             'location_accuracy_meters' => 'integer',
             'location_latitude' => 'decimal:7',
             'location_longitude' => 'decimal:7',

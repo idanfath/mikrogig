@@ -1,4 +1,39 @@
-import type { GigOfferStatus, GigPaymentStatus, GigStatus } from '@/types/enum';
+import type {
+  GigEstimatedDuration,
+  GigOfferStatus,
+  GigPaymentStatus,
+  GigStatus,
+  WageBenchmarkStatus,
+} from '@/types/enum';
+
+export type WageBenchmarkSnapshot = {
+  minimum: number;
+  maximum: number;
+  year: number;
+  status: WageBenchmarkStatus;
+};
+
+export type WageBenchmarkRange = {
+  minimum: number;
+  maximum: number;
+};
+
+export type WageBenchmarkContext = {
+  year: number;
+  source: {
+    publisher: string;
+    title: string;
+    url: string;
+  };
+  durations: Array<{
+    value: GigEstimatedDuration;
+    label: string;
+  }>;
+  provinces: Record<
+    string,
+    Record<GigEstimatedDuration, WageBenchmarkRange>
+  >;
+};
 
 export type GigMedia = {
   id: number;
@@ -30,6 +65,8 @@ export type Gig = {
   start_time: string;
   scheduled_at?: string | null;
   posted_fee: number;
+  estimated_duration: GigEstimatedDuration;
+  wage_benchmark: WageBenchmarkSnapshot;
   created_at: string | null;
   updated_at: string | null;
   started_at: string | null;
@@ -75,6 +112,8 @@ export type GigAgreement = {
   location_arrangement: string | null;
   delivery_expectations: string | null;
   final_total_price: number | null;
+  estimated_duration: GigEstimatedDuration;
+  wage_benchmark: WageBenchmarkSnapshot;
   terms_version: number;
   submitted_at: string | null;
   change_requested_at: string | null;

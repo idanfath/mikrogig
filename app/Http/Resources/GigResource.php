@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\WageBenchmarkStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -40,6 +41,17 @@ class GigResource extends JsonResource
                 ? CarbonImmutable::parse($this->work_date->toDateString().' '.$this->start_time, config('app.timezone'))->toIso8601String()
                 : null,
             'posted_fee' => $this->posted_fee,
+            'estimated_duration' => $this->estimated_duration->value,
+            'wage_benchmark' => [
+                'minimum' => $this->wage_benchmark_minimum,
+                'maximum' => $this->wage_benchmark_maximum,
+                'year' => $this->wage_benchmark_year,
+                'status' => WageBenchmarkStatus::forAmount(
+                    $this->posted_fee,
+                    $this->wage_benchmark_minimum,
+                    $this->wage_benchmark_maximum,
+                )->value,
+            ],
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
             'started_at' => $this->started_at?->toISOString(),

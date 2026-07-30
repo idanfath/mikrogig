@@ -29,6 +29,13 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useConfirm } from '@/hooks/use-confirm';
 import { formatDate } from '@/lib/date';
@@ -36,12 +43,23 @@ import { show as showGig } from '@/routes/app/gigs';
 import { show as workflow } from '@/routes/app/gigs/workflow';
 import {
   GigStatus,
+  getGigEstimatedDurationLabel,
   getGigStatusLabel,
   getGigStatusVariant,
 } from '@/types/enum';
+import type { GigEstimatedDuration } from '@/types/enum';
 import type { GigConversation as GigConversationData } from '../conversation-types';
-import type { Gig, GigAgreement, GigAgreementCapabilities } from '../types';
+import type {
+    Gig,
+    GigAgreement,
+    GigAgreementCapabilities,
+    WageBenchmarkContext,
+} from '../types';
 import { GigConversation } from './gig-conversation';
+import {
+    WageBenchmark,
+    classifyWageBenchmark,
+} from './wage-benchmark';
 
 type GigAgreementProps = {
     gig: Gig;
@@ -50,6 +68,7 @@ type GigAgreementProps = {
     is_selected_freelancer: boolean;
     capabilities: GigAgreementCapabilities;
     conversation: GigConversationData;
+    wage_benchmark_context: WageBenchmarkContext;
 };
 
 const workflowStatuses: string[] = [
@@ -64,6 +83,7 @@ export function GigAgreementPage({
     agreement,
     capabilities,
     conversation,
+    wage_benchmark_context: wageBenchmarkContext,
 }: GigAgreementProps) {
     const [confirm, confirmDialog] = useConfirm();
     const initialScheduledAt = agreement.scheduled_at ?? gig.scheduled_at;
@@ -82,6 +102,7 @@ export function GigAgreementPage({
             agreement.location_arrangement ?? gig.location_address,
         delivery_expectations: agreement.delivery_expectations ?? '',
         final_total_price: agreement.final_total_price?.toString() ?? '',
+        estimated_duration: agreement.estimated_duration,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
     const changes = useForm({ note: '' });
@@ -105,6 +126,17 @@ export function GigAgreementPage({
     const formattedStartTime = scheduledAtIso
         ? `Pukul ${formatDate(scheduledAtIso, 'HH:mm')}`
         : (agreement.start_time ? `Pukul ${agreement.start_time.slice(0, 5)}` : '-');
+    const wageRange =
+        wageBenchmarkContext.provinces[gig.province_id]?.[
+            terms.data.estimated_duration
+        ];
+    const effectiveFinalPrice =
+        terms.data.final_total_price === ''
+            ? agreement.accepted_fee
+            : Number(terms.data.final_total_price);
+    const wageStatus = wageRange
+        ? classifyWageBenchmark(effectiveFinalPrice, wageRange)
+        : undefined;
 
     return (
         <AppPage
@@ -228,6 +260,35 @@ export function GigAgreementPage({
 
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-xs font-semibold text-foreground">
+                                    Estimasi Durasi Pekerjaan
+                                </label>
+                                <Select
+                                    value={terms.data.estimated_duration}
+                                    onValueChange={(value) =>
+                                        terms.setData(
+                                            'estimated_duration',
+                                            value as GigEstimatedDuration,
+                                        )
+                                    }
+                                >
+                                    <SelectTrigger className="w-full" mobileLarge>
+                                        <SelectValue placeholder="Pilih estimasi durasi" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {wageBenchmarkContext.durations.map((duration) => (
+                                            <SelectItem
+                                                key={duration.value}
+                                                value={duration.value}
+                                            >
+                                                {duration.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-semibold text-foreground">
                                     Pengaturan Lokasi
                                 </label>
                                 <Textarea
@@ -274,6 +335,16 @@ export function GigAgreementPage({
                                     />
                                 </InputGroup>
                             </div>
+
+                            {wageRange && (
+                                <WageBenchmark
+                                    duration={terms.data.estimated_duration}
+                                    range={wageRange}
+                                    context={wageBenchmarkContext}
+                                    status={wageStatus}
+                                    showDisclaimer
+                                />
+                            )}
 
                             {Object.values(terms.errors).map((error) => (
                                 <p key={error} className="text-xs text-destructive">
@@ -359,6 +430,20 @@ export function GigAgreementPage({
                                 </div>
                             </div>
 
+                            <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3 sm:col-span-2">
+                                <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground/80" />
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                        Estimasi Durasi
+                                    </span>
+                                    <span className="font-medium text-foreground">
+                                        {getGigEstimatedDurationLabel(
+                                            agreement.estimated_duration,
+                                        )}
+                                    </span>
+                                </div>
+                            </div>
+
                             {agreement.location_arrangement && (
                                 <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-card p-3 sm:col-span-2">
                                     <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground/80" />
@@ -401,6 +486,17 @@ export function GigAgreementPage({
                                 </div>
                             </div>
                         </div>
+
+                        <WageBenchmark
+                            duration={agreement.estimated_duration}
+                            range={agreement.wage_benchmark}
+                            context={{
+                                year: agreement.wage_benchmark.year,
+                                source: wageBenchmarkContext.source,
+                            }}
+                            status={agreement.wage_benchmark.status}
+                            showDisclaimer
+                        />
 
                         {capabilities.can_reject && (
                             <div className="flex justify-end pt-2 border-t border-border/40">

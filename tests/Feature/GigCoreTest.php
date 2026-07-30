@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Gig\CreateGig;
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigStatus;
 use App\Models\Gig;
@@ -38,6 +39,7 @@ function gigCoreAttributes(array $overrides = []): array
         'location_accuracy_meters' => null,
         'work_date' => now(config('app.timezone'))->addDay()->toDateString(),
         'start_time' => '10:00',
+        'estimated_duration' => GigEstimatedDuration::TwoToFourHours->value,
         'posted_fee' => 200_000,
         ...$overrides,
     ];
@@ -52,6 +54,9 @@ test('client creates open gig with ordered photos and catalog names', function (
 
     expect($gig->status)->toBe(GigStatus::Open)
         ->and($gig->start_time)->toBe('10:00')
+        ->and($gig->estimated_duration)->toBe(GigEstimatedDuration::TwoToFourHours)
+        ->and($gig->wage_benchmark_minimum)->toBeGreaterThan(0)
+        ->and($gig->wage_benchmark_maximum)->toBeGreaterThan($gig->wage_benchmark_minimum)
         ->and($gig->province_name)->toBe(app(RegionCatalog::class)->province('11')['name'])
         ->and($gig->regency_name)->toBe(app(RegionCatalog::class)->regency('11', '1101')['name'])
         ->and($gig->media)->toHaveCount(2)
@@ -60,6 +65,27 @@ test('client creates open gig with ordered photos and catalog names', function (
     foreach ($gig->media as $media) {
         Storage::disk('cos')->assertExists($media->path);
     }
+});
+
+test('gig submission requires a supported estimated duration', function () {
+    Storage::fake('cos');
+    $client = gigCoreClient();
+
+    $this->actingAs($client)->post(route('app.gigs.store'), [
+        ...gigCoreAttributes(['estimated_duration' => 'invalid']),
+        'photos' => [UploadedFile::fake()->image('gig.webp')],
+    ])->assertSessionHasErrors(['estimated_duration']);
+});
+
+test('gig submission rejects a province without a wage benchmark', function () {
+    Storage::fake('cos');
+    config()->set('wage-benchmarks.provinces.11', null);
+    $client = gigCoreClient();
+
+    $this->actingAs($client)->post(route('app.gigs.store'), [
+        ...gigCoreAttributes(),
+        'photos' => [UploadedFile::fake()->image('gig.webp')],
+    ])->assertSessionHasErrors(['province_id']);
 });
 
 test('gig submission validates client role and upload contract', function () {
@@ -106,6 +132,44 @@ test('discovery hides past open gigs and counts pending applicants only', functi
             ->where('gigs.data.0.pending_applicants_count', 1));
 
     expect($past->exists)->toBeTrue();
+    Carbon::setTestNow();
+});
+
+test('discovery ranks wage benchmark status before schedule', function () {
+    Carbon::setTestNow('2026-08-01 10:00:00');
+    $client = gigCoreClient();
+    $freelancer = gigCoreFreelancer();
+    $base = [
+        'wage_benchmark_minimum' => 100_000,
+        'wage_benchmark_maximum' => 200_000,
+    ];
+
+    $below = Gig::factory()->for($client, 'client')->create([
+        ...$base,
+        'posted_fee' => 90_000,
+        'work_date' => '2026-08-02',
+    ]);
+    $within = Gig::factory()->for($client, 'client')->create([
+        ...$base,
+        'posted_fee' => 150_000,
+        'work_date' => '2026-08-03',
+    ]);
+    $meets = Gig::factory()->for($client, 'client')->create([
+        ...$base,
+        'posted_fee' => 200_000,
+        'work_date' => '2026-08-04',
+    ]);
+
+    $this->actingAs($freelancer)->get(route('app.gigs.index', [
+        'province_id' => '11',
+        'regency_id' => '1101',
+    ]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('gigs.data.0.id', $meets->id)
+            ->where('gigs.data.1.id', $within->id)
+            ->where('gigs.data.2.id', $below->id));
+
     Carbon::setTestNow();
 });
 

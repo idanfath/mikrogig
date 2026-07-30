@@ -5,6 +5,7 @@ import type {
   Gig,
   GigAgreement,
   GigAgreementCapabilities,
+  WageBenchmarkContext,
 } from '@/features/gigs/types';
 import AppLayout from '@/layout/AppLayout';
 
@@ -15,6 +16,7 @@ type Props = {
   is_selected_freelancer: boolean;
   capabilities: GigAgreementCapabilities;
   conversation: GigConversation;
+  wage_benchmark_context: WageBenchmarkContext;
 };
 
 const Page: InertiaPageWithLayout<Props> = (props) => (

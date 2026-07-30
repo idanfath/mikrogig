@@ -3,6 +3,7 @@ import {
     ArrowRight,
     Calendar,
     ChevronRight,
+    Clock,
     Coins,
     MapPin,
     Navigation,
@@ -13,16 +14,15 @@ import type { FormEvent } from 'react';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import { cancel } from '@/actions/App/Http/Controllers/GigController';
+import { show as showDispute } from '@/actions/App/Http/Controllers/GigDisputeController';
 import {
     store as apply,
     withdraw,
 } from '@/actions/App/Http/Controllers/GigOfferController';
-import { show as showDispute } from '@/actions/App/Http/Controllers/GigDisputeController';
 import { show as showPayment } from '@/actions/App/Http/Controllers/GigPaymentController';
 import { AppPage, AppPageCard } from '@/components/layout/app-page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     InputGroup,
     InputGroupAddon,
@@ -41,13 +41,19 @@ import {
     GigOfferStatus,
     GigStatus,
     getGigCategoryLabel,
+    getGigEstimatedDurationLabel,
     getGigOfferStatusLabel,
     getGigOfferStatusVariant,
     getGigStatusLabel,
     getGigStatusVariant,
 } from '@/types/enum';
 import { useGigDistance } from '../hooks/use-gig-distance';
-import type { Gig, GigOffer } from '../types';
+import type { Gig, GigOffer, WageBenchmarkContext } from '../types';
+import {
+    WageBenchmark,
+    WageBenchmarkBadge,
+    classifyWageBenchmark,
+} from './wage-benchmark';
 
 type GigDetailProps = {
     gig: Gig;
@@ -57,6 +63,7 @@ type GigDetailProps = {
     has_current_agreement: boolean;
     has_reached_pending_limit?: boolean;
     has_active_accepted_work?: boolean;
+    wage_benchmark_context: WageBenchmarkContext;
 };
 
 const workflowStatuses: string[] = [
@@ -74,6 +81,7 @@ export function GigDetail({
     has_current_agreement: hasCurrentAgreement,
     has_reached_pending_limit: hasReachedPendingLimit = false,
     has_active_accepted_work: hasActiveAcceptedWork = false,
+    wage_benchmark_context: wageBenchmarkContext,
 }: GigDetailProps) {
     const [confirm, confirmDialog] = useConfirm();
     const form = useForm({ offered_fee: '', note: '' });
@@ -107,7 +115,6 @@ export function GigDetail({
 
     const {
         distanceFormatted,
-        workerAccuracy,
         isAccurate,
         loading: distanceLoading,
     } = useGigDistance({
@@ -122,6 +129,17 @@ export function GigDetail({
         ((gig.status === GigStatus.Open ||
             gig.status === GigStatus.AgreementPreparation) &&
             isOwner);
+    const offeredFeeStatus =
+        form.data.offered_fee === ''
+            ? undefined
+            : classifyWageBenchmark(
+                  Number(form.data.offered_fee),
+                  gig.wage_benchmark,
+              );
+    const wageBenchmarkSource = {
+        year: gig.wage_benchmark.year,
+        source: wageBenchmarkContext.source,
+    };
 
     return (
         <AppPage
@@ -230,6 +248,20 @@ export function GigDetail({
                         </div>
 
                         <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-secondary/40 p-3">
+                            <Clock className="mt-0.5 size-4 shrink-0 text-primary" />
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                                    Estimasi Durasi
+                                </span>
+                                <span className="font-semibold text-foreground">
+                                    {getGigEstimatedDurationLabel(
+                                        gig.estimated_duration,
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-secondary/40 p-3">
                             <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
@@ -291,6 +323,14 @@ export function GigDetail({
                             </div>
                         )}
                     </div>
+
+                    <WageBenchmark
+                        duration={gig.estimated_duration}
+                        range={gig.wage_benchmark}
+                        context={wageBenchmarkSource}
+                        status={gig.wage_benchmark.status}
+                        showDisclaimer
+                    />
 
                     <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
@@ -417,6 +457,12 @@ export function GigDetail({
                                     Anda dapat mengajukan penawaran baru.
                                 </p>
                             )}
+                            <WageBenchmark
+                                duration={gig.estimated_duration}
+                                range={gig.wage_benchmark}
+                                context={wageBenchmarkSource}
+                                status={offeredFeeStatus}
+                            />
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-xs font-semibold text-foreground">
                                     Biaya Penawaran
@@ -468,12 +514,20 @@ export function GigDetail({
                                     Rp{myOffer.offered_fee.toLocaleString('id-ID')}
                                 </span>
                             </div>
-                            <Badge
-                                variant={getGigOfferStatusVariant(myOffer.status)}
-                                className="px-3 py-1 font-medium"
-                            >
-                                {getGigOfferStatusLabel(myOffer.status)}
-                            </Badge>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <WageBenchmarkBadge
+                                    status={classifyWageBenchmark(
+                                        myOffer.offered_fee,
+                                        gig.wage_benchmark,
+                                    )}
+                                />
+                                <Badge
+                                    variant={getGigOfferStatusVariant(myOffer.status)}
+                                    className="px-3 py-1 font-medium"
+                                >
+                                    {getGigOfferStatusLabel(myOffer.status)}
+                                </Badge>
+                            </div>
                         </div>
 
                         {myOffer.note && (

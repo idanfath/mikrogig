@@ -4,7 +4,6 @@ import {
     FileCheck2,
     Images,
     ShieldCheck,
-    Scale,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -24,6 +23,11 @@ interface WorkProtectionProps extends Omit<
 }
 
 const agreementStages = [
+    {
+        label: 'Estimasi durasi & acuan upah',
+        value: '4–6 jam',
+        description: 'Rentang acuan dihitung dari UMP provinsi dan durasi kerja.',
+    },
     {
         label: 'Bayaran awal pekerjaan',
         value: 'Rp350.000',
@@ -49,7 +53,7 @@ const agreementStages = [
 function WorkProtection({
     badge = 'Perlindungan upah yang benar-benar tersedia',
     title = 'Upah lebih adil dan tidak berubah diam-diam.',
-    description = 'MikroGig tidak menentukan harga pasar. Bayaran awal, tawaran pencari kerja, dan total akhir terlihat serta tercatat sebelum pekerjaan dimulai.',
+    description = 'MikroGig memberi Acuan Upah berdasarkan UMP dan estimasi durasi. Bayaran awal, tawaran pencari kerja, dan total akhir tetap terlihat serta tercatat sebelum pekerjaan dimulai.',
     className,
     ...props
 }: WorkProtectionProps) {
@@ -127,6 +131,7 @@ function WorkProtection({
                         </div>
                         <ul className="mt-6 space-y-3">
                             {[
+                                'Acuan upah mengikuti UMP dan estimasi durasi',
                                 'Biaya awal terlihat sebelum melamar',
                                 'Tawaran pencari kerja disimpan',
                                 'Total akhir mengikuti kesepakatan aktif',

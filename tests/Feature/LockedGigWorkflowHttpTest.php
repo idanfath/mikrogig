@@ -49,6 +49,7 @@ function lockedGigHttpWorkflow(): array
         'start_time' => '10:00',
         'location_arrangement' => 'Lokasi kerja',
         'delivery_expectations' => 'Selesai',
+        'estimated_duration' => $gig->estimated_duration->value,
         'final_total_price' => 100_000,
     ]);
     app(AcceptGigAgreement::class)->execute($freelancer, $gig);

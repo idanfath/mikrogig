@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Gig\AcceptGigOffer;
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigStatus;
 use App\Models\Gig;
 use App\Models\GigOffer;
@@ -39,6 +40,7 @@ function agreementHttpTerms(): array
         'start_time' => '10:00',
         'location_arrangement' => 'Alamat gig.',
         'delivery_expectations' => 'Selesai dan diuji.',
+        'estimated_duration' => GigEstimatedDuration::TwoToFourHours->value,
         'final_total_price' => 150_000,
     ];
 }
@@ -79,7 +81,7 @@ test('client form validation and freelancer ownership run before workflow action
     $this->from('/app')->actingAs($client)
         ->patch(route('app.gigs.agreement.terms.update', $gig), [])
         ->assertRedirect('/app')
-        ->assertSessionHasErrors(['final_scope', 'work_date', 'start_time', 'final_total_price']);
+        ->assertSessionHasErrors(['final_scope', 'work_date', 'start_time', 'estimated_duration', 'final_total_price']);
     $this->actingAs(User::factory()->freelancer()->create(['onboarding_step' => null]))
         ->patch(route('app.gigs.agreement.leave', $gig))
         ->assertNotFound();

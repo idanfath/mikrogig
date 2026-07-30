@@ -3,6 +3,7 @@
 namespace App\Actions\Gig;
 
 use App\Enums\GigDiscoveryChange;
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigRealtimeChange;
 use App\Enums\GigStatus;
 use App\Enums\UserRole;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\RegionCatalog;
 use App\Services\GigRealtimeService;
 use App\Services\ImageCompressionService;
+use App\Services\WageBenchmarkService;
 use DomainException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +27,7 @@ final class CreateGig
         private RegionCatalog $regions,
         private ImageCompressionService $imageCompression,
         private GigRealtimeService $realtime,
+        private WageBenchmarkService $wageBenchmark,
     ) {}
 
     /**
@@ -43,6 +46,16 @@ final class CreateGig
         if ($province === null || $regency === null) {
             throw new DomainException('Selected region is invalid.');
         }
+
+        $duration = GigEstimatedDuration::from($attributes['estimated_duration']);
+        $benchmark = $this->wageBenchmark->calculate($attributes['province_id'], $duration);
+        $attributes = [
+            ...$attributes,
+            'estimated_duration' => $duration,
+            'wage_benchmark_minimum' => $benchmark['minimum'],
+            'wage_benchmark_maximum' => $benchmark['maximum'],
+            'wage_benchmark_year' => $benchmark['year'],
+        ];
 
         $disk = Storage::disk('cos');
         $paths = [];

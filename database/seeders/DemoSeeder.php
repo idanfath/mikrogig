@@ -6,6 +6,7 @@ use App\Enums\GigCategory;
 use App\Enums\GigDisputeStatus;
 use App\Enums\GigDisputeSubmissionType;
 use App\Enums\GigDisputeType;
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigMessageKind;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigPaymentStatus;
@@ -19,6 +20,7 @@ use App\Models\GigMessage;
 use App\Models\GigOffer;
 use App\Models\GigPayment;
 use App\Models\User;
+use App\Services\WageBenchmarkService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +30,8 @@ use Illuminate\Support\Facades\DB;
 class DemoSeeder extends Seeder
 {
     use WithoutModelEvents;
+
+    public function __construct(private WageBenchmarkService $wageBenchmark) {}
 
     public function run(): void
     {
@@ -42,6 +46,8 @@ class DemoSeeder extends Seeder
             $freelancer = User::query()->where('email', 'freelancer@example.com')->firstOrFail();
             $workAt = CarbonImmutable::now()->subDays(2)->startOfDay()->setTime(9, 0);
             $openedAt = $workAt->addHours(3);
+            $duration = GigEstimatedDuration::TwoToFourHours;
+            $benchmark = $this->wageBenchmark->calculate('51', $duration);
 
             $gig = new Gig([
                 'title' => 'Pindahkan dan Tata Ulang Rak Toko',
@@ -57,7 +63,11 @@ class DemoSeeder extends Seeder
                 'location_accuracy_meters' => 25,
                 'work_date' => $workAt->toDateString(),
                 'start_time' => $workAt->format('H:i:s'),
+                'estimated_duration' => $duration,
                 'posted_fee' => 425_000,
+                'wage_benchmark_minimum' => $benchmark['minimum'],
+                'wage_benchmark_maximum' => $benchmark['maximum'],
+                'wage_benchmark_year' => $benchmark['year'],
             ]);
             $gig->client()->associate($client);
             $gig->status = GigStatus::Disputed;
@@ -79,12 +89,16 @@ class DemoSeeder extends Seeder
 
             $agreement = new GigAgreement([
                 'accepted_fee' => 400_000,
+                'estimated_duration' => $duration,
                 'final_scope' => 'Memindahkan dua rak besi ke sisi belakang toko dan menata kardus agar tersedia jalur pelanggan selebar kurang lebih satu meter.',
                 'work_date' => $workAt->toDateString(),
                 'start_time' => $workAt->format('H:i:s'),
                 'location_arrangement' => 'Bertemu di pintu utama toko. Klien memastikan jalur dan area sekitar rak sudah dikosongkan sebelum pekerjaan dimulai.',
                 'delivery_expectations' => 'Kirim foto posisi akhir kedua rak dan jalur pelanggan setelah area selesai ditata.',
                 'final_total_price' => 400_000,
+                'wage_benchmark_minimum' => $benchmark['minimum'],
+                'wage_benchmark_maximum' => $benchmark['maximum'],
+                'wage_benchmark_year' => $benchmark['year'],
                 'terms_version' => 1,
                 'submitted_at' => $workAt->subDays(3),
                 'freelancer_confirmed_at' => $workAt->subDays(3)->addMinutes(25),

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\GigCategory;
+use App\Enums\GigEstimatedDuration;
 use App\Models\Gig;
 use App\RegionCatalog;
 use Carbon\Carbon;
@@ -31,6 +32,7 @@ class StoreGigRequest extends FormRequest
             'location_accuracy_meters' => ['nullable', 'integer', 'min:0', 'max:20000000'],
             'work_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
+            'estimated_duration' => ['required', Rule::enum(GigEstimatedDuration::class)],
             'posted_fee' => ['required', 'integer', 'between:1000,1000000000'],
             'timezone' => ['nullable', 'string', 'timezone'],
             'photos' => ['required', 'array', 'min:1', 'max:5'],
@@ -55,6 +57,10 @@ class StoreGigRequest extends FormRequest
 
                 if ($provinceId !== '' && $regions->province($provinceId) === null) {
                     $validator->errors()->add('province_id', 'Provinsi tidak valid.');
+                }
+
+                if ($provinceId !== '' && ! is_int(config("wage-benchmarks.provinces.{$provinceId}"))) {
+                    $validator->errors()->add('province_id', 'Acuan upah belum tersedia untuk provinsi ini.');
                 }
 
                 if ($provinceId !== '' && $regencyId !== '' && $regions->regency($provinceId, $regencyId) === null) {

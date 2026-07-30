@@ -8,6 +8,7 @@ use App\Enums\GigDisputeFinding;
 use App\Enums\GigDisputeStatus;
 use App\Enums\GigDisputeSubmissionType;
 use App\Enums\GigDisputeType;
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigFinishRequestStatus;
 use App\Enums\GigMessageKind;
 use App\Enums\GigOfferStatus;
@@ -27,6 +28,7 @@ use App\Models\GigRating;
 use App\Models\GigSettlement;
 use App\Models\User;
 use App\Models\UserBan;
+use App\Services\WageBenchmarkService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
@@ -35,6 +37,8 @@ use Illuminate\Support\Str;
 
 class HistorySeeder extends Seeder
 {
+    public function __construct(private WageBenchmarkService $wageBenchmark) {}
+
     public function run(): void
     {
         $completed = [
@@ -346,6 +350,8 @@ class HistorySeeder extends Seeder
     ): array {
         $client = User::query()->where('email', $clientEmail)->firstOrFail();
         $freelancer = User::query()->where('email', $freelancerEmail)->firstOrFail();
+        $duration = $this->durationFor($category);
+        $benchmark = $this->wageBenchmark->calculate($client->province_id, $duration);
 
         $gig = new Gig([
             'title' => $title,
@@ -358,7 +364,11 @@ class HistorySeeder extends Seeder
             'location_address' => "Area {$client->regency_name}, {$client->province_name}",
             'work_date' => $at->toDateString(),
             'start_time' => $at->format('H:i:s'),
+            'estimated_duration' => $duration,
             'posted_fee' => $fee,
+            'wage_benchmark_minimum' => $benchmark['minimum'],
+            'wage_benchmark_maximum' => $benchmark['maximum'],
+            'wage_benchmark_year' => $benchmark['year'],
         ]);
         $gig->client()->associate($client);
         $gig->status = $status;
@@ -375,12 +385,16 @@ class HistorySeeder extends Seeder
 
         $agreement = new GigAgreement([
             'accepted_fee' => $fee,
+            'estimated_duration' => $duration,
             'final_scope' => $description,
             'work_date' => $at->toDateString(),
             'start_time' => $at->format('H:i:s'),
             'location_arrangement' => "Bertemu di lokasi kerja di {$client->regency_name}.",
             'delivery_expectations' => 'Kirim foto hasil dan konfirmasi setelah pekerjaan selesai.',
             'final_total_price' => $fee,
+            'wage_benchmark_minimum' => $benchmark['minimum'],
+            'wage_benchmark_maximum' => $benchmark['maximum'],
+            'wage_benchmark_year' => $benchmark['year'],
             'terms_version' => 1,
             'submitted_at' => $at->subDays(3),
             'freelancer_confirmed_at' => $at->subDays(3)->addHour(),
@@ -408,6 +422,15 @@ class HistorySeeder extends Seeder
         $this->saveAt($payment, $at->subDays(3)->addHours(2));
 
         return [$gig, $agreement, $payment, $client, $freelancer];
+    }
+
+    private function durationFor(GigCategory $category): GigEstimatedDuration
+    {
+        return match ($category) {
+            GigCategory::Labor, GigCategory::Security => GigEstimatedDuration::SixToEightHours,
+            GigCategory::Cleaning, GigCategory::Moving => GigEstimatedDuration::FourToSixHours,
+            GigCategory::Construction => GigEstimatedDuration::OneToTwoDays,
+        };
     }
 
     private function seedConversation(

@@ -1,15 +1,16 @@
 <?php
 
 use App\Actions\Agreement\AcceptGigAgreement;
+use App\Actions\Agreement\DeclineGigAgreement;
+use App\Actions\Agreement\LeaveGigAgreementPreparation;
+use App\Actions\Agreement\RequestGigAgreementChanges;
+use App\Actions\Agreement\SubmitGigAgreementTerms;
 use App\Actions\Gig\AcceptGigOffer;
 use App\Actions\Gig\ApplyToGig;
 use App\Actions\Gig\CancelGig;
-use App\Actions\Agreement\DeclineGigAgreement;
-use App\Actions\Agreement\LeaveGigAgreementPreparation;
 use App\Actions\Gig\RejectSelectedFreelancer;
-use App\Actions\Agreement\RequestGigAgreementChanges;
-use App\Actions\Agreement\SubmitGigAgreementTerms;
 use App\Enums\GigAgreementClosureReason;
+use App\Enums\GigEstimatedDuration;
 use App\Enums\GigOfferStatus;
 use App\Enums\GigStatus;
 use App\Http\Resources\GigAgreementResource;
@@ -19,6 +20,7 @@ use App\Models\GigAgreement;
 use App\Models\GigOffer;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\WageBenchmarkService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
 use function Pest\Laravel\mock;
@@ -46,6 +48,7 @@ function agreementTerms(): array
         'start_time' => '10:00',
         'location_arrangement' => 'Temui klien di alamat gig.',
         'delivery_expectations' => 'Selesai dan diuji pada hari kerja.',
+        'estimated_duration' => GigEstimatedDuration::TwoToFourHours->value,
         'final_total_price' => 175_000,
     ];
 }
@@ -57,6 +60,10 @@ test('winner selection creates one seeded agreement attempt', function () {
         ->and($agreement->gig_id)->toBe($gig->id)
         ->and($agreement->gig_offer_id)->toBe($offer->id)
         ->and($agreement->accepted_fee)->toBe(150_000)
+        ->and($agreement->estimated_duration)->toBe($gig->estimated_duration)
+        ->and($agreement->wage_benchmark_minimum)->toBe($gig->wage_benchmark_minimum)
+        ->and($agreement->wage_benchmark_maximum)->toBe($gig->wage_benchmark_maximum)
+        ->and($agreement->wage_benchmark_year)->toBe($gig->wage_benchmark_year)
         ->and($agreement->final_scope)->toBe($gig->description)
         ->and($agreement->terms_version)->toBe(0)
         ->and($gig->currentAgreement->id)->toBe($agreement->id);
@@ -84,8 +91,15 @@ test('client submits terms and freelancer confirms them', function () {
     [$client, $freelancer, $gig, , $agreement] = agreementWorkflow();
 
     $submitted = app(SubmitGigAgreementTerms::class)->execute($client, $gig, agreementTerms());
+    $benchmark = app(WageBenchmarkService::class)->calculate(
+        $gig->province_id,
+        GigEstimatedDuration::TwoToFourHours,
+    );
     expect($submitted->terms_version)->toBe(1)
         ->and($submitted->submitted_at)->not->toBeNull()
+        ->and($submitted->estimated_duration)->toBe(GigEstimatedDuration::TwoToFourHours)
+        ->and($submitted->wage_benchmark_minimum)->toBe($benchmark['minimum'])
+        ->and($submitted->wage_benchmark_maximum)->toBe($benchmark['maximum'])
         ->and($gig->refresh()->status)->toBe(GigStatus::LockPending);
 
     app(AcceptGigAgreement::class)->execute($freelancer, $gig);
@@ -93,6 +107,19 @@ test('client submits terms and freelancer confirms them', function () {
         ->and($agreement->refresh()->freelancer_confirmed_at)->not->toBeNull();
 
     expect(fn () => app(SubmitGigAgreementTerms::class)->execute($client, $gig, agreementTerms()))->toThrow(DomainException::class);
+});
+
+test('client may submit a final price below the wage benchmark', function () {
+    [$client, , $gig] = agreementWorkflow();
+
+    $submitted = app(SubmitGigAgreementTerms::class)->execute($client, $gig, [
+        ...agreementTerms(),
+        'final_total_price' => 1_000,
+    ]);
+    $resource = GigAgreementResource::make($submitted)->resolve(request());
+
+    expect($submitted->final_total_price)->toBe(1_000)
+        ->and($resource['wage_benchmark']['status'])->toBe('below');
 });
 
 test('freelancer change request returns gig to preparation and client resubmission increments version', function () {
