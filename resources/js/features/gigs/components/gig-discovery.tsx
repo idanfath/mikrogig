@@ -65,17 +65,26 @@ export function GigDiscovery({
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    const queryPayload: Record<string, string> = {
+      ...data,
+      province_id: data.province_id ?? '',
+      regency_id: data.regency_id ?? '',
+    };
     router.get(
-      index.url({ query: data }),
+      index.url({ query: queryPayload }),
       {},
       { preserveScroll: true, preserveState: true },
     );
   };
 
   const resetFilters = () => {
-    setData({});
+    const defaultFilters: Filters = {
+      province_id: filters.province_id ?? '',
+      regency_id: filters.regency_id ?? '',
+    };
+    setData(defaultFilters);
     router.get(
-      index.url(),
+      index.url({ query: defaultFilters }),
       {},
       { preserveScroll: true, preserveState: true },
     );
@@ -102,11 +111,11 @@ export function GigDiscovery({
                     Provinsi
                   </span>
                   <Select
-                    value={data.province_id ?? ''}
+                    value={data.province_id || 'ALL'}
                     onValueChange={(val) =>
                       setData({
                         ...data,
-                        province_id: val,
+                        province_id: val === 'ALL' ? '' : val,
                         regency_id: '',
                       })
                     }
@@ -115,6 +124,7 @@ export function GigDiscovery({
                       <SelectValue placeholder="Semua provinsi" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="ALL">Semua provinsi</SelectItem>
                       {provinces.map((province) => (
                         <SelectItem key={province.id} value={province.id}>
                           {province.name}
@@ -129,15 +139,17 @@ export function GigDiscovery({
                     Kabupaten / Kota
                   </span>
                   <Select
-                    value={data.regency_id ?? ''}
+                    disabled={!data.province_id}
+                    value={data.regency_id || 'ALL'}
                     onValueChange={(val) =>
-                      setData({ ...data, regency_id: val })
+                      setData({ ...data, regency_id: val === 'ALL' ? '' : val })
                     }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Semua kabupaten/kota" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="ALL">Semua kabupaten/kota</SelectItem>
                       {regencies.map((regency) => (
                         <SelectItem key={regency.id} value={regency.id}>
                           {regency.name}
@@ -153,9 +165,9 @@ export function GigDiscovery({
                   </span>
                   <div className="flex items-center gap-2">
                     <Select
-                      value={data.category ?? ''}
+                      value={data.category || 'ALL'}
                       onValueChange={(val) =>
-                        setData({ ...data, category: val })
+                        setData({ ...data, category: val === 'ALL' ? '' : val })
                       }
                     >
                       <SelectTrigger className="w-full min-w-0 flex-1">
